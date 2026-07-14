@@ -1,0 +1,6 @@
+{
+  "name": "AIMed CoE",
+  "description": "The official website for the Artificial Intelligence for Medical Center of Excellence (AIMed CoE) at Universitas Sriwijaya, specializing in Medical Imaging, Computer Vision, and Healthcare AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
