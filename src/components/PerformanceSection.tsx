@@ -85,7 +85,7 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
     }
   };
 
-  const { publicationsData, events } = useData();
+  const { publicationsData, events, conferencesOrganized = [], journalsOrganized = [], promotions = [] } = useData();
 
   const sortedJournals = [...(publicationsData?.journals || [])].sort((a, b) => {
     const yearA = parseInt(String(a.year)) || 0;
@@ -98,129 +98,6 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
     const yearB = parseInt(String(b.year)) || 0;
     return yearB - yearA;
   });
-
-  const conferencesOrganized = [
-    {
-      title: 'International Conference on Artificial Intelligence & Technology (ICAITech)',
-      role: 'Main Organizer',
-      date: 'Annual Event',
-      location: 'Palembang, Indonesia (Hybrid)',
-      stats: 'Global platform for AI & Emerging Technologies research and publications',
-      url: 'https://icaitech.org/',
-      desc: {
-        en: 'In addition to research and innovation, our research group also manages the International Conference on Artificial Intelligence and Technology (ICAITech). This annual conference serves as a global platform for researchers, academics, and industry professionals to present their latest findings, exchange ideas, and explore emerging technological advancements.\n\nThrough ICAITech, we oversee the full conference lifecycle — including call for papers, peer-review coordination, scientific sessions, keynote talks, and proceedings publication — ensuring academic excellence, international collaboration, and impactful contributions to the global research community.',
-        id: 'Selain penelitian dan inovasi, kelompok riset kami juga mengelola International Conference on Artificial Intelligence and Technology (ICAITech). Konferensi tahunan ini berfungsi sebagai platform global bagi para peneliti, akademisi, dan profesional industri untuk mempresentasikan temuan terbaru mereka, bertukar ide, dan mengeksplorasi kemajuan teknologi yang berkembang.\n\nMelalui ICAITech, kami mengawasi seluruh siklus konferensi — termasuk panggilan makalah, koordinasi peer-review, sesi ilmiah, ceramah utama, dan publikasi prosiding — memastikan keunggulan akademis, kolaborasi internasional, dan kontribusi berdampak bagi komunitas riset global.'
-      }
-    },
-    {
-      title: 'ICAIM 2025: International Conference on Artificial Intelligence in Medicine',
-      role: 'Main Host / Organizer',
-      date: 'August 12-14, 2025',
-      location: 'Palembang, Indonesia (Hybrid)',
-      stats: '120+ accepted research papers, proceedings published by Springer LNCS',
-      url: '#',
-      desc: {
-        en: 'The premium academic event bridging AI researchers and medical practitioners, co-sponsored by the Indonesian Association for AI in Health.',
-        id: 'Acara akademik utama yang mempertemukan peneliti AI dengan praktisi medis, didukung oleh Asosiasi AI Kesehatan Indonesia.'
-      }
-    },
-    {
-      title: 'Sriwijaya International Conference on Information Technology (SICONIAN) 2024',
-      role: 'Biomedical AI & Telehealth Track Organizer',
-      date: 'November 6-7, 2024',
-      location: 'Palembang, Indonesia',
-      stats: '45 papers in the dedicated biomedical track, published in IEEE Xplore',
-      url: '#',
-      desc: {
-        en: 'Unsri flagship computing conference where AIMed hosted the special track focusing on Deep Learning for Medical Diagnostics.',
-        id: 'Konferensi unggulan ilmu komputer Unsri di mana AIMed mengelola track khusus berfokus pada Deep Learning untuk Diagnosis Medis.'
-      }
-    }
-  ];
-
-  const journalsOrganized = [
-    {
-      title: 'Computer Engineering and Applications Journal (ComEngApp)',
-      publisher: 'Universitas Sriwijaya',
-      issn: 'E-ISSN: 2252-5459; P-ISSN: 2252-4274',
-      frequency: '3 issues per year (Feb, Jun, Oct)',
-      indexing: 'Scopus (390+ citations), SINTA',
-      url: 'https://comengapp.unsri.ac.id/index.php/comengapp/index',
-      desc: {
-        en: 'The Computer Engineering and Applications Journal (ComEngApp) (E-ISSN: 2252-5459; P-ISSN: 2252-4274) publishes original papers in computer engineering with a strong emphasis on AI-driven engineering and applications. The journal focuses on the development and implementation of Artificial Intelligence (AI), machine learning, deep learning, intelligent systems, computer vision, natural language processing, robotics, embedded systems, and the Internet of Things (IoT) to solve complex engineering and real-world problems.\n\nComEngApp particularly encourages interdisciplinary research that applies AI-driven technologies in areas such as smart engineering systems, healthcare technologies and medical decision support, environmental monitoring, climate and sustainability analysis, smart agriculture, and disaster prediction and management.\n\nThe Computer Engineering and Applications (ComEngApp) Journal continues to demonstrate its growing academic influence as reflected in its citation performance. Based on the latest citation data extracted from the Scopus citing documents report, articles published in ComEngApp have been cited more than 390 times by international scholarly publications.',
-        id: 'Computer Engineering and Applications Journal (ComEngApp) (E-ISSN: 2252-5459; P-ISSN: 2252-4274) mempublikasikan makalah asli di bidang teknik komputer dengan penekanan kuat pada rekayasa dan aplikasi berbasis AI. Jurnal ini berfokus pada pengembangan dan implementasi Kecerdasan Buatan (AI), pembelajaran mesin, deep learning, sistem cerdas, visi komputer, pemrosesan bahasa alami, robotika, sistem tertanam, dan Internet of Things (IoT) untuk menyelesaikan masalah teknik dan dunia nyata yang kompleks.\n\nComEngApp sangat mendorong penelitian lintas disiplin yang menerapkan teknologi berbasis AI di bidang-bidang seperti sistem rekayasa cerdas, teknologi kesehatan dan dukungan keputusan medis, pemantauan lingkungan, analisis iklim dan keberlanjutan, pertanian cerdas, serta prediksi dan manajemen bencana.\n\nJurnal Computer Engineering and Applications (ComEngApp) terus menunjukkan pengaruh akademisnya yang terus berkembang sebagaimana tercermin dalam kinerja sitasinya. Berdasarkan data sitasi terbaru yang diekstrak dari laporan dokumen sitasi Scopus, artikel yang dipublikasikan di ComEngApp telah disitasi lebih dari 390 kali oleh publikasi ilmiah internasional.'
-      }
-    },
-    {
-      title: 'Journal of Biomedical Intelligence & Telehealth (JBIT)',
-      publisher: 'Universitas Sriwijaya & AIMed CoE',
-      issn: 'ISSN 2988-1234 (Online)',
-      frequency: 'Bi-annual (June & December)',
-      indexing: 'SINTA 3, progressing to Scopus',
-      url: '#',
-      desc: {
-        en: 'A dedicated open-access peer-reviewed outlet publishing breakthroughs in computational biology, medical informatics, and regional telemedicine implementation.',
-        id: 'Wadah publikasi peer-review akses terbuka khusus untuk terobosan dalam biologi komputasi, informatika medis, dan telemedisin regional.'
-      }
-    },
-    {
-      title: 'Sriwijaya Journal of Computer Science (SJCS)',
-      publisher: 'Faculty of Computer Science, Universitas Sriwijaya',
-      issn: 'ISSN 2302-3456 (Online)',
-      frequency: 'Special Medical AI Issue Guest Editorial Board',
-      indexing: 'SINTA 2 Accredited',
-      url: '#',
-      desc: {
-        en: 'AIMed researchers serve as guest editors and permanent reviewers for special issues exploring neural architectures for diagnostics.',
-        id: 'Peneliti AIMed bertindak sebagai editor tamu dan reviewer tetap untuk edisi khusus yang mengeksplorasi arsitektur saraf untuk diagnostik.'
-      }
-    }
-  ];
-
-  const basePromotions = [
-    {
-      title: {
-        en: 'Rural Clinic Telehealth Roadshow & Deployment',
-        id: 'Roadshow & Implementasi Telehealth di Klinik Pedesaan'
-      },
-      category: 'Community Empowerment',
-      date: 'March - May 2025',
-      coverage: {
-        en: '15 community health centers in Ogan Ilir & Banyuasin regions equipped with edge-AI portable diagnostic aids.',
-        id: '15 puskesmas di wilayah Ogan Ilir & Banyuasin dilengkapi dengan alat bantu diagnostik portabel berbasis edge-AI.'
-      },
-      image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800',
-      url: '#'
-    },
-    {
-      title: {
-        en: 'Outstanding National Innovation Gold Award 2024',
-        id: 'Penghargaan Emas Inovasi Nasional Unggulan 2024'
-      },
-      category: 'Recognition',
-      date: 'October 2024',
-      coverage: {
-        en: 'Awarded by the Ministry of Education & Research for AIMed Ultrasound Denoising Engine. Recognised for high clinical applicability.',
-        id: 'Dianugerahi oleh Kementerian Pendidikan & Ristek atas AIMed Ultrasound Denoising Engine. Diakui karena aplikabilitas klinis yang tinggi.'
-      },
-      image: 'https://images.unsplash.com/photo-1496469888073-80de7e9b97cb?auto=format&fit=crop&q=80&w=800',
-      url: '#'
-    },
-    {
-      title: {
-        en: 'Medical Students AI Workshop & Seminar',
-        id: 'Seminar & Workshop AI untuk Mahasiswa Kedokteran'
-      },
-      category: 'Education Promotion',
-      date: 'Bi-annual Events',
-      coverage: {
-        en: 'Educated over 300+ medical and engineering students in South Sumatra about clinical diagnostics pipelines using deep learning tools.',
-        id: 'Mengedukasi lebih dari 300+ mahasiswa kedokteran dan teknik di Sumatra Selatan tentang proses diagnostik klinis menggunakan AI.'
-      },
-      image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
-      url: '#'
-    }
-  ];
 
   // Map past activities events into promotion
   const pastEventsMapped = (events || [])
@@ -240,7 +117,7 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
       url: '#'
     }));
 
-  const promotionsData = [...basePromotions, ...pastEventsMapped];
+  const promotionsData = [...promotions, ...pastEventsMapped];
 
   return (
     <section id="performance" className="py-24 bg-transparent relative z-10 transition-colors duration-300">

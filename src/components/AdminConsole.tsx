@@ -55,7 +55,10 @@ type CollectionType =
   | 'social_instagram'
   | 'mass_media'
   | 'partners'
-  | 'sdg_alignment';
+  | 'sdg_alignment'
+  | 'conferences_organized'
+  | 'journals_organized'
+  | 'promotions';
 
 interface ImageUploadFieldProps {
   label: string;
@@ -387,6 +390,12 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
         data.setMassMedia(prev => prev.filter(item => item.id !== id));
       } else if (collection === 'partners') {
         data.setPartners(prev => prev.filter(item => item.id !== id));
+      } else if (collection === 'conferences_organized') {
+        data.setConferencesOrganized(prev => prev.filter(item => item.id !== id));
+      } else if (collection === 'journals_organized') {
+        data.setJournalsOrganized(prev => prev.filter(item => item.id !== id));
+      } else if (collection === 'promotions') {
+        data.setPromotions(prev => prev.filter(item => item.id !== id));
       }
       showMsg(lang === 'en' ? 'Item deleted successfully!' : 'Item berhasil dihapus!');
     } catch (e) {
@@ -545,6 +554,38 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
         name: '',
         logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
         websiteUrl: ''
+      };
+    } else if (activeTab === 'conferences_organized') {
+      defaultItem = {
+        ...defaultItem,
+        title: '',
+        role: 'Main Organizer',
+        date: 'Annual Event',
+        location: '',
+        stats: '',
+        url: '',
+        desc: { en: '', id: '' }
+      };
+    } else if (activeTab === 'journals_organized') {
+      defaultItem = {
+        ...defaultItem,
+        title: '',
+        publisher: 'Universitas Sriwijaya',
+        issn: '',
+        frequency: '',
+        indexing: '',
+        url: '',
+        desc: { en: '', id: '' }
+      };
+    } else if (activeTab === 'promotions') {
+      defaultItem = {
+        ...defaultItem,
+        title: { en: '', id: '' },
+        category: '',
+        date: '',
+        coverage: { en: '', id: '' },
+        image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
+        url: '#'
       };
     }
 
@@ -726,6 +767,21 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
           const exists = prev.some(x => x.id === finalized.id);
           return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
         });
+      } else if (activeTab === 'conferences_organized') {
+        data.setConferencesOrganized(prev => {
+          const exists = prev.some(x => x.id === finalized.id);
+          return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
+        });
+      } else if (activeTab === 'journals_organized') {
+        data.setJournalsOrganized(prev => {
+          const exists = prev.some(x => x.id === finalized.id);
+          return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
+        });
+      } else if (activeTab === 'promotions') {
+        data.setPromotions(prev => {
+          const exists = prev.some(x => x.id === finalized.id);
+          return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
+        });
       }
 
       setIsFormOpen(false);
@@ -759,6 +815,9 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
       case 'social_instagram': return data.instagramPosts;
       case 'mass_media': return data.massMedia;
       case 'partners': return data.partners;
+      case 'conferences_organized': return data.conferencesOrganized;
+      case 'journals_organized': return data.journalsOrganized;
+      case 'promotions': return data.promotions;
       default: return [];
     }
   };
@@ -2749,6 +2808,285 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         onChange={(val) => setEditingItem({ ...editingItem, logo: val })}
                       />
                     </div>
+                  </div>
+                )}
+
+                {/* CONFERENCES ORGANIZED FIELDS */}
+                {activeTab === 'conferences_organized' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Conference Title</label>
+                      <input 
+                        type="text" 
+                        value={editingItem.title || ''} 
+                        onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                        required
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role (e.g. Main Organizer)</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.role || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, role: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date / Frequency</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.date || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.location || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, location: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stats / Influence</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.stats || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, stats: e.target.value })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Website URL</label>
+                      <input 
+                        type="url" 
+                        value={editingItem.url || ''} 
+                        onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Description (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={editingItem.desc?.en || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, desc: { ...editingItem.desc, en: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Description (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={editingItem.desc?.id || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, desc: { ...editingItem.desc, id: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* JOURNALS ORGANIZED FIELDS */}
+                {activeTab === 'journals_organized' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Journal Title</label>
+                      <input 
+                        type="text" 
+                        value={editingItem.title || ''} 
+                        onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                        required
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Publisher</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.publisher || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, publisher: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ISSN (E-ISSN / P-ISSN)</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.issn || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, issn: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Frequency</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.frequency || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, frequency: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Indexing / Citations</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.indexing || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, indexing: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Website URL</label>
+                      <input 
+                        type="url" 
+                        value={editingItem.url || ''} 
+                        onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Description (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={editingItem.desc?.en || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, desc: { ...editingItem.desc, en: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Description (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={editingItem.desc?.id || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, desc: { ...editingItem.desc, id: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PROMOTIONS FIELDS */}
+                {activeTab === 'promotions' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <input 
+                          type="text" 
+                          value={editingItem.title?.en || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, en: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <input 
+                          type="text" 
+                          value={editingItem.title?.id || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, id: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Category</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.category || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date / Time</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.date || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Link URL</label>
+                      <input 
+                        type="text" 
+                        value={editingItem.url || ''} 
+                        onChange={(e) => setEditingItem({ ...editingItem, url: e.target.value })}
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Coverage / Desc (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={3}
+                          value={editingItem.coverage?.en || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, coverage: { ...editingItem.coverage, en: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Coverage / Desc (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={3}
+                          value={editingItem.coverage?.id || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, coverage: { ...editingItem.coverage, id: e.target.value } })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <ImageUploadField 
+                      label="Promotion / Event Poster Image" 
+                      value={editingItem.image || ''} 
+                      onChange={(val) => setEditingItem({ ...editingItem, image: val })}
+                    />
                   </div>
                 )}
 

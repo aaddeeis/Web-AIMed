@@ -185,3 +185,47 @@ export interface SDGContent {
   sdg9Image: string;
 }
 
+export interface ConferenceOrganized {
+  id: string;
+  title: string;
+  role: string;
+  date: string;
+  location: string;
+  stats: string;
+  url: string;
+  desc: {
+    en: string;
+    id: string;
+  };
+}
+
+export interface JournalOrganized {
+  id: string;
+  title: string;
+  publisher: string;
+  issn: string;
+  frequency: string;
+  indexing: string;
+  url: string;
+  desc: {
+    en: string;
+    id: string;
+  };
+}
+
+export interface Promotion {
+  id: string;
+  title: {
+    en: string;
+    id: string;
+  };
+  category: string;
+  date: string;
+  coverage: {
+    en: string;
+    id: string;
+  };
+  image: string;
+  url: string;
+}
+

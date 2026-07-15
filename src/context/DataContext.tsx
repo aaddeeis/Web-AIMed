@@ -10,7 +10,10 @@ import {
   Collaboration, 
   TimelineProject,
   Partner,
-  SDGContent
+  SDGContent,
+  ConferenceOrganized,
+  JournalOrganized,
+  Promotion
 } from '../types';
 import { 
   RESEARCH_GROUPS as initialResearchGroups,
@@ -20,6 +23,9 @@ import {
   EVENTS as initialEvents,
   PARTNERS as initialPartners,
   SDG_CONTENT as initialSdgContent,
+  CONFERENCES_ORGANIZED as initialConferencesOrganized,
+  JOURNALS_ORGANIZED as initialJournalsOrganized,
+  PROMOTIONS as initialPromotions,
 } from '../data/mockData';
 import { loadCMSFromFirestore, saveCMSToFirestore } from '../lib/firebase';
 
@@ -68,6 +74,9 @@ interface DataContextType {
   massMedia: any[];
   partners: Partner[];
   sdgContent: SDGContent;
+  conferencesOrganized: ConferenceOrganized[];
+  journalsOrganized: JournalOrganized[];
+  promotions: Promotion[];
 
   // Setters
   setResearchGroups: React.Dispatch<React.SetStateAction<ResearchGroup[]>>;
@@ -88,6 +97,9 @@ interface DataContextType {
   setMassMedia: React.Dispatch<React.SetStateAction<any[]>>;
   setPartners: React.Dispatch<React.SetStateAction<Partner[]>>;
   setSdgContent: React.Dispatch<React.SetStateAction<SDGContent>>;
+  setConferencesOrganized: React.Dispatch<React.SetStateAction<ConferenceOrganized[]>>;
+  setJournalsOrganized: React.Dispatch<React.SetStateAction<JournalOrganized[]>>;
+  setPromotions: React.Dispatch<React.SetStateAction<Promotion[]>>;
 
   // Actions
   resetToDefault: () => void;
@@ -868,6 +880,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [sdgContent, setSdgContent] = useState<SDGContent>(() => 
     getStored('sdgContent', initialSdgContent)
   );
+  const [conferencesOrganized, setConferencesOrganized] = useState<ConferenceOrganized[]>(() => 
+    getStored('conferencesOrganized', initialConferencesOrganized)
+  );
+  const [journalsOrganized, setJournalsOrganized] = useState<JournalOrganized[]>(() => 
+    getStored('journalsOrganized', initialJournalsOrganized)
+  );
+  const [promotions, setPromotions] = useState<Promotion[]>(() => 
+    getStored('promotions', initialPromotions)
+  );
 
   // Sync to local storage on changes
   useEffect(() => { localStorage.setItem('aimed_researchGroups', JSON.stringify(researchGroups)); }, [researchGroups]);
@@ -888,6 +909,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => { localStorage.setItem('aimed_massMedia', JSON.stringify(massMedia)); }, [massMedia]);
   useEffect(() => { localStorage.setItem('aimed_partners', JSON.stringify(partners)); }, [partners]);
   useEffect(() => { localStorage.setItem('aimed_sdgContent', JSON.stringify(sdgContent)); }, [sdgContent]);
+  useEffect(() => { localStorage.setItem('aimed_conferencesOrganized', JSON.stringify(conferencesOrganized)); }, [conferencesOrganized]);
+  useEffect(() => { localStorage.setItem('aimed_journalsOrganized', JSON.stringify(journalsOrganized)); }, [journalsOrganized]);
+  useEffect(() => { localStorage.setItem('aimed_promotions', JSON.stringify(promotions)); }, [promotions]);
 
   const resetToDefault = () => {
     setResearchGroups(initialResearchGroups);
@@ -908,6 +932,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMassMedia(defaultMassMedia);
     setPartners(initialPartners);
     setSdgContent(initialSdgContent);
+    setConferencesOrganized(initialConferencesOrganized);
+    setJournalsOrganized(initialJournalsOrganized);
+    setPromotions(initialPromotions);
   };
 
   const exportData = () => {
@@ -929,7 +956,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       instagramPosts,
       massMedia,
       partners,
-      sdgContent
+      sdgContent,
+      conferencesOrganized,
+      journalsOrganized,
+      promotions
     };
     return JSON.stringify(data, null, 2);
   };
@@ -983,6 +1013,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (parsed.massMedia) setMassMedia(parsed.massMedia);
           if (parsed.partners) setPartners(parsed.partners);
           if (parsed.sdgContent) setSdgContent(parsed.sdgContent);
+          if (parsed.conferencesOrganized) setConferencesOrganized(parsed.conferencesOrganized);
+          if (parsed.journalsOrganized) setJournalsOrganized(parsed.journalsOrganized);
+          if (parsed.promotions) setPromotions(parsed.promotions);
           
           // Also sync to localStorage so they are immediately available
           Object.keys(parsed).forEach(key => {
@@ -1046,6 +1079,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (parsed.massMedia) setMassMedia(parsed.massMedia);
       if (parsed.partners) setPartners(parsed.partners);
       if (parsed.sdgContent) setSdgContent(parsed.sdgContent);
+      if (parsed.conferencesOrganized) setConferencesOrganized(parsed.conferencesOrganized);
+      if (parsed.journalsOrganized) setJournalsOrganized(parsed.journalsOrganized);
+      if (parsed.promotions) setPromotions(parsed.promotions);
       return true;
     } catch (e) {
       console.error('Failed to import data', e);
@@ -1057,10 +1093,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <DataContext.Provider value={{
       researchGroups, showcaseProjects, publicationsData, datasets, news, events,
       leadership, assistants, members, collaborators, postgraduate, graduate, undergraduate,
-      youtubeVideos, instagramPosts, massMedia, partners, sdgContent,
+      youtubeVideos, instagramPosts, massMedia, partners, sdgContent, conferencesOrganized, journalsOrganized, promotions,
       setResearchGroups, setShowcaseProjects, setPublicationsData, setDatasets, setNews, setEvents,
       setLeadership, setAssistants, setMembers, setCollaborators, setPostgraduate, setGraduate, setUndergraduate,
-      setYoutubeVideos, setInstagramPosts, setMassMedia, setPartners, setSdgContent,
+      setYoutubeVideos, setInstagramPosts, setMassMedia, setPartners, setSdgContent, setConferencesOrganized, setJournalsOrganized, setPromotions,
       resetToDefault, exportData, importData, saveToServer
     }}>
       {children}
