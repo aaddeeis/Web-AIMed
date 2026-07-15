@@ -966,64 +966,74 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Auto-load CMS data from Firebase Firestore (fallback to Server disk if empty or fails)
   useEffect(() => {
+    const applyCMSData = (parsed: any) => {
+      if (!parsed) return;
+      if (parsed.researchGroups) setResearchGroups(parsed.researchGroups);
+      if (parsed.showcaseProjects) setShowcaseProjects(parsed.showcaseProjects);
+      if (parsed.publicationsData) setPublicationsData(parsed.publicationsData);
+      if (parsed.datasets) setDatasets(parsed.datasets);
+      if (parsed.news) setNews(parsed.news);
+      if (parsed.events) setEvents(parsed.events);
+      if (parsed.leadership) setLeadership(parsed.leadership);
+      if (parsed.assistants) setAssistants(parsed.assistants);
+      if (parsed.members) setMembers(parsed.members);
+      if (parsed.collaborators) setCollaborators(parsed.collaborators);
+      if (parsed.postgraduate) setPostgraduate(parsed.postgraduate);
+      if (parsed.graduate) setGraduate(parsed.graduate);
+      if (parsed.undergraduate) setUndergraduate(parsed.undergraduate);
+      if (parsed.youtubeVideos) setYoutubeVideos(parsed.youtubeVideos);
+      if (parsed.instagramPosts) setInstagramPosts(parsed.instagramPosts);
+      if (parsed.massMedia) setMassMedia(parsed.massMedia);
+      if (parsed.partners) setPartners(parsed.partners);
+      if (parsed.sdgContent) setSdgContent(parsed.sdgContent);
+      if (parsed.conferencesOrganized) setConferencesOrganized(parsed.conferencesOrganized);
+      if (parsed.journalsOrganized) setJournalsOrganized(parsed.journalsOrganized);
+      if (parsed.promotions) setPromotions(parsed.promotions);
+      
+      // Also sync to localStorage so they are immediately available
+      Object.keys(parsed).forEach(key => {
+        localStorage.setItem(`aimed_${key}`, JSON.stringify(parsed[key]));
+      });
+    };
+
     const loadServerData = async () => {
+      let loaded = false;
       try {
         console.log('Attempting to load CMS data from Firebase Firestore...');
-        let parsed = await loadCMSFromFirestore();
-        let loadedFromFirestore = false;
+        const parsed = await loadCMSFromFirestore();
 
         if (parsed && Object.keys(parsed).length > 0) {
-          loadedFromFirestore = true;
+          applyCMSData(parsed);
+          loaded = true;
           console.log('CMS data loaded successfully from Firestore.');
         } else {
           console.log('Firestore is empty. Falling back to local server disk/assets...');
+        }
+      } catch (err) {
+        console.error('Failed to load CMS data from Firestore (e.g. Quota Exceeded):', err);
+      }
+
+      // If Firestore failed or was empty, load from Server Disk
+      if (!loaded) {
+        try {
+          console.log('Attempting fallback: Loading CMS data from server disk...');
           const response = await fetch('/api/cms/load');
           const result = await response.json();
           if (result.status === 'success' && result.data) {
-            parsed = result.data;
-            console.log('CMS data loaded successfully from server disk.');
+            applyCMSData(result.data);
+            loaded = true;
+            console.log('CMS data loaded successfully from server disk fallback.');
             
-            // Auto-populate Firestore so it is persistent across server restarts/serverless deployments
+            // Auto-populate Firestore if empty (only try if we haven't already hit quota issues)
             try {
-              console.log('Auto-populating Firestore with initial CMS data...');
-              await saveCMSToFirestore(parsed);
-              console.log('Firestore successfully auto-populated with initial CMS data!');
-            } catch (saveErr) {
-              console.error('Failed to auto-populate Firestore:', saveErr);
+              await saveCMSToFirestore(result.data);
+            } catch (e) {
+              // Ignore save error on load
             }
           }
+        } catch (serverErr) {
+          console.error('Failed fallback load from server disk:', serverErr);
         }
-
-        if (parsed) {
-          if (parsed.researchGroups) setResearchGroups(parsed.researchGroups);
-          if (parsed.showcaseProjects) setShowcaseProjects(parsed.showcaseProjects);
-          if (parsed.publicationsData) setPublicationsData(parsed.publicationsData);
-          if (parsed.datasets) setDatasets(parsed.datasets);
-          if (parsed.news) setNews(parsed.news);
-          if (parsed.events) setEvents(parsed.events);
-          if (parsed.leadership) setLeadership(parsed.leadership);
-          if (parsed.assistants) setAssistants(parsed.assistants);
-          if (parsed.members) setMembers(parsed.members);
-          if (parsed.collaborators) setCollaborators(parsed.collaborators);
-          if (parsed.postgraduate) setPostgraduate(parsed.postgraduate);
-          if (parsed.graduate) setGraduate(parsed.graduate);
-          if (parsed.undergraduate) setUndergraduate(parsed.undergraduate);
-          if (parsed.youtubeVideos) setYoutubeVideos(parsed.youtubeVideos);
-          if (parsed.instagramPosts) setInstagramPosts(parsed.instagramPosts);
-          if (parsed.massMedia) setMassMedia(parsed.massMedia);
-          if (parsed.partners) setPartners(parsed.partners);
-          if (parsed.sdgContent) setSdgContent(parsed.sdgContent);
-          if (parsed.conferencesOrganized) setConferencesOrganized(parsed.conferencesOrganized);
-          if (parsed.journalsOrganized) setJournalsOrganized(parsed.journalsOrganized);
-          if (parsed.promotions) setPromotions(parsed.promotions);
-          
-          // Also sync to localStorage so they are immediately available
-          Object.keys(parsed).forEach(key => {
-            localStorage.setItem(`aimed_${key}`, JSON.stringify(parsed[key]));
-          });
-        }
-      } catch (err) {
-        console.error('Failed to auto-load CMS data from server/Firestore:', err);
       }
     };
     loadServerData();
