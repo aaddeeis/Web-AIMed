@@ -436,7 +436,7 @@ export default function Communication({ lang }: CommunicationProps) {
                                 <iframe
                                   src={`https://www.instagram.com/p/${shortcode}/embed/?utm_source=ig_embed`}
                                   className="w-full h-full border-0 rounded-xl"
-                                  allowTransparency={true}
+                                  allowtransparency="true"
                                   allow="encrypted-media"
                                   scrolling="no"
                                 ></iframe>

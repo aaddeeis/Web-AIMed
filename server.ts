@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import { createServer as createViteServer } from "vite";
@@ -42,6 +43,40 @@ function getAiClient(): GoogleGenAI | null {
 // Health Check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", mode: process.env.NODE_ENV || "development" });
+});
+
+// GET /api/cms/load - Load custom CMS data from server disk if available
+app.get("/api/cms/load", (req, res) => {
+  const dataPath = path.join(process.cwd(), "src", "data", "cms_data.json");
+  
+  if (fs.existsSync(dataPath)) {
+    try {
+      const rawData = fs.readFileSync(dataPath, "utf8");
+      return res.json({ status: "success", data: JSON.parse(rawData) });
+    } catch (e: any) {
+      console.error("Failed to read cms_data.json:", e);
+      return res.status(500).json({ error: "Failed to parse saved data." });
+    }
+  }
+  return res.json({ status: "not_found" });
+});
+
+// POST /api/cms/save - Save custom CMS data directly to server disk so it is preserved in workspace/git
+app.post("/api/cms/save", (req, res) => {
+  const dataPath = path.join(process.cwd(), "src", "data", "cms_data.json");
+  const dirPath = path.dirname(dataPath);
+
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+    fs.writeFileSync(dataPath, JSON.stringify(req.body, null, 2), "utf8");
+    console.log("Successfully wrote updated CMS data to src/data/cms_data.json");
+    return res.json({ status: "success" });
+  } catch (e: any) {
+    console.error("Failed to write cms_data.json:", e);
+    return res.status(500).json({ error: "Failed to write data to disk: " + e.message });
+  }
 });
 
 // 1.5. URL Metadata Extractor Route for CMS Mass Media Auto-fill

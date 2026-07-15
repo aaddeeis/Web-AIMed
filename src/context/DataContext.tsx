@@ -83,6 +83,7 @@ interface DataContextType {
   resetToDefault: () => void;
   exportData: () => string;
   importData: (jsonData: string) => boolean;
+  saveToServer: () => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -911,6 +912,62 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return JSON.stringify(data, null, 2);
   };
 
+  // Auto-load CMS data from server disk on mount
+  useEffect(() => {
+    const loadServerData = async () => {
+      try {
+        const response = await fetch('/api/cms/load');
+        const result = await response.json();
+        if (result.status === 'success' && result.data) {
+          const parsed = result.data;
+          if (parsed.researchGroups) setResearchGroups(parsed.researchGroups);
+          if (parsed.showcaseProjects) setShowcaseProjects(parsed.showcaseProjects);
+          if (parsed.publicationsData) setPublicationsData(parsed.publicationsData);
+          if (parsed.datasets) setDatasets(parsed.datasets);
+          if (parsed.news) setNews(parsed.news);
+          if (parsed.events) setEvents(parsed.events);
+          if (parsed.leadership) setLeadership(parsed.leadership);
+          if (parsed.assistants) setAssistants(parsed.assistants);
+          if (parsed.members) setMembers(parsed.members);
+          if (parsed.collaborators) setCollaborators(parsed.collaborators);
+          if (parsed.postgraduate) setPostgraduate(parsed.postgraduate);
+          if (parsed.graduate) setGraduate(parsed.graduate);
+          if (parsed.undergraduate) setUndergraduate(parsed.undergraduate);
+          if (parsed.youtubeVideos) setYoutubeVideos(parsed.youtubeVideos);
+          if (parsed.instagramPosts) setInstagramPosts(parsed.instagramPosts);
+          if (parsed.massMedia) setMassMedia(parsed.massMedia);
+          
+          // Also sync to localStorage so they are immediately available
+          Object.keys(parsed).forEach(key => {
+            localStorage.setItem(`aimed_${key}`, JSON.stringify(parsed[key]));
+          });
+          console.log('CMS data loaded successfully from server.');
+        }
+      } catch (err) {
+        console.error('Failed to auto-load CMS data from server:', err);
+      }
+    };
+    loadServerData();
+  }, []);
+
+  const saveToServer = async (): Promise<boolean> => {
+    try {
+      const dataStr = exportData();
+      const response = await fetch('/api/cms/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: dataStr
+      });
+      const res = await response.json();
+      return res.status === 'success';
+    } catch (e) {
+      console.error('Failed to save CMS data to server:', e);
+      return false;
+    }
+  };
+
   const importData = (jsonData: string): boolean => {
     try {
       const parsed = JSON.parse(jsonData);
@@ -945,7 +1002,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setResearchGroups, setShowcaseProjects, setPublicationsData, setDatasets, setNews, setEvents,
       setLeadership, setAssistants, setMembers, setCollaborators, setPostgraduate, setGraduate, setUndergraduate,
       setYoutubeVideos, setInstagramPosts, setMassMedia,
-      resetToDefault, exportData, importData
+      resetToDefault, exportData, importData, saveToServer
     }}>
       {children}
     </DataContext.Provider>

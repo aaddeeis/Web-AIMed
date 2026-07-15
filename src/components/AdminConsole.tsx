@@ -896,6 +896,23 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
               className="hidden" 
             />
 
+            <button 
+              onClick={async () => {
+                const success = await data.saveToServer();
+                if (success) {
+                  showMsg(lang === 'en' 
+                    ? 'Changes successfully published to server disk! (Saved permanently to src/data/cms_data.json)' 
+                    : 'Perubahan berhasil dipublikasikan ke server disk! (Disimpan permanen di src/data/cms_data.json)');
+                } else {
+                  showMsg(lang === 'en' ? 'Failed to publish changes to server.' : 'Gagal mempublikasikan perubahan ke server.', 'error');
+                }
+              }}
+              className="px-3 py-1.5 bg-gradient-to-r from-teal-500 to-sky-500 hover:from-teal-600 hover:to-sky-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-[0.98]"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>{lang === 'en' ? 'Publish to Server' : 'Publikasikan ke Server'}</span>
+            </button>
+
             <div className="h-6 w-[1px] bg-black/10 dark:bg-white/10 mx-2" />
 
             <button 
