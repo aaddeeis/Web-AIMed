@@ -36,6 +36,7 @@ interface Person {
   topic?: { en: string; id: string }; // for assistants / students
   supervisor?: string; // for students
   interests?: { en: string[]; id: string[] };
+  researchFocus?: { en: string; id: string };
   scholar?: string;
   scopus?: string;
   orcid?: string;
@@ -229,22 +230,18 @@ export default function Researchers({ lang }: ResearchersProps) {
                           </div>
                         </div>
 
-                        {/* Core research interests */}
-                        {leader.interests && (
-                          <div className="mt-6 pt-4 border-t border-black/5 dark:border-white/5">
-                            <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block mb-2">
-                              {lang === 'en' ? 'Expertise & Fields' : 'Keahlian & Bidang Utama'}
+                        {/* Core research focus */}
+                        {(leader.researchFocus || leader.interests) && (
+                          <div className="mt-6 pt-4 border-t border-black/5 dark:border-white/5 space-y-1">
+                            <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block mb-1">
+                              {lang === 'en' ? 'Research Focus' : 'Fokus Riset'}
                             </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {(lang === 'en' ? leader.interests.en : leader.interests.id).map((interest, idx) => (
-                                <span 
-                                  key={idx}
-                                  className="px-2.5 py-1 bg-black/5 dark:bg-white/[0.03] text-slate-500 dark:text-slate-400 text-[10px] font-semibold rounded-md border border-black/5 dark:border-white/5"
-                                >
-                                  {interest}
-                                </span>
-                              ))}
-                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                              {leader.researchFocus 
+                                ? (lang === 'en' ? leader.researchFocus.en : leader.researchFocus.id)
+                                : (lang === 'en' ? leader.interests.en.join(', ') : leader.interests.id.join(', '))
+                              }
+                            </p>
                           </div>
                         )}
                       </div>
@@ -360,19 +357,6 @@ export default function Researchers({ lang }: ResearchersProps) {
                           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                             {lang === 'en' ? assistant.topic.en : assistant.topic.id}
                           </p>
-                        </div>
-                      )}
-
-                      {assistant.interests && (
-                        <div className="flex flex-wrap gap-1 pt-1">
-                          {(lang === 'en' ? assistant.interests.en : assistant.interests.id).map((interest, idx) => (
-                            <span 
-                              key={idx} 
-                              className="px-2 py-0.5 bg-black/5 dark:bg-white/[0.03] text-[9px] font-semibold text-slate-500 dark:text-slate-400 rounded"
-                            >
-                              {interest}
-                            </span>
-                          ))}
                         </div>
                       )}
                     </div>
@@ -495,21 +479,19 @@ export default function Researchers({ lang }: ResearchersProps) {
                         {lang === 'en' ? member.role.en : member.role.id}
                       </p>
 
-                      {member.interests && (
+                      {(member.researchFocus || member.topic || member.interests) && (
                         <div className="space-y-1">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                            {lang === 'en' ? 'Primary Focus' : 'Fokus Utama'}
+                            {lang === 'en' ? 'Research Focus' : 'Fokus Riset'}
                           </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {(lang === 'en' ? member.interests.en : member.interests.id).map((interest, idx) => (
-                              <span 
-                                key={idx}
-                                className="px-2 py-0.5 bg-black/5 dark:bg-white/[0.03] text-[9px] text-slate-500 dark:text-slate-400 rounded"
-                              >
-                                {interest}
-                              </span>
-                            ))}
-                          </div>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                            {member.researchFocus 
+                              ? (lang === 'en' ? member.researchFocus.en : member.researchFocus.id)
+                              : member.topic 
+                                ? (lang === 'en' ? member.topic.en : member.topic.id)
+                                : (lang === 'en' ? member.interests.en.join(', ') : member.interests.id.join(', '))
+                            }
+                          </p>
                         </div>
                       )}
                     </div>

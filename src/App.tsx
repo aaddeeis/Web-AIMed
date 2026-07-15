@@ -9,6 +9,7 @@ import ImpactDashboard from './components/ImpactDashboard';
 import Communication from './components/Communication';
 import ContactSection from './components/ContactSection';
 import Researchers from './components/Researchers';
+import Partners from './components/Partners';
 import AdminConsole from './components/AdminConsole';
 import { Language } from './types';
 import { 
@@ -111,6 +112,11 @@ export default function App() {
           lang={lang}
         />
 
+        {/* 7. Clinical Reference Datasets */}
+        <DatasetsGallery 
+          lang={lang} 
+        />
+
         {/* 12. Announcements Newsroom and Event Scheduler */}
         <Communication 
           lang={lang} 
@@ -119,11 +125,6 @@ export default function App() {
         {/* Center Performance Section */}
         <PerformanceSection 
           lang={lang}
-        />
-
-        {/* 7. Clinical Reference Datasets */}
-        <DatasetsGallery 
-          lang={lang} 
         />
 
         {/* Researchers & Team */}
@@ -139,6 +140,11 @@ export default function App() {
         {/* 11. Impact and Citations Dashboard */}
         <ImpactDashboard 
           lang={lang} 
+        />
+
+        {/* Our Partners Scrolling Logo Marquee */}
+        <Partners 
+          lang={lang}
         />
 
         {/* 15. Physical Map Contact Section */}

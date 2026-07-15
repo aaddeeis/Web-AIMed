@@ -8,7 +8,9 @@ import {
   NewsItem, 
   EventItem, 
   Collaboration, 
-  TimelineProject 
+  TimelineProject,
+  Partner,
+  SDGContent
 } from '../types';
 import { 
   RESEARCH_GROUPS as initialResearchGroups,
@@ -16,6 +18,8 @@ import {
   DATASETS as initialDatasets,
   NEWS as initialNews,
   EVENTS as initialEvents,
+  PARTNERS as initialPartners,
+  SDG_CONTENT as initialSdgContent,
 } from '../data/mockData';
 
 // Re-define Person interface matching Researchers.tsx
@@ -29,6 +33,7 @@ export interface Person {
   topic?: { en: string; id: string };
   supervisor?: string;
   interests?: { en: string[]; id: string[] };
+  researchFocus?: { en: string; id: string };
   scholar?: string;
   scopus?: string;
   orcid?: string;
@@ -60,6 +65,8 @@ interface DataContextType {
   youtubeVideos: any[];
   instagramPosts: any[];
   massMedia: any[];
+  partners: Partner[];
+  sdgContent: SDGContent;
 
   // Setters
   setResearchGroups: React.Dispatch<React.SetStateAction<ResearchGroup[]>>;
@@ -78,6 +85,8 @@ interface DataContextType {
   setYoutubeVideos: React.Dispatch<React.SetStateAction<any[]>>;
   setInstagramPosts: React.Dispatch<React.SetStateAction<any[]>>;
   setMassMedia: React.Dispatch<React.SetStateAction<any[]>>;
+  setPartners: React.Dispatch<React.SetStateAction<Partner[]>>;
+  setSdgContent: React.Dispatch<React.SetStateAction<SDGContent>>;
 
   // Actions
   resetToDefault: () => void;
@@ -852,6 +861,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [massMedia, setMassMedia] = useState<any[]>(() => 
     getStored('massMedia', defaultMassMedia)
   );
+  const [partners, setPartners] = useState<Partner[]>(() => 
+    getStored('partners', initialPartners)
+  );
+  const [sdgContent, setSdgContent] = useState<SDGContent>(() => 
+    getStored('sdgContent', initialSdgContent)
+  );
 
   // Sync to local storage on changes
   useEffect(() => { localStorage.setItem('aimed_researchGroups', JSON.stringify(researchGroups)); }, [researchGroups]);
@@ -870,6 +885,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => { localStorage.setItem('aimed_youtubeVideos', JSON.stringify(youtubeVideos)); }, [youtubeVideos]);
   useEffect(() => { localStorage.setItem('aimed_instagramPosts', JSON.stringify(instagramPosts)); }, [instagramPosts]);
   useEffect(() => { localStorage.setItem('aimed_massMedia', JSON.stringify(massMedia)); }, [massMedia]);
+  useEffect(() => { localStorage.setItem('aimed_partners', JSON.stringify(partners)); }, [partners]);
+  useEffect(() => { localStorage.setItem('aimed_sdgContent', JSON.stringify(sdgContent)); }, [sdgContent]);
 
   const resetToDefault = () => {
     setResearchGroups(initialResearchGroups);
@@ -888,6 +905,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setYoutubeVideos(defaultYoutubeVideos);
     setInstagramPosts(defaultInstagramPosts);
     setMassMedia(defaultMassMedia);
+    setPartners(initialPartners);
+    setSdgContent(initialSdgContent);
   };
 
   const exportData = () => {
@@ -907,7 +926,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       undergraduate,
       youtubeVideos,
       instagramPosts,
-      massMedia
+      massMedia,
+      partners,
+      sdgContent
     };
     return JSON.stringify(data, null, 2);
   };
@@ -936,6 +957,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (parsed.youtubeVideos) setYoutubeVideos(parsed.youtubeVideos);
           if (parsed.instagramPosts) setInstagramPosts(parsed.instagramPosts);
           if (parsed.massMedia) setMassMedia(parsed.massMedia);
+          if (parsed.partners) setPartners(parsed.partners);
+          if (parsed.sdgContent) setSdgContent(parsed.sdgContent);
           
           // Also sync to localStorage so they are immediately available
           Object.keys(parsed).forEach(key => {
@@ -987,6 +1010,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (parsed.youtubeVideos) setYoutubeVideos(parsed.youtubeVideos);
       if (parsed.instagramPosts) setInstagramPosts(parsed.instagramPosts);
       if (parsed.massMedia) setMassMedia(parsed.massMedia);
+      if (parsed.partners) setPartners(parsed.partners);
+      if (parsed.sdgContent) setSdgContent(parsed.sdgContent);
       return true;
     } catch (e) {
       console.error('Failed to import data', e);
@@ -998,10 +1023,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <DataContext.Provider value={{
       researchGroups, showcaseProjects, publicationsData, datasets, news, events,
       leadership, assistants, members, collaborators, postgraduate, graduate, undergraduate,
-      youtubeVideos, instagramPosts, massMedia,
+      youtubeVideos, instagramPosts, massMedia, partners, sdgContent,
       setResearchGroups, setShowcaseProjects, setPublicationsData, setDatasets, setNews, setEvents,
       setLeadership, setAssistants, setMembers, setCollaborators, setPostgraduate, setGraduate, setUndergraduate,
-      setYoutubeVideos, setInstagramPosts, setMassMedia,
+      setYoutubeVideos, setInstagramPosts, setMassMedia, setPartners, setSdgContent,
       resetToDefault, exportData, importData, saveToServer
     }}>
       {children}

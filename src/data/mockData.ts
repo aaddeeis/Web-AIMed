@@ -9,7 +9,9 @@ import {
   NewsItem, 
   EventItem, 
   Collaboration, 
-  TimelineProject 
+  TimelineProject,
+  Partner,
+  SDGContent
 } from '../types';
 
 export const RESEARCH_GROUPS: ResearchGroup[] = [
@@ -465,6 +467,11 @@ export const NEWS: NewsItem[] = [
     category: 'grant',
     date: '2026-05-18',
     image: 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800',
+    images: [
+      'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=800'
+    ],
     content: {
       en: 'The National Research and Innovation Agency of Indonesia (BRIN) has awarded AIMed CoE a major research funding grant of IDR 1.2 Billion to expand the CHDxAI suite. This funding will sponsor GPU server hardware additions, multi-center clinical trials in rural Palembang clinics, and graduate student assistantships over the next two years.',
       id: 'Badan Riset dan Inovasi Nasional (BRIN) telah menganugerahi AIMed CoE hibah pendanaan penelitian utama sebesar Rp 1,2 Miliar untuk memperluas rangkaian CHDxAI. Pendanaan ini akan mendanai penambahan perangkat keras server GPU, uji klinis multi-pusat di klinik pedesaan Palembang, dan beasiswa asisten mahasiswa pascasarjana selama dua tahun ke depan.'
@@ -480,9 +487,14 @@ export const NEWS: NewsItem[] = [
     category: 'award',
     date: '2025-11-10',
     image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
+    images: [
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800'
+    ],
     content: {
       en: 'AIMed CoE’s Executive Director, Prof. Dr. Ir. Samsuryadi, M.T., has been recognized by Stanford University’s annual indexing as part of the Top 2% most cited scientists worldwide in the subfields of Artificial Intelligence, Computer Vision, and Biomedical Engineering. His pioneering work on ultrasound cardiac segmentation continues to drive Indonesian medical computing onward.',
-      id: 'Direktur Eksekutif AIMed CoE, Prof. Dr. Ir. Samsuryadi, M.T., telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori segmentasi jantung ultrasound terus mendorong komputasi medis Indonesia maju.'
+      id: 'Direktur Executif AIMed CoE, Prof. Dr. Ir. Samsuryadi, M.T., telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori segmentasi jantung ultrasound terus mendorong komputasi medis Indonesia maju.'
     },
     tags: ['Stanford Ranking', 'Faculty Award', 'Citation Excellence']
   },
@@ -495,6 +507,11 @@ export const NEWS: NewsItem[] = [
     category: 'seminar',
     date: '2026-03-05',
     image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800',
+    images: [
+      'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800'
+    ],
     content: {
       en: 'AIMed CoE hosted a global hybrid seminar highlighting "Clinical Trust and XAI Systems" featuring distinguished speakers from Tohoku University and National University Hospital Singapore. Over 500 online researchers joined to examine the usage of Layer-wise Relevance Propagation over clinical imaging pipelines.',
       id: 'AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti "Kepercayaan Klinis dan Sistem XAI" yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis.'
@@ -671,3 +688,72 @@ export const RESEARCH_GUIDES = [
   { name: { en: 'Fetal US Segmentation Training Notebook', id: 'Notebook Pelatihan Segmentasi US Janin' }, size: '4.8 MB', type: 'IPYNB' },
   { name: { en: 'TeleOTIVA VIA Specular Correct API Blueprint', id: 'Cetak Biru API Koreksi Spekular VIA TeleOTIVA' }, size: '850 KB', type: 'JSON' }
 ];
+
+export const PARTNERS: Partner[] = [
+  {
+    id: 'partner-unsri',
+    name: 'Universitas Sriwijaya',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Logo_Universitas_Sriwijaya.png',
+    websiteUrl: 'https://unsri.ac.id'
+  },
+  {
+    id: 'partner-rsmh',
+    name: 'RSUP Dr. Mohammad Hoesin Palembang',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/da/Logo_dr_Mohammad_Hoesin_Hospital.png',
+    websiteUrl: 'https://rsmh.co.id'
+  },
+  {
+    id: 'partner-kemenkes',
+    name: 'Kementerian Kesehatan Republik Indonesia',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Logo_Kementerian_Kesehatan_Republik_Indonesia.png',
+    websiteUrl: 'https://kemkes.go.id'
+  },
+  {
+    id: 'partner-brin',
+    name: 'Badan Riset dan Inovasi Nasional (BRIN)',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/11/Logo_BRIN.png',
+    websiteUrl: 'https://brin.go.id'
+  },
+  {
+    id: 'partner-nvidia',
+    name: 'NVIDIA Deep Learning Institute',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/21/Nvidia_logo.svg',
+    websiteUrl: 'https://nvidia.com'
+  },
+  {
+    id: 'partner-google',
+    name: 'Google AI Studio',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
+    websiteUrl: 'https://ai.google'
+  }
+];
+
+export const SDG_CONTENT: SDGContent = {
+  title: {
+    en: 'Empowering Global Sustainable Development',
+    id: 'Memberdayakan Pembangunan Berkelanjutan Global'
+  },
+  subtitle: {
+    en: 'SDG ALIGNMENT',
+    id: 'KESELARASAN SDG'
+  },
+  sdg3Title: {
+    en: 'SDG 3: Good Health & Well-being',
+    id: 'SDG 3: Kehidupan Sehat & Sejahtera'
+  },
+  sdg3Text: {
+    en: 'The AIMed Center of Excellence supports SDG 3 (Good Health and Well-being) by developing AI-driven solutions for better disease detection and healthcare delivery.',
+    id: 'AIMed Center of Excellence mendukung SDG 3 (Kehidupan Sehat dan Sejahtera) dengan mengembangkan solusi bertenaga AI untuk deteksi penyakit dan pemberian layanan kesehatan yang lebih baik.'
+  },
+  sdg3Image: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Sustainable_Development_Goal_03.svg',
+  sdg9Title: {
+    en: 'SDG 9: Industry, Innovation & Infrastructure',
+    id: 'SDG 9: Industri, Inovasi & Infrastruktur'
+  },
+  sdg9Text: {
+    en: 'It also contributes to SDG 9 (Industry, Innovation and Infrastructure) by fostering technological innovation through research in intelligent systems, promoting sustainable healthcare infrastructure, and collaborating with industry to accelerate the adoption of cutting-edge technologies.',
+    id: 'Kami juga berkontribusi pada SDG 9 (Industri, Inovasi, dan Infrastruktur) dengan mendorong inovasi teknologi melalui penelitian pada sistem cerdas, mempromosikan infrastruktur layanan kesehatan yang berkelanjutan, dan berkolaborasi dengan industri untuk mempercepat adopsi teknologi mutakhir.'
+  },
+  sdg9Image: 'https://upload.wikimedia.org/wikipedia/commons/b/b8/Sustainable_Development_Goal_09.svg'
+};
+

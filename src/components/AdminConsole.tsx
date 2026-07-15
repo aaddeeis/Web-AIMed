@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Globe,
   Settings,
+  Images,
   Instagram,
   Lock,
   Youtube,
@@ -382,6 +383,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
         data.setInstagramPosts(prev => prev.filter(item => item.id !== id));
       } else if (collection === 'mass_media') {
         data.setMassMedia(prev => prev.filter(item => item.id !== id));
+      } else if (collection === 'partners') {
+        data.setPartners(prev => prev.filter(item => item.id !== id));
       }
       showMsg(lang === 'en' ? 'Item deleted successfully!' : 'Item berhasil dihapus!');
     } catch (e) {
@@ -500,6 +503,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
         topic: { en: '', id: '' },
         supervisor: '',
         interests: { en: '', id: '' }, // comma separated
+        researchFocus: { en: '', id: '' },
         scholar: '',
         scopus: '',
         orcid: '',
@@ -533,6 +537,13 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
         summary: { en: '', id: '' },
         link: '#'
       };
+    } else if (activeTab === 'partners') {
+      defaultItem = {
+        ...defaultItem,
+        name: '',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
+        websiteUrl: ''
+      };
     }
 
     setEditingItem(defaultItem);
@@ -557,6 +568,10 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
       prepared.interests = {
         en: Array.isArray(item.interests?.en) ? item.interests.en.join(', ') : item.interests?.en || '',
         id: Array.isArray(item.interests?.id) ? item.interests.id.join(', ') : item.interests?.id || ''
+      };
+      prepared.researchFocus = {
+        en: item.researchFocus?.en || '',
+        id: item.researchFocus?.id || ''
       };
       prepared.currentProjects = Array.isArray(item.currentProjects) ? item.currentProjects.join('\n') : item.currentProjects || '';
       prepared.latestPublications = Array.isArray(item.latestPublications) ? item.latestPublications.join('\n') : item.latestPublications || '';
@@ -701,6 +716,11 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
         });
       } else if (activeTab === 'mass_media') {
         data.setMassMedia(prev => {
+          const exists = prev.some(x => x.id === finalized.id);
+          return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
+        });
+      } else if (activeTab === 'partners') {
+        data.setPartners(prev => {
           const exists = prev.some(x => x.id === finalized.id);
           return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
         });
@@ -1042,6 +1062,30 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
             </div>
 
             <div>
+              <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase block mb-2 px-2">Partners & SDGs</span>
+              <div className="space-y-1">
+                <button
+                  onClick={() => setActiveTab('partners')}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer ${
+                    activeTab === 'partners' ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Our Partners' : 'Mitra Kami'}</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('sdg_alignment')}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer ${
+                    activeTab === 'sdg_alignment' ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'SDGs Alignment' : 'Keselarasan SDG'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
               <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase block mb-2 px-2">Publications</span>
               <div className="space-y-1">
                 <button
@@ -1160,20 +1204,239 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
             {/* List Actions Toolbar */}
             <div className="flex justify-between items-center mb-6">
               <h4 className="font-extrabold text-slate-800 dark:text-white tracking-tight uppercase text-xs">
-                {lang === 'en' ? `List of ${activeTab.replace('_', ' ')}` : `Daftar ${activeTab.replace('_', ' ')}`}
+                {activeTab === 'sdg_alignment' 
+                  ? (lang === 'en' ? 'SDGs Commitment Configuration' : 'Konfigurasi Komitmen SDG')
+                  : (lang === 'en' ? `List of ${activeTab.replace('_', ' ')}` : `Daftar ${activeTab.replace('_', ' ')}`)}
               </h4>
-              <button
-                onClick={openAddForm}
-                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl flex items-center space-x-2 cursor-pointer transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{lang === 'en' ? 'Add Item' : 'Tambah Item'}</span>
-              </button>
+              {activeTab !== 'sdg_alignment' && (
+                <button
+                  onClick={openAddForm}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl flex items-center space-x-2 cursor-pointer transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Add Item' : 'Tambah Item'}</span>
+                </button>
+              )}
             </div>
 
             {/* List Items Scroll Box */}
             <div className="flex-1 overflow-y-auto space-y-3.5 pr-2">
-              {getList().length === 0 ? (
+              {activeTab === 'sdg_alignment' ? (
+                <div className="space-y-6 pb-8">
+                  <div className="p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl">
+                    <p className="text-xs font-medium text-teal-700 dark:text-teal-400 leading-normal">
+                      {lang === 'en'
+                        ? 'Edit the content for the "Empowering Global Sustainable Development" section below. Changes will be saved globally.'
+                        : 'Edit konten untuk bagian "Memberdayakan Pembangunan Berkelanjutan Global" di bawah ini. Perubahan akan disimpan secara global.'}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Section Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                      <input 
+                        type="text" 
+                        value={data.sdgContent?.title?.en || ''} 
+                        onChange={(e) => data.setSdgContent({
+                          ...data.sdgContent,
+                          title: { ...data.sdgContent.title, en: e.target.value }
+                        })}
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Section Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                      <input 
+                        type="text" 
+                        value={data.sdgContent?.title?.id || ''} 
+                        onChange={(e) => data.setSdgContent({
+                          ...data.sdgContent,
+                          title: { ...data.sdgContent.title, id: e.target.value }
+                        })}
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Section Subtitle (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                      <input 
+                        type="text" 
+                        value={data.sdgContent?.subtitle?.en || ''} 
+                        onChange={(e) => data.setSdgContent({
+                          ...data.sdgContent,
+                          subtitle: { ...data.sdgContent.subtitle, en: e.target.value }
+                        })}
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Section Subtitle (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                      <input 
+                        type="text" 
+                        value={data.sdgContent?.subtitle?.id || ''} 
+                        onChange={(e) => data.setSdgContent({
+                          ...data.sdgContent,
+                          subtitle: { ...data.sdgContent.subtitle, id: e.target.value }
+                        })}
+                        className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-black/5 dark:border-white/5 pt-4 space-y-4">
+                    <h5 className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-tight">SDG 3: Good Health and Well-being</h5>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 3 Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <input 
+                          type="text" 
+                          value={data.sdgContent?.sdg3Title?.en || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg3Title: { ...data.sdgContent.sdg3Title, en: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 3 Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <input 
+                          type="text" 
+                          value={data.sdgContent?.sdg3Title?.id || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg3Title: { ...data.sdgContent.sdg3Title, id: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SDG 3 Logo Image</label>
+                      <ImageUploadField 
+                        label="SDG 3 Logo"
+                        value={data.sdgContent?.sdg3Image || ''}
+                        onChange={(val) => data.setSdgContent({
+                          ...data.sdgContent,
+                          sdg3Image: val
+                        })}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 3 Text (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={data.sdgContent?.sdg3Text?.en || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg3Text: { ...data.sdgContent.sdg3Text, en: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 3 Text (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={data.sdgContent?.sdg3Text?.id || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg3Text: { ...data.sdgContent.sdg3Text, id: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-black/5 dark:border-white/5 pt-4 space-y-4">
+                    <h5 className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-tight">SDG 9: Industry, Innovation and Infrastructure</h5>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 9 Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <input 
+                          type="text" 
+                          value={data.sdgContent?.sdg9Title?.en || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg9Title: { ...data.sdgContent.sdg9Title, en: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 9 Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <input 
+                          type="text" 
+                          value={data.sdgContent?.sdg9Title?.id || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg9Title: { ...data.sdgContent.sdg9Title, id: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SDG 9 Logo Image</label>
+                      <ImageUploadField 
+                        label="SDG 9 Logo"
+                        value={data.sdgContent?.sdg9Image || ''}
+                        onChange={(val) => data.setSdgContent({
+                          ...data.sdgContent,
+                          sdg9Image: val
+                        })}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 9 Text (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={data.sdgContent?.sdg9Text?.en || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg9Text: { ...data.sdgContent.sdg9Text, en: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">SDG 9 Text (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <textarea 
+                          rows={4}
+                          value={data.sdgContent?.sdg9Text?.id || ''} 
+                          onChange={(e) => data.setSdgContent({
+                            ...data.sdgContent,
+                            sdg9Text: { ...data.sdgContent.sdg9Text, id: e.target.value }
+                          })}
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-black/5 dark:border-white/5 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => data.saveToServer()}
+                      className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center space-x-1.5"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{lang === 'en' ? 'Save SDG Alignment' : 'Simpan Keselarasan SDG'}</span>
+                    </button>
+                  </div>
+                </div>
+              ) : getList().length === 0 ? (
                 <div className="text-center py-16 bg-slate-50 dark:bg-slate-950 border border-dashed border-black/10 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center">
                   <Database className="w-8 h-8 text-slate-400 mb-2" />
                   <p className="text-xs font-bold text-slate-500">
@@ -1894,12 +2157,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <ImageUploadField 
-                        label="News Image" 
-                        value={editingItem.image || ''} 
-                        onChange={(val) => setEditingItem({ ...editingItem, image: val })}
-                      />
+                    <div className="grid grid-cols-1 gap-4">
                       <div className="flex flex-col gap-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tags (comma separated)</label>
                         <input 
@@ -1907,8 +2165,98 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           value={editingItem.tags || ''} 
                           onChange={(e) => setEditingItem({ ...editingItem, tags: e.target.value })}
                           placeholder="tag1, tag2, tag3"
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 w-full"
                         />
+                      </div>
+                    </div>
+
+                    <div className="border border-black/5 dark:border-white/5 rounded-2xl p-4 bg-slate-50 dark:bg-slate-900/40 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                          <Images className="w-4 h-4 text-teal-500" />
+                          <span>News Image Gallery (Multiple Images)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentImages = editingItem.images || (editingItem.image ? [editingItem.image] : []);
+                            const updated = [...currentImages, 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800'];
+                            setEditingItem({
+                              ...editingItem,
+                              images: updated,
+                              image: updated[0] || ''
+                            });
+                          }}
+                          className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-[10px] font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <span>+ Add Image URL</span>
+                        </button>
+                      </div>
+
+                      <p className="text-[10px] text-slate-400">
+                        Paste valid image URLs below. The first image in the list will be automatically used as the primary coverage/card image.
+                      </p>
+
+                      {/* Images List */}
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        {(() => {
+                          const currentImages = editingItem.images || (editingItem.image ? [editingItem.image] : []);
+                          if (currentImages.length === 0) {
+                            return (
+                              <div className="text-center py-4 text-[11px] text-slate-400 italic">
+                                No images added yet. Click "+ Add Image URL" to get started.
+                              </div>
+                            );
+                          }
+                          return currentImages.map((imgUrl: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-3 bg-white dark:bg-slate-950 p-2 rounded-xl border border-black/5 dark:border-white/5">
+                              {/* Thumbnail preview */}
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-900 flex-shrink-0">
+                                <img
+                                  src={imgUrl || 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=100'}
+                                  alt="Preview"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=100';
+                                  }}
+                                />
+                              </div>
+
+                              {/* Input URL */}
+                              <input
+                                type="text"
+                                value={imgUrl}
+                                onChange={(e) => {
+                                  const updated = [...currentImages];
+                                  updated[idx] = e.target.value;
+                                  setEditingItem({
+                                    ...editingItem,
+                                    images: updated,
+                                    image: updated[0] || ''
+                                  });
+                                }}
+                                placeholder="Paste image URL here"
+                                className="flex-grow px-3 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                              />
+
+                              {/* Delete button */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = currentImages.filter((_, i) => i !== idx);
+                                  setEditingItem({
+                                    ...editingItem,
+                                    images: updated,
+                                    image: updated[0] || ''
+                                  });
+                                }}
+                                className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   </>
@@ -2366,6 +2714,43 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                   </div>
                 )}
 
+                {/* OUR PARTNERS FIELDS */}
+                {activeTab === 'partners' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Partner Name</label>
+                        <input 
+                          type="text" 
+                          value={editingItem.name || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                          required
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Website URL</label>
+                        <input 
+                          type="url" 
+                          value={editingItem.websiteUrl || ''} 
+                          onChange={(e) => setEditingItem({ ...editingItem, websiteUrl: e.target.value })}
+                          placeholder="https://example.com"
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Partner Logo</label>
+                      <ImageUploadField 
+                        label="Partner Logo"
+                        value={editingItem.logo || ''}
+                        onChange={(val) => setEditingItem({ ...editingItem, logo: val })}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* TEAM MEMBERS / RESEARCHERS FIELDS */}
                 {activeTab.startsWith('team_') && (
                   <>
@@ -2483,26 +2868,53 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Interests (EN - comma separated)</label>
-                        <input 
-                          type="text" 
-                          value={editingItem.interests?.en || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, interests: { ...editingItem.interests, en: e.target.value } })}
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
+                    {/* Research Focus for Leadership and Core Members */}
+                    {(activeTab === 'team_leadership' || activeTab === 'team_members') && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Research Focus (EN)</label>
+                          <input 
+                            type="text" 
+                            value={editingItem.researchFocus?.en || ''} 
+                            onChange={(e) => setEditingItem({ ...editingItem, researchFocus: { ...editingItem.researchFocus, en: e.target.value } })}
+                            className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Research Focus (ID)</label>
+                          <input 
+                            type="text" 
+                            value={editingItem.researchFocus?.id || ''} 
+                            onChange={(e) => setEditingItem({ ...editingItem, researchFocus: { ...editingItem.researchFocus, id: e.target.value } })}
+                            className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          />
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Interests (ID - comma separated)</label>
-                        <input 
-                          type="text" 
-                          value={editingItem.interests?.id || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, interests: { ...editingItem.interests, id: e.target.value } })}
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
+                    )}
+
+                    {/* Interests only for other team types (NOT leadership, assistants, or members) */}
+                    {activeTab !== 'team_leadership' && activeTab !== 'team_assistants' && activeTab !== 'team_members' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Interests (EN - comma separated)</label>
+                          <input 
+                            type="text" 
+                            value={editingItem.interests?.en || ''} 
+                            onChange={(e) => setEditingItem({ ...editingItem, interests: { ...editingItem.interests, en: e.target.value } })}
+                            className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Interests (ID - comma separated)</label>
+                          <input 
+                            type="text" 
+                            value={editingItem.interests?.id || ''} 
+                            onChange={(e) => setEditingItem({ ...editingItem, interests: { ...editingItem.interests, id: e.target.value } })}
+                            className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="grid grid-cols-3 gap-4">
                       <div className="flex flex-col gap-1">

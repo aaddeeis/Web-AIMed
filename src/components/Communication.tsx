@@ -19,6 +19,8 @@ import {
   Send,
   Sliders,
   ChevronRight,
+  ChevronLeft,
+  Images,
   Tv,
   Rss,
   Activity,
@@ -50,6 +52,7 @@ export default function Communication({ lang }: CommunicationProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'social' | 'mass' | 'activities'>('all');
   const [newsList, setNewsList] = useState(news);
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [registeredEventId, setRegisteredEventId] = useState<string | null>(null);
 
   // Search and Category filtering states
@@ -664,6 +667,13 @@ export default function Communication({ lang }: CommunicationProps) {
                             <span className="absolute top-4 left-4 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white font-extrabold text-[9px] rounded-md uppercase tracking-wider border border-white/5">
                               {art.category}
                             </span>
+
+                            {art.images && art.images.length > 1 && (
+                              <div className="absolute top-4 right-4 px-2 py-1 bg-slate-950/85 backdrop-blur-md text-teal-400 font-extrabold text-[10px] rounded-md flex items-center gap-1.5 border border-white/10 shadow-sm z-10">
+                                <Images className="w-3.5 h-3.5" />
+                                <span>{art.images.length}</span>
+                              </div>
+                            )}
                           </div>
 
                           <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
@@ -680,7 +690,7 @@ export default function Communication({ lang }: CommunicationProps) {
                             </div>
 
                             <button
-                              onClick={() => setSelectedArticle(art)}
+                              onClick={() => { setSelectedArticle(art); setActiveImageIndex(0); }}
                               className="text-xs font-extrabold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 cursor-pointer hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
                             >
                               <span>{lang === 'en' ? 'Read Announcement' : 'Baca Pengumuman'}</span>
@@ -838,68 +848,128 @@ export default function Communication({ lang }: CommunicationProps) {
       )}
 
       {/* Expanded Article Modal Drawer */}
-      {selectedArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative glass-panel-heavy w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            {/* Header Image */}
-            <div className="relative h-64 bg-slate-900">
-              <img 
-                src={selectedArticle.image} 
-                alt={lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id} 
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-              <button 
-                onClick={() => setSelectedArticle(null)}
-                className="absolute top-4 right-4 p-2 bg-slate-900/60 hover:bg-slate-900 text-white rounded-full transition-colors z-10 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      {selectedArticle && (() => {
+        const articleImages = selectedArticle.images && selectedArticle.images.length > 0 
+          ? selectedArticle.images 
+          : [selectedArticle.image];
+        const currentImage = articleImages[activeImageIndex] || selectedArticle.image;
 
-              <div className="absolute bottom-6 left-6 right-6">
-                <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest bg-teal-500/10 px-2 py-1 rounded">
-                  {selectedArticle.category}
-                </span>
-                <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight mt-2 leading-tight">
-                  {lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id}
-                </h3>
-              </div>
-            </div>
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="relative glass-panel-heavy bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200/80 dark:border-slate-800">
+              {/* Header / Interactive Image Slider */}
+              <div className="relative h-64 sm:h-80 bg-slate-900 flex items-center justify-center overflow-hidden">
+                <img 
+                  src={currentImage} 
+                  alt={lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id} 
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover transition-all duration-300"
+                />
+                
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
 
-            {/* Modal Content */}
-            <div className="p-6 sm:p-8 space-y-4 max-h-[50vh] overflow-y-auto">
-              <div className="flex items-center text-xs text-slate-400 font-bold uppercase tracking-wider">
-                <span>{lang === 'en' ? 'Published:' : 'Diterbitkan:'}</span>
-                <span className="ml-1.5 font-mono text-slate-500">{selectedArticle.date}</span>
-              </div>
-              
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium font-sans">
-                {lang === 'en' ? selectedArticle.content.en : selectedArticle.content.id}
-              </p>
+                {/* Left/Right Arrows */}
+                {articleImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex(prev => (prev === 0 ? articleImages.length - 1 : prev - 1));
+                      }}
+                      className="absolute left-4 p-2 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white/90 hover:text-white transition-all z-10 cursor-pointer"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImageIndex(prev => (prev === articleImages.length - 1 ? 0 : prev + 1));
+                      }}
+                      className="absolute right-4 p-2 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white/90 hover:text-white transition-all z-10 cursor-pointer"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
 
-              {/* simulated deep read */}
-              <div className="p-4 bg-black/5 dark:bg-white/[0.03] rounded-2xl border border-black/5 dark:border-white/5 text-xs text-slate-500 leading-relaxed">
-                {lang === 'en' ? (
-                  `PALEMBANG — Under the supervision of global advisory teams, AIMed researchers completed model pipelines targeting rural clinic deployments. Clinical accuracy tests held at RSMH Palembang recorded excellent performance, proving that enterprise networks can execute on standard edge ultrasound hardware without computational drops. Future phases plan to install dedicated diagnostic hubs connected directly via regional telehealth grids.`
-                ) : (
-                  `PALEMBANG — Di bawah pengawasan tim penasihat global, peneliti AIMed menyelesaikan alur model yang menargetkan penerapan klinik pedesaan. Tes akurasi klinis yang diadakan di RSMH Palembang mencatat kinerja yang sangat baik, membuktikan bahwa jaringan perusahaan dapat berjalan pada perangkat keras ultrasound standar tanpa penurunan komputasi. Fase masa depan berencana untuk memasang pusat diagnostik khusus yang terhubung langsung melalui jaringan telehealth regional.`
+                {/* Close Button on Image */}
+                <button 
+                  onClick={() => setSelectedArticle(null)}
+                  className="absolute top-4 right-4 p-2 bg-slate-950/60 hover:bg-slate-950 text-white rounded-full transition-colors z-20 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                {/* Image counter indicator */}
+                {articleImages.length > 1 && (
+                  <div className="absolute bottom-4 right-4 px-2 py-1 bg-black/60 backdrop-blur-md rounded-md text-[10px] text-white/95 font-mono font-bold z-10">
+                    {activeImageIndex + 1} / {articleImages.length}
+                  </div>
                 )}
               </div>
-            </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 bg-black/5 dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 text-right">
-              <button
-                onClick={() => setSelectedArticle(null)}
-                className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-950 text-xs font-bold rounded-xl cursor-pointer"
-              >
-                {lang === 'en' ? 'Close Window' : 'Tutup Jendela'}
-              </button>
+              {/* Interactive Gallery Thumbnails */}
+              {articleImages.length > 1 && (
+                <div className="px-6 pt-4 pb-1 flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-teal-500/20">
+                  {articleImages.map((imgUrl: string, idx: number) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImageIndex(idx)}
+                      className={`relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 cursor-pointer ${
+                        idx === activeImageIndex 
+                          ? 'border-teal-500 scale-95 shadow-sm opacity-100' 
+                          : 'border-transparent opacity-60 hover:opacity-90'
+                      }`}
+                    >
+                      <img src={imgUrl} alt="Thumbnail" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Modal Content */}
+              <div className="p-6 sm:p-8 space-y-5 max-h-[45vh] overflow-y-auto">
+                <div>
+                  <span className="text-[10px] font-extrabold text-teal-600 dark:text-teal-300 bg-teal-500/15 px-2.5 py-1 rounded tracking-widest">
+                    {selectedArticle.category}
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-3 leading-tight">
+                    {lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id}
+                  </h3>
+                </div>
+
+                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">
+                  <span>{lang === 'en' ? 'Published:' : 'Diterbitkan:'}</span>
+                  <span className="ml-1.5 font-mono text-slate-700 dark:text-slate-300 font-extrabold">{selectedArticle.date}</span>
+                </div>
+                
+                <p className="text-sm sm:text-base text-slate-800 dark:text-slate-100 leading-relaxed font-semibold font-sans">
+                  {lang === 'en' ? selectedArticle.content.en : selectedArticle.content.id}
+                </p>
+
+                {/* simulated deep read */}
+                <div className="p-4 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                  {lang === 'en' ? (
+                    `PALEMBANG — Under the supervision of global advisory teams, AIMed researchers completed model pipelines targeting rural clinic deployments. Clinical accuracy tests held at RSMH Palembang recorded excellent performance, proving that enterprise networks can execute on standard edge ultrasound hardware without computational drops. Future phases plan to install dedicated diagnostic hubs connected directly via regional telehealth grids.`
+                  ) : (
+                    `PALEMBANG — Di bawah pengawasan tim penasihat global, peneliti AIMed menyelesaikan alur model yang menargetkan penerapan klinik pedesaan. Tes akurasi klinis yang diadakan di RSMH Palembang mencatat kinerja yang sangat baik, membuktikan bahwa jaringan perusahaan dapat berjalan pada perangkat keras ultrasound standar tanpa penurunan komputasi. Fase masa depan berencana untuk memasang pusat diagnostik khusus yang terhubung langsung melalui jaringan telehealth regional.`
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 bg-black/5 dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 text-right">
+                <button
+                  onClick={() => setSelectedArticle(null)}
+                  className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-950 text-xs font-bold rounded-xl cursor-pointer"
+                >
+                  {lang === 'en' ? 'Close Window' : 'Tutup Jendela'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </section>
   );
 }

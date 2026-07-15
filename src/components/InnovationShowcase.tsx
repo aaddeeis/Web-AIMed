@@ -20,8 +20,25 @@ interface InnovationShowcaseProps {
 }
 
 export default function InnovationShowcase({ lang }: InnovationShowcaseProps) {
-  const { showcaseProjects } = useData();
+  const { showcaseProjects, sdgContent } = useData();
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
+
+  const currentSdg = sdgContent || {
+    title: { en: 'Empowering Global Sustainable Development', id: 'Memberdayakan Pembangunan Berkelanjutan Global' },
+    subtitle: { en: 'SDG ALIGNMENT', id: 'KESELARASAN SDG' },
+    sdg3Title: { en: 'SDG 3: Good Health & Well-being', id: 'SDG 3: Kehidupan Sehat & Sejahtera' },
+    sdg3Text: {
+      en: 'The AIMed Center of Excellence supports SDG 3 (Good Health and Well-being) by developing AI-driven solutions for better disease detection and healthcare delivery.',
+      id: 'AIMed Center of Excellence mendukung SDG 3 (Kehidupan Sehat dan Sejahtera) dengan mengembangkan solusi bertenaga AI untuk deteksi penyakit dan pemberian layanan kesehatan yang lebih baik.'
+    },
+    sdg3Image: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Sustainable_Development_Goal_03.svg',
+    sdg9Title: { en: 'SDG 9: Industry, Innovation & Infrastructure', id: 'SDG 9: Industri, Inovasi & Infrastruktur' },
+    sdg9Text: {
+      en: 'It also contributes to SDG 9 (Industry, Innovation and Infrastructure) by fostering technological innovation through research in intelligent systems, promoting sustainable healthcare infrastructure, and collaborating with industry to accelerate the adoption of cutting-edge technologies.',
+      id: 'Kami juga berkontribusi pada SDG 9 (Industri, Inovasi, dan Infrastruktur) dengan mendorong inovasi teknologi melalui penelitian pada sistem cerdas, mempromosikan infrastruktur layanan kesehatan yang berkelanjutan, dan berkolaborasi dengan industri untuk mempercepat adopsi teknologi mutakhir.'
+    },
+    sdg9Image: 'https://upload.wikimedia.org/wikipedia/commons/b/b8/Sustainable_Development_Goal_09.svg'
+  };
 
   const isImageUrl = (url?: string) => {
     if (!url) return false;
@@ -67,6 +84,67 @@ export default function InnovationShowcase({ lang }: InnovationShowcaseProps) {
     <section id="showcase" className="py-24 bg-transparent relative z-10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* SDGs Commitment Section */}
+        <div className="mb-24 border-b border-slate-100 dark:border-slate-800 pb-16">
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <span className="text-xs font-extrabold tracking-widest text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-500/10 px-3.5 py-1.5 rounded-full">
+              {currentSdg.subtitle ? (currentSdg.subtitle[lang] || 'SDG ALIGNMENT') : 'SDG ALIGNMENT'}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-4">
+              {currentSdg.title ? (currentSdg.title[lang] || 'Empowering Global Sustainable Development') : 'Empowering Global Sustainable Development'}
+            </h2>
+            <div className="w-12 h-1 bg-emerald-500 mx-auto rounded-full mt-3" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            {/* SDG 3 */}
+            <div className="group bg-white/45 dark:bg-slate-900/40 hover:bg-white/60 dark:hover:bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-md hover:shadow-xl hover:border-emerald-500/30 dark:hover:border-emerald-400/30 transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <div className="w-24 h-24 flex-shrink-0 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-300 flex items-center justify-center p-2">
+                <img 
+                  src={currentSdg.sdg3Image || "https://upload.wikimedia.org/wikipedia/commons/e/ec/Sustainable_Development_Goal_03.svg"}
+                  alt="SDG 3 Logo"
+                  className="w-full h-full object-contain"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sustainable_Development_Goal_3.png";
+                  }}
+                />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+                  {currentSdg.sdg3Title ? (currentSdg.sdg3Title[lang] || 'SDG 3: Good Health & Well-being') : 'SDG 3: Good Health & Well-being'}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                  {currentSdg.sdg3Text ? (currentSdg.sdg3Text[lang] || '') : ''}
+                </p>
+              </div>
+            </div>
+
+            {/* SDG 9 */}
+            <div className="group bg-white/45 dark:bg-slate-900/40 hover:bg-white/60 dark:hover:bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-md hover:shadow-xl hover:border-amber-500/30 dark:hover:border-amber-400/30 transition-all duration-300 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <div className="w-24 h-24 flex-shrink-0 bg-orange-50 dark:bg-orange-950/20 rounded-2xl overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-300 flex items-center justify-center p-2">
+                <img 
+                  src={currentSdg.sdg9Image || "https://upload.wikimedia.org/wikipedia/commons/b/b8/Sustainable_Development_Goal_09.svg"}
+                  alt="SDG 9 Logo"
+                  className="w-full h-full object-contain"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://upload.wikimedia.org/wikipedia/commons/1/1f/Sustainable_Development_Goal_9.png";
+                  }}
+                />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+                  {currentSdg.sdg9Title ? (currentSdg.sdg9Title[lang] || 'SDG 9: Industry, Innovation & Infrastructure') : 'SDG 9: Industry, Innovation & Infrastructure'}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                  {currentSdg.sdg9Text ? (currentSdg.sdg9Text[lang] || '') : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-20">
           <span className="text-xs font-extrabold tracking-widest text-teal-600 dark:text-teal-400 uppercase bg-teal-500/10 px-3.5 py-1.5 rounded-full">

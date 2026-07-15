@@ -108,6 +108,7 @@ export interface NewsItem {
     id: string;
   };
   image: string;
+  images?: string[];
   tags: string[];
 }
 
@@ -165,3 +166,22 @@ export interface TimelineProject {
     id: string;
   };
 }
+
+export interface Partner {
+  id: string;
+  name: string;
+  logo: string;
+  websiteUrl?: string;
+}
+
+export interface SDGContent {
+  title: { en: string; id: string };
+  subtitle: { en: string; id: string };
+  sdg3Title: { en: string; id: string };
+  sdg3Text: { en: string; id: string };
+  sdg3Image: string;
+  sdg9Title: { en: string; id: string };
+  sdg9Text: { en: string; id: string };
+  sdg9Image: string;
+}
+
