@@ -17,7 +17,12 @@ import {
   AlertTriangle,
   Globe,
   Settings,
-  Instagram
+  Instagram,
+  Lock,
+  Youtube,
+  Tv,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { useData, Person, PublicationsData } from '../context/DataContext';
 import { Language } from '../types';
@@ -177,6 +182,105 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  // CMS Authentication States
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('aimed_admin_authenticated') === 'true';
+  });
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  // Auto-fetch loading indicator state
+  const [isAutoFetching, setIsAutoFetching] = useState(false);
+
+  const getYoutubeId = (url: string): string => {
+    if (!url) return '';
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : url.trim();
+  };
+
+  const handleYoutubeLinkChange = async (url: string) => {
+    if (!editingItem) return;
+    const embedId = getYoutubeId(url);
+    
+    setEditingItem((prev: any) => ({
+      ...prev,
+      link: url,
+      embedId: embedId
+    }));
+
+    if (!embedId || embedId.length !== 11) return;
+
+    setIsAutoFetching(true);
+    try {
+      const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${embedId}`)}`);
+      const resData = await response.json();
+      if (resData && resData.title) {
+        setEditingItem((prev: any) => ({
+          ...prev,
+          title: {
+            en: resData.title,
+            id: resData.title
+          },
+          thumbnail: `https://img.youtube.com/vi/${embedId}/hqdefault.jpg`,
+          duration: prev.duration || '5:00',
+          views: prev.views || '1.2K'
+        }));
+      } else {
+        setEditingItem((prev: any) => ({
+          ...prev,
+          thumbnail: `https://img.youtube.com/vi/${embedId}/hqdefault.jpg`
+        }));
+      }
+    } catch (e) {
+      console.error("Error fetching YouTube info:", e);
+      setEditingItem((prev: any) => ({
+        ...prev,
+        thumbnail: `https://img.youtube.com/vi/${embedId}/hqdefault.jpg`
+      }));
+    } finally {
+      setIsAutoFetching(false);
+    }
+  };
+
+  const handleMassMediaLinkChange = async (url: string) => {
+    if (!editingItem) return;
+    
+    setEditingItem((prev: any) => ({
+      ...prev,
+      link: url
+    }));
+
+    if (!url || !url.startsWith('http')) return;
+
+    setIsAutoFetching(true);
+    try {
+      const response = await fetch(`/api/fetch-metadata?url=${encodeURIComponent(url)}`);
+      const resData = await response.json();
+      if (resData) {
+        setEditingItem((prev: any) => ({
+          ...prev,
+          publisher: resData.publisher || prev.publisher || 'Publisher',
+          title: {
+            en: resData.title || prev.title?.en || 'News Article',
+            id: resData.title || prev.title?.id || 'Artikel Berita'
+          },
+          summary: {
+            en: resData.description || prev.summary?.en || 'Full news coverage.',
+            id: resData.description || prev.summary?.id || 'Liputan berita lengkap.'
+          },
+          logo: resData.logo || prev.logo || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&q=80&w=100',
+          date: resData.date || prev.date || new Date().toISOString().split('T')[0]
+        }));
+      }
+    } catch (e) {
+      console.error("Error fetching article info:", e);
+    } finally {
+      setIsAutoFetching(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -409,7 +513,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
         duration: '',
         views: '',
         thumbnail: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800',
-        embedId: ''
+        embedId: '',
+        link: ''
       };
     } else if (activeTab === 'social_instagram') {
       defaultItem = {
@@ -455,6 +560,10 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
       };
       prepared.currentProjects = Array.isArray(item.currentProjects) ? item.currentProjects.join('\n') : item.currentProjects || '';
       prepared.latestPublications = Array.isArray(item.latestPublications) ? item.latestPublications.join('\n') : item.latestPublications || '';
+    } else if (activeTab === 'social_youtube') {
+      if (!prepared.link && prepared.embedId) {
+        prepared.link = `https://www.youtube.com/watch?v=${prepared.embedId}`;
+      }
     }
 
     setEditingItem(prepared);
@@ -660,6 +769,82 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
     return '';
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 rounded-3xl w-full max-w-md p-8 flex flex-col shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white bg-black/5 dark:bg-white/5 rounded-full transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="text-center mb-8">
+            <div className="inline-flex p-3.5 bg-gradient-to-br from-teal-500 to-sky-500 text-white rounded-2xl mb-4 shadow-md">
+              <Lock className="w-6 h-6 animate-pulse" />
+            </div>
+            <h3 className="font-extrabold text-slate-900 dark:text-white tracking-tight text-xl">
+              AIMed CoE CMS Portal
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">
+              {lang === 'en' ? 'Enter administrator credentials to proceed' : 'Masukkan kredensial administrator untuk melanjutkan'}
+            </p>
+          </div>
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (username === 'aimed' && password === 'isysrg.com') {
+              setIsAuthenticated(true);
+              sessionStorage.setItem('aimed_admin_authenticated', 'true');
+              setLoginError('');
+            } else {
+              setLoginError(lang === 'en' ? 'Invalid username or password' : 'Username atau password salah');
+            }
+          }} className="space-y-4">
+            {loginError && (
+              <div className="p-3 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-bold rounded-xl text-center border border-red-500/10">
+                {loginError}
+              </div>
+            )}
+            
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Username</label>
+              <input 
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                placeholder="e.g. aimed"
+                className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 font-medium"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 font-medium"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md active:scale-[0.98] mt-2 flex items-center justify-center gap-1.5"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>{lang === 'en' ? 'Log In' : 'Masuk'}</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 rounded-3xl w-full max-w-6xl h-[85vh] flex flex-col shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
@@ -711,7 +896,20 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
               className="hidden" 
             />
 
-            <div className="h-6 w-[1px] bg-black/10 dark:white/10 mx-2" />
+            <div className="h-6 w-[1px] bg-black/10 dark:bg-white/10 mx-2" />
+
+            <button 
+              onClick={() => {
+                setIsAuthenticated(false);
+                sessionStorage.removeItem('aimed_admin_authenticated');
+                setUsername('');
+                setPassword('');
+              }}
+              className="px-3 py-1.5 text-xs font-bold text-red-500 hover:text-white hover:bg-red-600 border border-red-500/20 rounded-xl transition-all cursor-pointer flex items-center gap-1"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>{lang === 'en' ? 'Log Out' : 'Keluar'}</span>
+            </button>
 
             <button 
               onClick={onClose}
@@ -1826,69 +2024,144 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
 
                 {/* SOCIAL MEDIA - YOUTUBE FIELDS */}
                 {activeTab === 'social_youtube' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Video Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Youtube className="w-4 h-4 text-red-500" />
+                        <span>YouTube Video Link (URL)</span>
+                      </label>
+                      <div className="relative">
                         <input 
-                          type="text" 
-                          value={editingItem.title?.en || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, en: e.target.value } })}
+                          type="url" 
+                          value={editingItem.link || ''} 
+                          onChange={(e) => handleYoutubeLinkChange(e.target.value)}
+                          placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
                           required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          className="w-full pl-4 pr-10 py-3 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 transition-all font-mono"
                         />
+                        {isAutoFetching && (
+                          <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                            <Loader2 className="w-4 h-4 text-teal-500 animate-spin" />
+                          </div>
+                        )}
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Video Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
-                        <input 
-                          type="text" 
-                          value={editingItem.title?.id || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, id: e.target.value } })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        {lang === 'en' 
+                          ? 'Paste any YouTube video link. The title, thumbnail, and media details are fetched automatically!' 
+                          : 'Tempel tautan video YouTube apa saja. Judul, thumbnail, dan detail media akan diambil otomatis!'}
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Duration (e.g. 5:42)</label>
-                        <input 
-                          type="text" 
-                          value={editingItem.duration || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, duration: e.target.value })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
+                    {/* YouTube Real-Time Live Preview */}
+                    {editingItem.embedId && (
+                      <div className="border border-black/5 dark:border-white/5 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl space-y-3.5">
+                        <span className="text-[9px] font-bold tracking-wider uppercase text-slate-400 block">
+                          {lang === 'en' ? 'Live Frontend Preview' : 'Pratinjau Langsung Frontend'}
+                        </span>
+                        
+                        <div className="glass-card rounded-xl overflow-hidden border border-black/5 dark:border-white/5 flex flex-col sm:flex-row shadow-2xs group max-w-xl">
+                          <div className="relative w-full sm:w-40 h-24 flex-shrink-0 bg-slate-900 overflow-hidden">
+                            <img 
+                              src={editingItem.thumbnail || `https://img.youtube.com/vi/${editingItem.embedId}/hqdefault.jpg`} 
+                              alt="Thumbnail Preview" 
+                              className="w-full h-full object-cover opacity-90"
+                            />
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <div className="p-2 bg-red-600 text-white rounded-full shadow-md">
+                                <Plus className="w-3.5 h-3.5 rotate-45 fill-white text-white" />
+                              </div>
+                            </div>
+                            <span className="absolute bottom-2 right-2 bg-black/80 px-1 py-0.5 rounded text-[9px] font-mono font-bold text-white">
+                              {editingItem.duration || '5:00'}
+                            </span>
+                          </div>
+                          
+                          <div className="p-3.5 flex flex-col justify-between flex-1">
+                            <h4 className="font-extrabold text-xs text-slate-900 dark:text-white leading-snug line-clamp-2">
+                              {lang === 'en' ? (editingItem.title?.en || 'Untitled Video') : (editingItem.title?.id || 'Video Tanpa Judul')}
+                            </h4>
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold mt-1.5">
+                              <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-sm">
+                                {editingItem.views || '1.2K'} {lang === 'en' ? 'Views' : 'X Dilihat'}
+                              </span>
+                              <span className="text-red-500 font-mono text-[9px] uppercase tracking-wider flex items-center gap-1">
+                                <Youtube className="w-3 h-3" />
+                                {lang === 'en' ? 'Ready to Embed' : 'Siap Disematkan'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Views count (e.g. 1.2K)</label>
-                        <input 
-                          type="text" 
-                          value={editingItem.views || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, views: e.target.value })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">YouTube Video ID (e.g. dQw4w9WgXcQ)</label>
-                        <input 
-                          type="text" 
-                          value={editingItem.embedId || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, embedId: e.target.value })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                    </div>
+                    )}
 
-                    <ImageUploadField 
-                      label="Thumbnail Image" 
-                      value={editingItem.thumbnail || ''} 
-                      onChange={(val) => setEditingItem({ ...editingItem, thumbnail: val })}
-                    />
-                  </>
+                    {/* YouTube Advanced Override (Collapsible) */}
+                    <details className="text-xs group border border-black/5 dark:border-white/5 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-950/10">
+                      <summary className="font-extrabold text-slate-500 dark:text-slate-400 cursor-pointer select-none outline-none flex items-center justify-between">
+                        <span>{lang === 'en' ? 'Advanced Override Fields (Optional)' : 'Kolom Manual Kustom (Opsional)'}</span>
+                        <span className="text-[10px] text-teal-600 dark:text-teal-400 font-bold group-open:hidden">{lang === 'en' ? 'Show' : 'Tampilkan'}</span>
+                        <span className="text-[10px] text-teal-600 dark:text-teal-400 font-bold hidden group-open:inline">{lang === 'en' ? 'Hide' : 'Sembunyikan'}</span>
+                      </summary>
+                      
+                      <div className="space-y-4 pt-4 border-t border-black/5 dark:border-white/5 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Video Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                            <input 
+                              type="text" 
+                              value={editingItem.title?.en || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, en: e.target.value } })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Video Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                            <input 
+                              type="text" 
+                              value={editingItem.title?.id || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, id: e.target.value } })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Duration (e.g. 5:42)</label>
+                            <input 
+                              type="text" 
+                              value={editingItem.duration || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, duration: e.target.value })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Views count (e.g. 1.2K)</label>
+                            <input 
+                              type="text" 
+                              value={editingItem.views || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, views: e.target.value })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">YouTube Video ID</label>
+                            <input 
+                              type="text" 
+                              value={editingItem.embedId || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, embedId: e.target.value })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        <ImageUploadField 
+                          label="Thumbnail Image" 
+                          value={editingItem.thumbnail || ''} 
+                          onChange={(val) => setEditingItem({ ...editingItem, thumbnail: val })}
+                        />
+                      </div>
+                    </details>
+                  </div>
                 )}
 
                 {/* SOCIAL MEDIA - INSTAGRAM FIELDS */}
@@ -1918,92 +2191,162 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
 
                 {/* MASS MEDIA FIELDS */}
                 {activeTab === 'mass_media' && (
-                  <>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Publisher Name (e.g. Kompas.id)</label>
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Tv className="w-4 h-4 text-teal-500" />
+                        <span>Mass Media Article Link (URL)</span>
+                      </label>
+                      <div className="relative">
                         <input 
-                          type="text" 
-                          value={editingItem.publisher || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, publisher: e.target.value })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Publication Date</label>
-                        <input 
-                          type="date" 
-                          value={editingItem.date || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Link URL</label>
-                        <input 
-                          type="text" 
+                          type="url" 
                           value={editingItem.link || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, link: e.target.value })}
+                          onChange={(e) => handleMassMediaLinkChange(e.target.value)}
+                          placeholder="https://www.kompas.id/baca/humaniora/..."
                           required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          className="w-full pl-4 pr-10 py-3 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 transition-all font-mono"
                         />
+                        {isAutoFetching && (
+                          <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                            <Loader2 className="w-4 h-4 text-teal-500 animate-spin" />
+                          </div>
+                        )}
                       </div>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        {lang === 'en' 
+                          ? 'Paste the news coverage article link. The publisher, article title, and summary description are retrieved and parsed instantly!' 
+                          : 'Tempel tautan berita nasional. Penerbit, judul artikel, dan ringkasan berita akan diambil dan diurai seketika!'}
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
-                        <input 
-                          type="text" 
-                          value={editingItem.title?.en || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, en: e.target.value } })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
-                        <input 
-                          type="text" 
-                          value={editingItem.title?.id || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, id: e.target.value } })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                    </div>
+                    {/* Mass Media Real-Time Live Preview */}
+                    {editingItem.link && editingItem.link !== '#' && (
+                      <div className="border border-black/5 dark:border-white/5 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl space-y-3.5">
+                        <span className="text-[9px] font-bold tracking-wider uppercase text-slate-400 block">
+                          {lang === 'en' ? 'Live Frontend Preview' : 'Pratinjau Langsung Frontend'}
+                        </span>
+                        
+                        <div className="glass-card rounded-2xl p-5 border border-black/5 dark:border-white/5 flex flex-col justify-between max-w-xl bg-white dark:bg-slate-900/60">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="px-2 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-extrabold text-[9px] rounded uppercase tracking-wider">
+                                {editingItem.publisher || 'National Press'}
+                              </span>
+                              <span className="text-[9px] font-mono text-slate-400">{editingItem.date || new Date().toISOString().split('T')[0]}</span>
+                            </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Summary (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
-                        <textarea 
-                          rows={3}
-                          value={editingItem.summary?.en || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, summary: { ...editingItem.summary, en: e.target.value } })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Summary (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
-                        <textarea 
-                          rows={3}
-                          value={editingItem.summary?.id || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, summary: { ...editingItem.summary, id: e.target.value } })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                    </div>
+                            <h4 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug line-clamp-2">
+                              {lang === 'en' ? (editingItem.title?.en || 'News Article Title') : (editingItem.title?.id || 'Judul Artikel Berita')}
+                            </h4>
 
-                    <ImageUploadField 
-                      label="Publisher Logo Image" 
-                      value={editingItem.logo || ''} 
-                      onChange={(val) => setEditingItem({ ...editingItem, logo: val })}
-                    />
-                  </>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">
+                              {lang === 'en' ? (editingItem.summary?.en || 'Full news article description summaries...') : (editingItem.summary?.id || 'Ringkasan deskripsi artikel berita lengkap...')}
+                            </p>
+                          </div>
+
+                          <div className="pt-3 border-t border-black/5 dark:border-white/5 mt-4 flex items-center justify-between text-[10px]">
+                            <div className="flex items-center space-x-1.5">
+                              <img src={editingItem.logo || "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&q=80&w=100"} alt="Logo" className="w-4 h-4 rounded-full object-cover" />
+                              <span className="text-slate-400 font-bold">{editingItem.publisher || 'Publisher'}</span>
+                            </div>
+                            <span className="text-teal-600 dark:text-teal-400 font-extrabold flex items-center space-x-1">
+                              <span>{lang === 'en' ? 'Visit Link' : 'Baca Berita'}</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mass Media Advanced Override (Collapsible) */}
+                    <details className="text-xs group border border-black/5 dark:border-white/5 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-950/10">
+                      <summary className="font-extrabold text-slate-500 dark:text-slate-400 cursor-pointer select-none outline-none flex items-center justify-between">
+                        <span>{lang === 'en' ? 'Advanced Override Fields (Optional)' : 'Kolom Manual Kustom (Opsional)'}</span>
+                        <span className="text-[10px] text-teal-600 dark:text-teal-400 font-bold group-open:hidden">{lang === 'en' ? 'Show' : 'Tampilkan'}</span>
+                        <span className="text-[10px] text-teal-600 dark:text-teal-400 font-bold hidden group-open:inline">{lang === 'en' ? 'Hide' : 'Sembunyikan'}</span>
+                      </summary>
+                      
+                      <div className="space-y-4 pt-4 border-t border-black/5 dark:border-white/5 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Publisher Name</label>
+                            <input 
+                              type="text" 
+                              value={editingItem.publisher || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, publisher: e.target.value })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Publication Date</label>
+                            <input 
+                              type="date" 
+                              value={editingItem.date || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Link URL Override</label>
+                            <input 
+                              type="text" 
+                              value={editingItem.link || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, link: e.target.value })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                            <input 
+                              type="text" 
+                              value={editingItem.title?.en || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, en: e.target.value } })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                            <input 
+                              type="text" 
+                              value={editingItem.title?.id || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, id: e.target.value } })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Summary (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                            <textarea 
+                              rows={3}
+                              value={editingItem.summary?.en || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, summary: { ...editingItem.summary, en: e.target.value } })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Summary (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
+                            <textarea 
+                              rows={3}
+                              value={editingItem.summary?.id || ''} 
+                              onChange={(e) => setEditingItem({ ...editingItem, summary: { ...editingItem.summary, id: e.target.value } })}
+                              className="px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                        </div>
+
+                        <ImageUploadField 
+                          label="Publisher Logo Image" 
+                          value={editingItem.logo || ''} 
+                          onChange={(val) => setEditingItem({ ...editingItem, logo: val })}
+                        />
+                      </div>
+                    </details>
+                  </div>
                 )}
 
                 {/* TEAM MEMBERS / RESEARCHERS FIELDS */}

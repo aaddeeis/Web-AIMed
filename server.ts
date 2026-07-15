@@ -44,6 +44,108 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", mode: process.env.NODE_ENV || "development" });
 });
 
+// 1.5. URL Metadata Extractor Route for CMS Mass Media Auto-fill
+app.get("/api/fetch-metadata", async (req, res) => {
+  const { url } = req.query;
+  if (!url || typeof url !== "string") {
+    return res.status(400).json({ error: "URL is required" });
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" 
+      }
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const html = await response.text();
+    
+    // Simple but robust metadata extraction using regex
+    const extractMeta = (htmlContent: string, keys: string[]): string => {
+      for (const key of keys) {
+        // match meta tag with content and property/name in either order
+        const regex1 = new RegExp(`<meta[^>]*?(?:property|name)=["']${key}["'][^>]*?content=["']([^"']*)["']`, "i");
+        const match1 = htmlContent.match(regex1);
+        if (match1 && match1[1]) return match1[1].trim();
+
+        const regex2 = new RegExp(`<meta[^>]*?content=["']([^"']*)["'][^>]*?(?:property|name)=["']${key}["']`, "i");
+        const match2 = htmlContent.match(regex2);
+        if (match2 && match2[1]) return match2[1].trim();
+      }
+      return "";
+    };
+
+    // Extract Title
+    let title = extractMeta(html, ["og:title", "twitter:title", "title"]);
+    if (!title) {
+      const titleTagMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+      if (titleTagMatch) title = titleTagMatch[1].trim();
+    }
+    // Clean HTML entities if any
+    title = title.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
+
+    // Extract Description / Summary
+    let description = extractMeta(html, ["og:description", "twitter:description", "description"]);
+    description = description.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
+
+    // Extract Site/Publisher Name
+    let publisher = extractMeta(html, ["og:site_name", "og:publisher"]);
+    if (!publisher) {
+      try {
+        const parsedUrl = new URL(url);
+        publisher = parsedUrl.hostname.replace("www.", "");
+        // Capitalize first letter of domain
+        publisher = publisher.charAt(0).toUpperCase() + publisher.slice(1);
+      } catch {
+        publisher = "News Coverage";
+      }
+    }
+
+    // Extract Image / Logo
+    let logo = extractMeta(html, ["og:image", "twitter:image"]);
+    if (!logo || !logo.startsWith("http")) {
+      logo = "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&q=80&w=100";
+    }
+
+    return res.json({
+      title: title || "Media Article",
+      description: description || "Read the latest press coverage of our research and milestones on the official publisher website.",
+      publisher: publisher || "National Media",
+      logo: logo,
+      date: new Date().toISOString().split('T')[0]
+    });
+
+  } catch (error: any) {
+    console.error("Metadata fetch error for:", url, error.message);
+    
+    // Graceful fallback with parsed domain name
+    let publisherName = "News Media";
+    try {
+      const parsedUrl = new URL(url);
+      publisherName = parsedUrl.hostname.replace("www.", "");
+      publisherName = publisherName.charAt(0).toUpperCase() + publisherName.slice(1);
+    } catch {}
+
+    return res.json({
+      title: "Press Coverage News",
+      description: "Click to read the full published news article about our Artificial Intelligence for Medical Center of Excellence.",
+      publisher: publisherName,
+      logo: "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&q=80&w=100",
+      date: new Date().toISOString().split('T')[0]
+    });
+  }
+});
+
 // 1. AI Chat Assistant Route
 app.post("/api/chat", async (req, res) => {
   const { messages } = req.body;
