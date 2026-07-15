@@ -53,7 +53,9 @@ type CollectionType =
   | 'team_undergraduate'
   | 'social_youtube'
   | 'social_instagram'
-  | 'mass_media';
+  | 'mass_media'
+  | 'partners'
+  | 'sdg_alignment';
 
 interface ImageUploadFieldProps {
   label: string;
@@ -756,6 +758,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
       case 'social_youtube': return data.youtubeVideos;
       case 'social_instagram': return data.instagramPosts;
       case 'mass_media': return data.massMedia;
+      case 'partners': return data.partners;
       default: return [];
     }
   };

@@ -45,7 +45,7 @@ export default function Partners({ lang }: PartnersProps) {
                 href={partner.websiteUrl || '#'}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center h-16 w-auto min-w-[120px] grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all duration-300 transform hover:scale-105"
+                className="flex items-center justify-center h-16 w-auto min-w-[120px] opacity-100 hover:scale-105 transition-all duration-300 transform"
                 title={partner.name}
               >
                 <img
