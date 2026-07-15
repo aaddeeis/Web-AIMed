@@ -2115,11 +2115,9 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
                         >
                           <option value="research">Research</option>
-                          <option value="award">Award</option>
                           <option value="seminar">Seminar</option>
                           <option value="workshop">Workshop</option>
                           <option value="achievement">Achievement</option>
-                          <option value="grant">Grant</option>
                         </select>
                       </div>
                       <div className="flex flex-col gap-1">

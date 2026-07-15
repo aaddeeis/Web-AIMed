@@ -464,7 +464,7 @@ export const NEWS: NewsItem[] = [
       en: 'AIMed CoE Secures Prestigious BRIN Research Grant for Fetal AI Imaging',
       id: 'AIMed CoE Mengamankan Hibah Penelitian BRIN yang Bergengsi untuk Pencitraan AI Janin'
     },
-    category: 'grant',
+    category: 'research',
     date: '2026-05-18',
     image: 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800',
     images: [
@@ -484,7 +484,7 @@ export const NEWS: NewsItem[] = [
       en: 'Prof. Samsuryadi Named Among Top 2% World Scientists in AI & Medical Imaging',
       id: 'Prof. Samsuryadi Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam AI & Pencitraan Medis'
     },
-    category: 'award',
+    category: 'achievement',
     date: '2025-11-10',
     image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
     images: [

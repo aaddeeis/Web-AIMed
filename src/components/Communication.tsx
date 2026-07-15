@@ -855,10 +855,10 @@ export default function Communication({ lang }: CommunicationProps) {
         const currentImage = articleImages[activeImageIndex] || selectedArticle.image;
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="relative glass-panel-heavy bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200/80 dark:border-slate-800">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="relative bg-white dark:bg-slate-900 w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800">
               {/* Header / Interactive Image Slider */}
-              <div className="relative h-64 sm:h-80 bg-slate-900 flex items-center justify-center overflow-hidden">
+              <div className="relative h-64 sm:h-80 bg-slate-950 flex items-center justify-center overflow-hidden">
                 <img 
                   src={currentImage} 
                   alt={lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id} 
@@ -866,7 +866,7 @@ export default function Communication({ lang }: CommunicationProps) {
                   className="w-full h-full object-cover transition-all duration-300"
                 />
                 
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent pointer-events-none" />
 
                 {/* Left/Right Arrows */}
                 {articleImages.length > 1 && (
@@ -876,7 +876,7 @@ export default function Communication({ lang }: CommunicationProps) {
                         e.stopPropagation();
                         setActiveImageIndex(prev => (prev === 0 ? articleImages.length - 1 : prev - 1));
                       }}
-                      className="absolute left-4 p-2 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white/90 hover:text-white transition-all z-10 cursor-pointer"
+                      className="absolute left-4 p-2.5 rounded-full bg-slate-950/80 hover:bg-slate-950 text-white transition-all z-10 cursor-pointer shadow-lg"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -885,7 +885,7 @@ export default function Communication({ lang }: CommunicationProps) {
                         e.stopPropagation();
                         setActiveImageIndex(prev => (prev === articleImages.length - 1 ? 0 : prev + 1));
                       }}
-                      className="absolute right-4 p-2 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white/90 hover:text-white transition-all z-10 cursor-pointer"
+                      className="absolute right-4 p-2.5 rounded-full bg-slate-950/80 hover:bg-slate-950 text-white transition-all z-10 cursor-pointer shadow-lg"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
@@ -895,14 +895,14 @@ export default function Communication({ lang }: CommunicationProps) {
                 {/* Close Button on Image */}
                 <button 
                   onClick={() => setSelectedArticle(null)}
-                  className="absolute top-4 right-4 p-2 bg-slate-950/60 hover:bg-slate-950 text-white rounded-full transition-colors z-20 cursor-pointer"
+                  className="absolute top-4 right-4 p-2 bg-slate-950/80 hover:bg-slate-950 text-white rounded-full transition-colors z-20 cursor-pointer shadow-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
 
                 {/* Image counter indicator */}
                 {articleImages.length > 1 && (
-                  <div className="absolute bottom-4 right-4 px-2 py-1 bg-black/60 backdrop-blur-md rounded-md text-[10px] text-white/95 font-mono font-bold z-10">
+                  <div className="absolute bottom-4 right-4 px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-md text-[10px] text-white font-mono font-bold z-10">
                     {activeImageIndex + 1} / {articleImages.length}
                   </div>
                 )}
@@ -928,27 +928,27 @@ export default function Communication({ lang }: CommunicationProps) {
               )}
 
               {/* Modal Content */}
-              <div className="p-6 sm:p-8 space-y-5 max-h-[45vh] overflow-y-auto">
-                <div>
-                  <span className="text-[10px] font-extrabold text-teal-600 dark:text-teal-300 bg-teal-500/15 px-2.5 py-1 rounded tracking-widest">
+              <div className="p-6 sm:p-10 space-y-6 max-h-[55vh] md:max-h-[60vh] overflow-y-auto">
+                <div className="space-y-3">
+                  <span className="text-[10px] font-extrabold text-teal-600 dark:text-teal-300 bg-teal-500/10 dark:bg-teal-500/20 px-3 py-1 rounded-full tracking-widest uppercase">
                     {selectedArticle.category}
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-3 leading-tight">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
                     {lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id}
                   </h3>
                 </div>
 
-                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">
+                <div className="flex items-center text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80 pb-3">
                   <span>{lang === 'en' ? 'Published:' : 'Diterbitkan:'}</span>
-                  <span className="ml-1.5 font-mono text-slate-700 dark:text-slate-300 font-extrabold">{selectedArticle.date}</span>
+                  <span className="ml-1.5 font-mono text-slate-800 dark:text-slate-200 font-extrabold">{selectedArticle.date}</span>
                 </div>
                 
-                <p className="text-sm sm:text-base text-slate-800 dark:text-slate-100 leading-relaxed font-semibold font-sans">
+                <p className="text-sm sm:text-base text-slate-700 dark:text-slate-200 leading-relaxed font-medium font-sans">
                   {lang === 'en' ? selectedArticle.content.en : selectedArticle.content.id}
                 </p>
 
                 {/* simulated deep read */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                <div className="p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                   {lang === 'en' ? (
                     `PALEMBANG — Under the supervision of global advisory teams, AIMed researchers completed model pipelines targeting rural clinic deployments. Clinical accuracy tests held at RSMH Palembang recorded excellent performance, proving that enterprise networks can execute on standard edge ultrasound hardware without computational drops. Future phases plan to install dedicated diagnostic hubs connected directly via regional telehealth grids.`
                   ) : (
@@ -958,10 +958,10 @@ export default function Communication({ lang }: CommunicationProps) {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 bg-black/5 dark:bg-white/[0.02] border-t border-black/5 dark:border-white/5 text-right">
+              <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800/80 text-right">
                 <button
                   onClick={() => setSelectedArticle(null)}
-                  className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-950 text-xs font-bold rounded-xl cursor-pointer"
+                  className="px-6 py-2.5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-sm"
                 >
                   {lang === 'en' ? 'Close Window' : 'Tutup Jendela'}
                 </button>
