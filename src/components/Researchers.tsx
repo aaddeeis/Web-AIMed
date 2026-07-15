@@ -548,38 +548,30 @@ export default function Researchers({ lang }: ResearchersProps) {
                 {collaborators.map((col) => (
                   <div 
                     key={col.id}
-                    className="w-full sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start glass-card rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300 border border-black/5 dark:border-white/5 hover:border-indigo-500/20"
+                    className="w-full sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start glass-card rounded-2xl p-6 flex flex-col justify-between items-center text-center hover:shadow-lg transition-all duration-300 border border-black/5 dark:border-white/5 hover:border-indigo-500/20"
                   >
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-4">
-                        {col.image && (
-                          <img 
-                            src={col.image} 
-                            alt={col.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-14 h-14 rounded-full border-2 border-indigo-500/20 object-cover shadow-sm bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
-                          />
-                        )}
-                        <div>
-                          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight">
-                            {col.name}
-                          </h4>
-                          <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-1 uppercase tracking-wider">
-                            {lang === 'en' ? col.role.en : col.role.id}
-                          </p>
-                        </div>
+                    <div className="space-y-4 flex flex-col items-center w-full">
+                      {col.image && (
+                        <img 
+                          src={col.image} 
+                          alt={col.name} 
+                          referrerPolicy="no-referrer"
+                          className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-indigo-500/20 object-cover shadow-md bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
+                        />
+                      )}
+                      <div>
+                        <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight leading-snug">
+                          {col.name}
+                        </h4>
+                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-1.5 uppercase tracking-wider">
+                          {lang === 'en' ? col.role.en : col.role.id}
+                        </p>
                       </div>
 
                       {col.institution && (
                         <div className="px-3 py-1.5 bg-indigo-500/5 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-lg border border-indigo-500/10 inline-block">
                           {lang === 'en' ? col.institution.en : col.institution.id}
                         </div>
-                      )}
-
-                      {col.topic && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium mt-2">
-                          <strong>{lang === 'en' ? 'Joint Focus:' : 'Fokus Bersama:'}</strong> {lang === 'en' ? col.topic.en : col.topic.id}
-                        </p>
                       )}
                     </div>
                   </div>
