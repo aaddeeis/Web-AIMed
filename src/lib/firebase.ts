@@ -27,7 +27,7 @@ export async function loadCMSFromFirestore(): Promise<any> {
 }
 
 // Helper to save all CMS data to Firestore using individual documents per section to bypass the 1MB limit
-export async function saveCMSToFirestore(data: any): Promise<boolean> {
+export async function saveCMSToFirestore(data: any): Promise<{ success: boolean; error?: string }> {
   try {
     const batch = writeBatch(db);
     for (const key of Object.keys(data)) {
@@ -35,9 +35,9 @@ export async function saveCMSToFirestore(data: any): Promise<boolean> {
       batch.set(docRef, { data: data[key] });
     }
     await batch.commit();
-    return true;
-  } catch (error) {
+    return { success: true };
+  } catch (error: any) {
     console.error('Error saving CMS data to Firestore:', error);
-    return false;
+    return { success: false, error: error?.message || String(error) };
   }
 }

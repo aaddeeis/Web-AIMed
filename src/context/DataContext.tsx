@@ -105,7 +105,7 @@ interface DataContextType {
   resetToDefault: () => void;
   exportData: () => string;
   importData: (jsonData: string) => boolean;
-  saveToServer: () => Promise<boolean>;
+  saveToServer: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -1029,13 +1029,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadServerData();
   }, []);
 
-  const saveToServer = async (): Promise<boolean> => {
+  const saveToServer = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       const dataStr = exportData();
       const dataObj = JSON.parse(dataStr);
 
       console.log('Saving CMS data to Firebase Firestore...');
-      const firestoreSuccess = await saveCMSToFirestore(dataObj);
+      const result = await saveCMSToFirestore(dataObj);
 
       // Also attempt to save to server disk as a local backup if available
       try {
@@ -1051,10 +1051,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Local server disk backup skipped or unavailable (e.g. running on serverless/Vercel):', e);
       }
 
-      return firestoreSuccess;
-    } catch (e) {
+      return result;
+    } catch (e: any) {
       console.error('Failed to save CMS data to Firestore:', e);
-      return false;
+      return { success: false, error: e?.message || String(e) };
     }
   };
 
