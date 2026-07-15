@@ -87,6 +87,18 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
 
   const { publicationsData } = useData();
 
+  const sortedJournals = [...(publicationsData?.journals || [])].sort((a, b) => {
+    const yearA = parseInt(String(a.year)) || 0;
+    const yearB = parseInt(String(b.year)) || 0;
+    return yearB - yearA;
+  });
+
+  const sortedConferences = [...(publicationsData?.conferences || [])].sort((a, b) => {
+    const yearA = parseInt(String(a.year)) || 0;
+    const yearB = parseInt(String(b.year)) || 0;
+    return yearB - yearA;
+  });
+
   const conferencesOrganized = [
     {
       title: 'ICAIM 2025: International Conference on Artificial Intelligence in Medicine',
@@ -308,7 +320,7 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
                 <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto pt-4">
                   
                   {/* International Journals */}
-                  {activePubTab === 'journals' && publicationsData.journals.map((item, idx) => {
+                  {activePubTab === 'journals' && sortedJournals.map((item, idx) => {
                     return (
                       <div key={idx} className="glass-card p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -368,7 +380,7 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
                   })}
 
                   {/* International Conference */}
-                  {activePubTab === 'conferences' && publicationsData.conferences.map((item, idx) => {
+                  {activePubTab === 'conferences' && sortedConferences.map((item, idx) => {
                     return (
                       <div key={idx} className="glass-card p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
