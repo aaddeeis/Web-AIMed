@@ -21,6 +21,7 @@ import {
   PARTNERS as initialPartners,
   SDG_CONTENT as initialSdgContent,
 } from '../data/mockData';
+import { loadCMSFromFirestore, saveCMSToFirestore } from '../lib/firebase';
 
 // Re-define Person interface matching Researchers.tsx
 export interface Person {
@@ -933,14 +934,37 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return JSON.stringify(data, null, 2);
   };
 
-  // Auto-load CMS data from server disk on mount
+  // Auto-load CMS data from Firebase Firestore (fallback to Server disk if empty or fails)
   useEffect(() => {
     const loadServerData = async () => {
       try {
-        const response = await fetch('/api/cms/load');
-        const result = await response.json();
-        if (result.status === 'success' && result.data) {
-          const parsed = result.data;
+        console.log('Attempting to load CMS data from Firebase Firestore...');
+        let parsed = await loadCMSFromFirestore();
+        let loadedFromFirestore = false;
+
+        if (parsed && Object.keys(parsed).length > 0) {
+          loadedFromFirestore = true;
+          console.log('CMS data loaded successfully from Firestore.');
+        } else {
+          console.log('Firestore is empty. Falling back to local server disk/assets...');
+          const response = await fetch('/api/cms/load');
+          const result = await response.json();
+          if (result.status === 'success' && result.data) {
+            parsed = result.data;
+            console.log('CMS data loaded successfully from server disk.');
+            
+            // Auto-populate Firestore so it is persistent across server restarts/serverless deployments
+            try {
+              console.log('Auto-populating Firestore with initial CMS data...');
+              await saveCMSToFirestore(parsed);
+              console.log('Firestore successfully auto-populated with initial CMS data!');
+            } catch (saveErr) {
+              console.error('Failed to auto-populate Firestore:', saveErr);
+            }
+          }
+        }
+
+        if (parsed) {
           if (parsed.researchGroups) setResearchGroups(parsed.researchGroups);
           if (parsed.showcaseProjects) setShowcaseProjects(parsed.showcaseProjects);
           if (parsed.publicationsData) setPublicationsData(parsed.publicationsData);
@@ -964,10 +988,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           Object.keys(parsed).forEach(key => {
             localStorage.setItem(`aimed_${key}`, JSON.stringify(parsed[key]));
           });
-          console.log('CMS data loaded successfully from server.');
         }
       } catch (err) {
-        console.error('Failed to auto-load CMS data from server:', err);
+        console.error('Failed to auto-load CMS data from server/Firestore:', err);
       }
     };
     loadServerData();
@@ -976,17 +999,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const saveToServer = async (): Promise<boolean> => {
     try {
       const dataStr = exportData();
-      const response = await fetch('/api/cms/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: dataStr
-      });
-      const res = await response.json();
-      return res.status === 'success';
+      const dataObj = JSON.parse(dataStr);
+
+      console.log('Saving CMS data to Firebase Firestore...');
+      const firestoreSuccess = await saveCMSToFirestore(dataObj);
+
+      // Also attempt to save to server disk as a local backup if available
+      try {
+        await fetch('/api/cms/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: dataStr
+        });
+        console.log('Saved local server backup successfully.');
+      } catch (e) {
+        console.warn('Local server disk backup skipped or unavailable (e.g. running on serverless/Vercel):', e);
+      }
+
+      return firestoreSuccess;
     } catch (e) {
-      console.error('Failed to save CMS data to server:', e);
+      console.error('Failed to save CMS data to Firestore:', e);
       return false;
     }
   };

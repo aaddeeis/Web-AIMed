@@ -921,8 +921,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                 const success = await data.saveToServer();
                 if (success) {
                   showMsg(lang === 'en' 
-                    ? 'Changes successfully published to server disk! (Saved permanently to src/data/cms_data.json)' 
-                    : 'Perubahan berhasil dipublikasikan ke server disk! (Disimpan permanen di src/data/cms_data.json)');
+                    ? 'Changes successfully published to Cloud Database (Firebase Firestore)!' 
+                    : 'Perubahan berhasil dipublikasikan ke Cloud Database (Firebase Firestore)!');
                 } else {
                   showMsg(lang === 'en' ? 'Failed to publish changes to server.' : 'Gagal mempublikasikan perubahan ke server.', 'error');
                 }
