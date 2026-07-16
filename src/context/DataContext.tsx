@@ -1133,14 +1133,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         }
 
-        const contentType = response.headers.get('content-type');
-        if (!response.ok || !contentType || !contentType.includes('application/json')) {
-          useClientFallback = true;
-          fallbackReason = `HTTP ${response?.status}: Server did not return JSON.`;
+        const contentType = response?.headers.get('content-type');
+        const isJson = !!(contentType && contentType.includes('application/json'));
+
+        if (!response.ok) {
+          if (isJson) {
+            const errResult = await response.json();
+            return {
+              success: false,
+              error: errResult.error || errResult.message || `HTTP ${response.status}: Unknown Server Error`
+            };
+          } else {
+            const rawText = await response.text();
+            return {
+              success: false,
+              error: `HTTP ${response.status}: ${rawText.slice(0, 150) || 'Server did not return JSON'}`
+            };
+          }
         }
-      } catch (fetchErr) {
+
+        if (!isJson) {
+          useClientFallback = true;
+          fallbackReason = "Server response is not in JSON format.";
+        }
+      } catch (fetchErr: any) {
         useClientFallback = true;
-        fallbackReason = `Fetch failed: Server API is unreachable.`;
+        fallbackReason = `Fetch failed: Server API is unreachable (${fetchErr.message || String(fetchErr)}).`;
       }
 
       if (useClientFallback) {

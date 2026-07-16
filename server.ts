@@ -3,7 +3,6 @@ import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
-import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
 
 dotenv.config();
@@ -1002,6 +1001,7 @@ IMPORTANT: Return only the RAW JSON string. Do not wrap the JSON in \`\`\`json o
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     console.log("Starting server in development mode with Vite HMR middleware...");
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
