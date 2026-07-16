@@ -987,23 +987,13 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                 setIsPublishing(false);
                 if (result.success) {
                   showMsg(lang === 'en' 
-                    ? 'Changes successfully published to Cloud Database (Firebase Firestore)!' 
-                    : 'Perubahan berhasil dipublikasikan ke Cloud Database (Firebase Firestore)!');
+                    ? 'Changes successfully published to the server disk (cms_data.json)!' 
+                    : 'Perubahan berhasil dipublikasikan ke server disk (cms_data.json)!');
                 } else {
                   const errorMsg = result.error ? String(result.error) : '';
-                  const isQuota = errorMsg.toLowerCase().includes('quota') || errorMsg.toLowerCase().includes('exhausted');
-                  
-                  if (isQuota) {
-                    showMsg(lang === 'en'
-                      ? 'Failed to publish: Firebase daily Firestore quota exceeded. Free limits will reset tomorrow. Details: https://console.firebase.google.com/project/amplified-campus-76ppv/firestore/databases/ai-studio-aimedcoe-c637c20a-a67c-4631-b202-b3c68e83a2b4/data?openUpgradeDialog=true'
-                      : 'Gagal mempublikasikan: Batas kuota gratis harian Firestore terlampaui. Kuota akan diatur ulang besok.',
-                      'error'
-                    );
-                  } else {
-                    showMsg(lang === 'en' 
-                      ? `Failed to publish changes to server: ${errorMsg}` 
-                      : `Gagal mempublikasikan perubahan ke server: ${errorMsg}`, 'error');
-                  }
+                  showMsg(lang === 'en' 
+                    ? `Failed to publish changes to server: ${errorMsg}` 
+                    : `Gagal mempublikasikan perubahan ke server: ${errorMsg}`, 'error');
                 }
               }}
               className="px-3 py-1.5 bg-gradient-to-r from-teal-500 to-sky-500 hover:from-teal-600 hover:to-sky-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1521,22 +1511,12 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         const result = await data.saveToServer();
                         setIsPublishing(false);
                         if (result.success) {
-                          showMsg(lang === 'en' ? 'SDG Alignment saved successfully!' : 'Keselarasan SDG berhasil disimpan!');
+                          showMsg(lang === 'en' ? 'SDG Alignment saved successfully to server disk!' : 'Keselarasan SDG berhasil disimpan ke server disk!');
                         } else {
                           const errorMsg = result.error ? String(result.error) : '';
-                          const isQuota = errorMsg.toLowerCase().includes('quota') || errorMsg.toLowerCase().includes('exhausted');
-                          
-                          if (isQuota) {
-                            showMsg(lang === 'en'
-                              ? 'Failed to save: Firebase daily Firestore quota exceeded. Details: https://console.firebase.google.com/project/amplified-campus-76ppv/firestore/databases/ai-studio-aimedcoe-c637c20a-a67c-4631-b202-b3c68e83a2b4/data?openUpgradeDialog=true'
-                              : 'Gagal menyimpan: Batas kuota gratis harian Firestore terlampaui.',
-                              'error'
-                            );
-                          } else {
-                            showMsg(lang === 'en' 
-                              ? `Failed to save SDG Alignment: ${errorMsg}` 
-                              : `Gagal menyimpan keselarasan SDG: ${errorMsg}`, 'error');
-                          }
+                          showMsg(lang === 'en' 
+                            ? `Failed to save SDG Alignment: ${errorMsg}` 
+                            : `Gagal menyimpan keselarasan SDG: ${errorMsg}`, 'error');
                         }
                       }}
                       className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed"

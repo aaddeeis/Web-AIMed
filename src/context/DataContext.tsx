@@ -964,7 +964,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return JSON.stringify(data, null, 2);
   };
 
-  // Auto-load CMS data from Firebase Firestore (fallback to Server disk if empty or fails)
+  // Auto-load CMS data from server disk / cms_data.json
   useEffect(() => {
     const applyCMSData = (parsed: any) => {
       if (!parsed) return;
@@ -997,43 +997,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const loadServerData = async () => {
-      let loaded = false;
       try {
-        console.log('Attempting to load CMS data from Firebase Firestore...');
-        const parsed = await loadCMSFromFirestore();
-
-        if (parsed && Object.keys(parsed).length > 0) {
-          applyCMSData(parsed);
-          loaded = true;
-          console.log('CMS data loaded successfully from Firestore.');
+        console.log('Loading CMS data from server disk (cms_data.json)...');
+        const response = await fetch('/api/cms/load');
+        const result = await response.json();
+        
+        if (result.status === 'success' && result.data) {
+          applyCMSData(result.data);
+          console.log('CMS data loaded successfully from server disk.');
         } else {
-          console.log('Firestore is empty. Falling back to local server disk/assets...');
+          console.log('No saved CMS data found on server disk, using default/mock data.');
         }
       } catch (err) {
-        console.error('Failed to load CMS data from Firestore (e.g. Quota Exceeded):', err);
-      }
-
-      // If Firestore failed or was empty, load from Server Disk
-      if (!loaded) {
-        try {
-          console.log('Attempting fallback: Loading CMS data from server disk...');
-          const response = await fetch('/api/cms/load');
-          const result = await response.json();
-          if (result.status === 'success' && result.data) {
-            applyCMSData(result.data);
-            loaded = true;
-            console.log('CMS data loaded successfully from server disk fallback.');
-            
-            // Auto-populate Firestore if empty (only try if we haven't already hit quota issues)
-            try {
-              await saveCMSToFirestore(result.data);
-            } catch (e) {
-              // Ignore save error on load
-            }
-          }
-        } catch (serverErr) {
-          console.error('Failed fallback load from server disk:', serverErr);
-        }
+        console.error('Failed to load CMS data from server disk:', err);
       }
     };
     loadServerData();
@@ -1042,28 +1018,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const saveToServer = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       const dataStr = exportData();
-      const dataObj = JSON.parse(dataStr);
-
-      console.log('Saving CMS data to Firebase Firestore...');
-      const result = await saveCMSToFirestore(dataObj);
-
-      // Also attempt to save to server disk as a local backup if available
-      try {
-        await fetch('/api/cms/save', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: dataStr
-        });
-        console.log('Saved local server backup successfully.');
-      } catch (e) {
-        console.warn('Local server disk backup skipped or unavailable (e.g. running on serverless/Vercel):', e);
+      console.log('Saving CMS data to server disk (cms_data.json)...');
+      
+      const response = await fetch('/api/cms/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: dataStr
+      });
+      
+      const result = await response.json();
+      if (result.status === 'success') {
+        console.log('Saved CMS data to server disk successfully.');
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || 'Failed to save to server disk.' };
       }
-
-      return result;
     } catch (e: any) {
-      console.error('Failed to save CMS data to Firestore:', e);
+      console.error('Failed to save CMS data to server disk:', e);
       return { success: false, error: e?.message || String(e) };
     }
   };
