@@ -2303,96 +2303,17 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           placeholder="tag1, tag2, tag3"
                           className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 w-full"
                         />
-                      </div>
+                     <div className="grid grid-cols-1 gap-4">
+                      <ImageUploadField 
+                        label={lang === 'en' ? 'News Photo (Upload)' : 'Foto Kegiatan / Berita (Unggah)'} 
+                        value={editingItem.image || ''} 
+                        onChange={(val) => setEditingItem({ 
+                          ...editingItem, 
+                          image: val, 
+                          images: val ? [val] : [] 
+                        })} 
+                      />
                     </div>
-
-                    <div className="border border-black/5 dark:border-white/5 rounded-2xl p-4 bg-slate-50 dark:bg-slate-900/40 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                          <Images className="w-4 h-4 text-teal-500" />
-                          <span>News Image Gallery (Multiple Images)</span>
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentImages = editingItem.images || (editingItem.image ? [editingItem.image] : []);
-                            const updated = [...currentImages, 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800'];
-                            setEditingItem({
-                              ...editingItem,
-                              images: updated,
-                              image: updated[0] || ''
-                            });
-                          }}
-                          className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white text-[10px] font-bold rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
-                        >
-                          <span>+ Add Image URL</span>
-                        </button>
-                      </div>
-
-                      <p className="text-[10px] text-slate-400">
-                        Paste valid image URLs below. The first image in the list will be automatically used as the primary coverage/card image.
-                      </p>
-
-                      {/* Images List */}
-                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                        {(() => {
-                          const currentImages = editingItem.images || (editingItem.image ? [editingItem.image] : []);
-                          if (currentImages.length === 0) {
-                            return (
-                              <div className="text-center py-4 text-[11px] text-slate-400 italic">
-                                No images added yet. Click "+ Add Image URL" to get started.
-                              </div>
-                            );
-                          }
-                          return currentImages.map((imgUrl: string, idx: number) => (
-                            <div key={idx} className="flex items-center gap-3 bg-white dark:bg-slate-950 p-2 rounded-xl border border-black/5 dark:border-white/5">
-                              {/* Thumbnail preview */}
-                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-900 flex-shrink-0">
-                                <img
-                                  src={imgUrl || 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=100'}
-                                  alt="Preview"
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=100';
-                                  }}
-                                />
-                              </div>
-
-                              {/* Input URL */}
-                              <input
-                                type="text"
-                                value={imgUrl}
-                                onChange={(e) => {
-                                  const updated = [...currentImages];
-                                  updated[idx] = e.target.value;
-                                  setEditingItem({
-                                    ...editingItem,
-                                    images: updated,
-                                    image: updated[0] || ''
-                                  });
-                                }}
-                                placeholder="Paste image URL here"
-                                className="flex-grow px-3 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                              />
-
-                              {/* Delete button */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const updated = currentImages.filter((_, i) => i !== idx);
-                                  setEditingItem({
-                                    ...editingItem,
-                                    images: updated,
-                                    image: updated[0] || ''
-                                  });
-                                }}
-                                className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ));
-                        })()}
                       </div>
                     </div>
                   </>
