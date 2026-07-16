@@ -986,9 +986,28 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                 const result = await data.saveToServer();
                 setIsPublishing(false);
                 if (result.success) {
-                  showMsg(lang === 'en' 
+                  let msg = lang === 'en' 
                     ? 'Changes successfully published to the server disk (cms_data.json)!' 
-                    : 'Perubahan berhasil dipublikasikan ke server disk (cms_data.json)!');
+                    : 'Perubahan berhasil dipublikasikan ke server disk (cms_data.json)!';
+                  
+                  if (result.githubSync) {
+                    if (result.githubSync.enabled) {
+                      if (result.githubSync.success) {
+                        msg += '\n\n' + (lang === 'en'
+                          ? `✅ GitHub Sync: ${result.githubSync.message}`
+                          : `✅ Sinkronisasi GitHub: ${result.githubSync.message}`);
+                      } else {
+                        msg += '\n\n' + (lang === 'en'
+                          ? `⚠️ GitHub Sync failed: ${result.githubSync.error}`
+                          : `⚠️ Sinkronisasi GitHub gagal: ${result.githubSync.error}`);
+                      }
+                    } else {
+                      msg += '\n\n' + (lang === 'en'
+                        ? '💡 GitHub Auto-Sync is inactive. Set GITHUB_TOKEN, GITHUB_REPO_OWNER, and GITHUB_REPO_NAME in your environment variables to enable auto-push!'
+                        : '💡 Sinkronisasi otomatis GitHub tidak aktif. Atur GITHUB_TOKEN, GITHUB_REPO_OWNER, dan GITHUB_REPO_NAME di variabel lingkungan untuk mengaktifkan auto-push!');
+                    }
+                  }
+                  showMsg(msg);
                 } else {
                   const errorMsg = result.error ? String(result.error) : '';
                   showMsg(lang === 'en' 
@@ -1511,7 +1530,28 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         const result = await data.saveToServer();
                         setIsPublishing(false);
                         if (result.success) {
-                          showMsg(lang === 'en' ? 'SDG Alignment saved successfully to server disk!' : 'Keselarasan SDG berhasil disimpan ke server disk!');
+                          let msg = lang === 'en' 
+                            ? 'SDG Alignment saved successfully to server disk!' 
+                            : 'Keselarasan SDG berhasil disimpan ke server disk!';
+                          
+                          if (result.githubSync) {
+                            if (result.githubSync.enabled) {
+                              if (result.githubSync.success) {
+                                msg += '\n\n' + (lang === 'en'
+                                  ? `✅ GitHub Sync: ${result.githubSync.message}`
+                                  : `✅ Sinkronisasi GitHub: ${result.githubSync.message}`);
+                              } else {
+                                msg += '\n\n' + (lang === 'en'
+                                  ? `⚠️ GitHub Sync failed: ${result.githubSync.error}`
+                                  : `⚠️ Sinkronisasi GitHub gagal: ${result.githubSync.error}`);
+                              }
+                            } else {
+                              msg += '\n\n' + (lang === 'en'
+                                ? '💡 GitHub Auto-Sync is inactive. Set GITHUB_TOKEN, GITHUB_REPO_OWNER, and GITHUB_REPO_NAME in your environment variables to enable auto-push!'
+                                : '💡 Sinkronisasi otomatis GitHub tidak aktif. Atur GITHUB_TOKEN, GITHUB_REPO_OWNER, dan GITHUB_REPO_NAME di variabel lingkungan untuk mengaktifkan auto-push!');
+                            }
+                          }
+                          showMsg(msg);
                         } else {
                           const errorMsg = result.error ? String(result.error) : '';
                           showMsg(lang === 'en' 

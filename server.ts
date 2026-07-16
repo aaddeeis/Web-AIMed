@@ -61,8 +61,102 @@ app.get("/api/cms/load", (req, res) => {
   return res.json({ status: "not_found" });
 });
 
+// Helper function to push updated CMS data to GitHub via REST API
+async function pushToGitHub(contentString: string): Promise<{ enabled: boolean; success?: boolean; message?: string; error?: string }> {
+  const token = process.env.GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME;
+  const branch = process.env.GITHUB_REPO_BRANCH || "main";
+  const filePath = process.env.GITHUB_FILE_PATH || "cms_data.json";
+
+  if (!token || !owner || !repo) {
+    return { enabled: false };
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/vnd.github.v3+json",
+      "User-Agent": "AimedCOE-CMS-App",
+    };
+
+    // 1. Get the existing file's SHA if it exists
+    let sha: string | undefined = undefined;
+    try {
+      const getUrl = `${url}?ref=${branch}`;
+      console.log(`[GitHub Sync] Checking existing file: ${getUrl}`);
+      const getResponse = await fetch(getUrl, { headers });
+      
+      if (getResponse.ok) {
+        const fileData: any = await getResponse.json();
+        sha = fileData.sha;
+        console.log(`[GitHub Sync] Found existing file with SHA: ${sha}`);
+      } else if (getResponse.status === 404) {
+        console.log("[GitHub Sync] File does not exist yet. A new file will be created.");
+      } else {
+        const errText = await getResponse.text();
+        console.warn(`[GitHub Sync] Failed to check status (Status: ${getResponse.status}):`, errText);
+      }
+    } catch (getErr: any) {
+      console.error("[GitHub Sync] Error fetching file info:", getErr);
+    }
+
+    // 2. Put the updated content
+    const base64Content = Buffer.from(contentString, "utf8").toString("base64");
+    const body: any = {
+      message: `cms: update cms_data.json via Admin Console at ${new Date().toISOString()}`,
+      content: base64Content,
+      branch
+    };
+    if (sha) {
+      body.sha = sha;
+    }
+
+    console.log(`[GitHub Sync] Pushing updated cms_data.json to ${owner}/${repo} on branch ${branch}...`);
+    const putResponse = await fetch(url, {
+      method: "PUT",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (putResponse.ok) {
+      const putData: any = await putResponse.json();
+      console.log(`[GitHub Sync] Successfully committed and pushed!`);
+      return {
+        enabled: true,
+        success: true,
+        message: `Committed to branch ${branch}. Commit SHA: ${putData.commit?.sha?.slice(0, 7) || ""}`
+      };
+    } else {
+      const errText = await putResponse.text();
+      console.error(`[GitHub Sync] Failed to push (Status: ${putResponse.status}):`, errText);
+      let parsedError = errText;
+      try {
+        const errJson = JSON.parse(errText);
+        parsedError = errJson.message || errText;
+      } catch (_) {}
+      return {
+        enabled: true,
+        success: false,
+        error: `GitHub API returned status ${putResponse.status}: ${parsedError}`
+      };
+    }
+  } catch (err: any) {
+    console.error("[GitHub Sync] Error syncing:", err);
+    return {
+      enabled: true,
+      success: false,
+      error: err.message || String(err)
+    };
+  }
+}
+
 // POST /api/cms/save - Save custom CMS data directly to server disk so it is preserved in workspace/git
-app.post("/api/cms/save", (req, res) => {
+app.post("/api/cms/save", async (req, res) => {
   const dataPath = path.join(process.cwd(), "cms_data.json");
   const dirPath = path.dirname(dataPath);
 
@@ -70,9 +164,17 @@ app.post("/api/cms/save", (req, res) => {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
-    fs.writeFileSync(dataPath, JSON.stringify(req.body, null, 2), "utf8");
+    const jsonStr = JSON.stringify(req.body, null, 2);
+    fs.writeFileSync(dataPath, jsonStr, "utf8");
     console.log("Successfully wrote updated CMS data to root cms_data.json");
-    return res.json({ status: "success" });
+
+    // Attempt to push to GitHub automatically if GITHUB variables are configured
+    const syncResult = await pushToGitHub(jsonStr);
+
+    return res.json({ 
+      status: "success",
+      githubSync: syncResult
+    });
   } catch (e: any) {
     console.error("Failed to write cms_data.json:", e);
     return res.status(500).json({ error: "Failed to write data to disk: " + e.message });

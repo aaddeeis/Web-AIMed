@@ -105,7 +105,7 @@ interface DataContextType {
   resetToDefault: () => void;
   exportData: () => string;
   importData: (jsonData: string) => boolean;
-  saveToServer: () => Promise<{ success: boolean; error?: string }>;
+  saveToServer: () => Promise<{ success: boolean; error?: string; githubSync?: { enabled: boolean; success?: boolean; message?: string; error?: string } }>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -1015,7 +1015,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadServerData();
   }, []);
 
-  const saveToServer = async (): Promise<{ success: boolean; error?: string }> => {
+  const saveToServer = async (): Promise<{ success: boolean; error?: string; githubSync?: { enabled: boolean; success?: boolean; message?: string; error?: string } }> => {
     try {
       const dataStr = exportData();
       console.log('Saving CMS data to server disk (cms_data.json)...');
@@ -1031,7 +1031,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await response.json();
       if (result.status === 'success') {
         console.log('Saved CMS data to server disk successfully.');
-        return { success: true };
+        return { 
+          success: true, 
+          githubSync: result.githubSync 
+        };
       } else {
         return { success: false, error: result.error || 'Failed to save to server disk.' };
       }
