@@ -26,6 +26,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useData, Person, PublicationsData } from '../context/DataContext';
+import { safeLocalStorage } from '../lib/safeStorage';
 import { StatusSyncDashboard } from './StatusSyncDashboard';
 import { Language } from '../types';
 
@@ -204,10 +205,10 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
 
   // GitHub Client-Side Credentials
   const [isGithubSettingsOpen, setIsGithubSettingsOpen] = useState(false);
-  const [ghToken, setGhToken] = useState(() => localStorage.getItem('cms_github_token') || '');
-  const [ghOwner, setGhOwner] = useState(() => localStorage.getItem('cms_github_owner') || 'aaddeeis');
-  const [ghRepo, setGhRepo] = useState(() => localStorage.getItem('cms_github_repo') || 'Web-AIMed');
-  const [ghBranch, setGhBranch] = useState(() => localStorage.getItem('cms_github_branch') || 'main');
+  const [ghToken, setGhToken] = useState(() => safeLocalStorage.getItem('cms_github_token') || '');
+  const [ghOwner, setGhOwner] = useState(() => safeLocalStorage.getItem('cms_github_owner') || 'aaddeeis');
+  const [ghRepo, setGhRepo] = useState(() => safeLocalStorage.getItem('cms_github_repo') || 'Web-AIMed');
+  const [ghBranch, setGhBranch] = useState(() => safeLocalStorage.getItem('cms_github_branch') || 'main');
 
   const getYoutubeId = (url: string): string => {
     if (!url) return '';
@@ -1158,10 +1159,10 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
               <div className="mt-4 flex justify-end gap-2">
                 <button
                   onClick={() => {
-                    localStorage.setItem('cms_github_token', ghToken);
-                    localStorage.setItem('cms_github_owner', ghOwner);
-                    localStorage.setItem('cms_github_repo', ghRepo);
-                    localStorage.setItem('cms_github_branch', ghBranch);
+                    safeLocalStorage.setItem('cms_github_token', ghToken);
+                    safeLocalStorage.setItem('cms_github_owner', ghOwner);
+                    safeLocalStorage.setItem('cms_github_repo', ghRepo);
+                    safeLocalStorage.setItem('cms_github_branch', ghBranch);
                     
                     showMsg(lang === 'en' 
                       ? 'GitHub credentials saved successfully to local browser storage!' 

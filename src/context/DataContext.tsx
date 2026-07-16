@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { safeLocalStorage } from '../lib/safeStorage';
 import { 
   Publication, 
   Researcher, 
@@ -810,7 +811,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const hasDenoising = loaded.some(p => p.id === 'us-denoising');
     if (hasDenoising) {
       const filtered = loaded.filter(p => p.id !== 'us-denoising');
-      localStorage.setItem('aimed_showcaseProjects', JSON.stringify(filtered));
+      safeLocalStorage.setItem('aimed_showcaseProjects', JSON.stringify(filtered));
       return filtered;
     }
     return loaded;
@@ -822,7 +823,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loaded = getStored('datasets', initialDatasets);
     const hasOldValues = loaded.some(d => d.paperRef?.includes('Samsuryadi et al.') || d.benchmark?.includes('Dice Score') || d.paperRef?.includes('Sukemi et al.'));
     if (hasOldValues) {
-      localStorage.setItem('aimed_datasets', JSON.stringify(initialDatasets));
+      safeLocalStorage.setItem('aimed_datasets', JSON.stringify(initialDatasets));
       return initialDatasets;
     }
     return loaded;
@@ -857,7 +858,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [youtubeVideos, setYoutubeVideos] = useState<any[]>(() => {
     const loaded = getStored('youtubeVideos', defaultYoutubeVideos);
     if (loaded.length < defaultYoutubeVideos.length) {
-      localStorage.setItem('aimed_youtubeVideos', JSON.stringify(defaultYoutubeVideos));
+      safeLocalStorage.setItem('aimed_youtubeVideos', JSON.stringify(defaultYoutubeVideos));
       return defaultYoutubeVideos;
     }
     return loaded;
@@ -866,7 +867,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loaded = getStored('instagramPosts', defaultInstagramPosts);
     const needsLinks = loaded.some((p: any) => !p.link);
     if (loaded.length < defaultInstagramPosts.length || needsLinks) {
-      localStorage.setItem('aimed_instagramPosts', JSON.stringify(defaultInstagramPosts));
+      safeLocalStorage.setItem('aimed_instagramPosts', JSON.stringify(defaultInstagramPosts));
       return defaultInstagramPosts;
     }
     return loaded;
@@ -1010,10 +1011,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const pushToGitHubClientSide = async (contentString: string): Promise<{ success: boolean; message?: string; error?: string }> => {
-    const token = (import.meta as any).env.VITE_GITHUB_TOKEN || localStorage.getItem('cms_github_token');
-    const owner = (import.meta as any).env.VITE_GITHUB_REPO_OWNER || localStorage.getItem('cms_github_owner') || 'aaddeeis';
-    const repo = (import.meta as any).env.VITE_GITHUB_REPO_NAME || localStorage.getItem('cms_github_repo') || 'Web-AIMed';
-    const branch = (import.meta as any).env.VITE_GITHUB_REPO_BRANCH || localStorage.getItem('cms_github_branch') || 'main';
+    const token = (import.meta as any).env.VITE_GITHUB_TOKEN || safeLocalStorage.getItem('cms_github_token');
+    const owner = (import.meta as any).env.VITE_GITHUB_REPO_OWNER || safeLocalStorage.getItem('cms_github_owner') || 'aaddeeis';
+    const repo = (import.meta as any).env.VITE_GITHUB_REPO_NAME || safeLocalStorage.getItem('cms_github_repo') || 'Web-AIMed';
+    const branch = (import.meta as any).env.VITE_GITHUB_REPO_BRANCH || safeLocalStorage.getItem('cms_github_branch') || 'main';
     const path = 'cms_data.json';
 
     if (!token) {
