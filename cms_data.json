@@ -253,7 +253,7 @@
   "datasets": [
     {
       "id": "AIMed-CHD-Ultrasound",
-      "name": "AIMed-CHD-Ultrasound Dataset",
+      "name": "Per",
       "description": {
         "en": "A hand-annotated multi-view fetal echocardiography ultrasound dataset. Contains 4,500 expert-labeled frames isolating left/right ventricles and atriums to train cardiac chamber segmentations.",
         "id": "Dataset ultrasound ekokardiografi janin multi-view yang dianotasi manual. Berisi 4.500 bingkai berlabel ahli yang mengisolasi ventrikel kiri/kanan dan atrium untuk melatih segmentasi ruang jantung."
