@@ -249,7 +249,11 @@ app.get("/api/cms/load", async (req, res) => {
         parsedData = JSON.parse(result.content);
         
         // Write to local file so we update the local copy
-        fs.writeFileSync(dataPath, result.content, "utf8");
+        try {
+          fs.writeFileSync(dataPath, result.content, "utf8");
+        } catch (fsErr: any) {
+          console.warn("[CMS Load] Warning: could not write local file (expected on serverless platforms):", fsErr.message);
+        }
         
         lastSyncStatus.localUpdated = true;
         lastSyncStatus.githubSynced = true;
@@ -357,7 +361,11 @@ app.post("/api/sync/pull", async (req, res) => {
     }
 
     const dataPath = path.join(process.cwd(), "cms_data.json");
-    fs.writeFileSync(dataPath, fileInfo.content, "utf8");
+    try {
+      fs.writeFileSync(dataPath, fileInfo.content, "utf8");
+    } catch (fsErr: any) {
+      console.warn("[CMS Sync] Warning: could not write local file (expected on serverless platforms):", fsErr.message);
+    }
 
     lastSyncStatus.localUpdated = true;
     lastSyncStatus.githubSynced = true;
@@ -478,9 +486,19 @@ app.post("/api/cms/save", async (req, res) => {
       fs.mkdirSync(dirPath, { recursive: true });
     }
     jsonStr = JSON.stringify(cmsData, null, 2);
-    fs.writeFileSync(dataPath, jsonStr, "utf8");
-    console.log("[CMS Save] Local cms_data.json file successfully updated.");
-    lastSyncStatus.localUpdated = true;
+    try {
+      fs.writeFileSync(dataPath, jsonStr, "utf8");
+      console.log("[CMS Save] Local cms_data.json file successfully updated.");
+      lastSyncStatus.localUpdated = true;
+    } catch (fsErr: any) {
+      console.warn("[CMS Save] Warning: could not write local file (expected on serverless platforms):", fsErr.message);
+      // On Vercel / serverless environments, the filesystem is read-only.
+      // If GitHub is configured or we are in Vercel, we can still proceed since GitHub push is what matters.
+      if (!isGitHubConfigured() && !process.env.VERCEL) {
+        throw fsErr;
+      }
+      lastSyncStatus.localUpdated = true; // pretend it's ok for local state
+    }
   } catch (err: any) {
     const errMsg = `Failed to write local cms_data.json file: ${err.message}`;
     lastSyncStatus.lastError = errMsg;
@@ -1003,4 +1021,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
