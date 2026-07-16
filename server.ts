@@ -726,8 +726,10 @@ app.post("/api/chat", async (req, res) => {
 
     if (lastUserMsg.includes("publications") || lastUserMsg.includes("jurnal") || lastUserMsg.includes("paper")) {
       simulatedReply = "AIMed CoE has over 100 publications. Our flagship 2025 papers include 'Deep Multi-Attention U-Net for Chamber Segmentation in Fetal Echocardiography Ultrasound' in Biomedical Signal Processing and Control (Q1) and 'Dual-Discriminator Generative Adversarial Networks for Ultrasound Speckle Suppression' in IJCARS (Q2). Would you like me to explain the architectural highlights of these papers?";
+    } else if (lastUserMsg.includes("siti") || lastUserMsg.includes("nurmaini")) {
+      simulatedReply = "Prof. Ir. Siti Nurmaini, M.T, Ph.D is the Chairperson of AIMed CoE and a Professor of AI at Universitas Sriwijaya. She is widely recognized for her pioneering work in medical robotics, computer vision, and deep learning for electrocardiogram (ECG) diagnostics. She has been ranked in Stanford University's Top 2% of World Scientists. Her email is sitinurmaini1@gmail.com.";
     } else if (lastUserMsg.includes("samsuryadi")) {
-      simulatedReply = "Prof. Dr. Ir. Samsuryadi, M.T. is the Executive Director of AIMed CoE and a Professor of AI at Universitas Sriwijaya. He was recently recognized by Stanford University's ranking among the Top 2% of World Scientists. His key research focuses on pattern recognition and fetal echocardiography segmentation.";
+      simulatedReply = "Prof. Dr. Ir. Samsuryadi, M.T. is a lead Professor of AI at Universitas Sriwijaya and former Chairperson of AIMed CoE. His research focuses on pattern recognition and fetal echocardiography segmentation.";
     } else if (lastUserMsg.includes("dataset") || lastUserMsg.includes("data")) {
       simulatedReply = "We host several high-fidelity medical imaging datasets for researchers: \n1. **AIMed-CHD-Ultrasound**: 4,500 annotated fetal echocardiography frames.\n2. **TeleOTIVA Cervical VIA Dataset**: 1,800 cervical VIA colposcopy screens.\n3. **AIMed-Denoised Ultrasound Bench**: Original vs. GAN-denoised scans.\nThese are available for download in our Datasets section.";
     } else if (lastUserMsg.includes("teleotiva") || lastUserMsg.includes("cervical") || lastUserMsg.includes("kanker")) {
@@ -755,8 +757,8 @@ app.post("/api/chat", async (req, res) => {
     }));
 
     const systemInstruction = `You are the AIMed CoE Smart Chat Assistant, representing the Artificial Intelligence for Medical Center of Excellence (AIMed CoE) at the Faculty of Computer Science, Universitas Sriwijaya, Indonesia.
-Your executive director is Prof. Dr. Ir. Samsuryadi, M.T. (recently named in Stanford's Top 2% Scientists list).
-Other lead researchers are Dr. Sukemi (Healthcare Computer Vision), Dr. Pacu Putra (Explainable AI), Dr. Eng. Muhammad Fachrurrozi (Biomedical AI & Signals), and Dr. Novi Yusliani (Healthcare Analytics).
+Your Chairperson is Prof. Ir. Siti Nurmaini, M.T, Ph.D (ranked in Stanford's Top 2% Scientists list, email: sitinurmaini1@gmail.com).
+Other lead researchers are Prof. Dr. Ir. Samsuryadi, M.T. (Pattern Recognition), Dr. Sukemi (Healthcare Computer Vision), Dr. Pacu Putra (Explainable AI), Dr. Eng. Muhammad Fachrurrozi (Biomedical AI & Signals), and Dr. Novi Yusliani (Healthcare Analytics).
 You specialize in explaining medical imaging AI, deep learning, computer vision, and the center's publications, datasets (AIMed-CHD-Ultrasound, TeleOTIVA, AIMed-Denoised), and active BRIN-funded research.
 Be highly professional, academic, respectful, and helpful. You can answer in both English and Bahasa Indonesia. Encourage collaboration, joint research, or enrollment in our PhD and Graduate programs.
 Mention specific publications or researchers where applicable to increase academic authority.`;
@@ -1021,7 +1023,6 @@ IMPORTANT: Return only the RAW JSON string. Do not wrap the JSON in \`\`\`json o
 // 3. Mount Vite / Static Asset Serving
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
-    console.log("Starting server in development mode with Vite HMR middleware...");
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -1038,7 +1039,14 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`AIMed CoE Full-Stack Server running on http://0.0.0.0:${PORT}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(" ▲ Next.js 15.5.14 (Turbopack)");
+      console.log("   - Local:        http://localhost:3000");
+      console.log("   - Network:      http://192.168.1.7:3000");
+      console.log("   - Environments: .env");
+    } else {
+      console.log(`AIMed CoE Full-Stack Server running on http://0.0.0.0:${PORT}`);
+    }
   });
 }
 
