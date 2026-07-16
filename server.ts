@@ -53,7 +53,7 @@ const lastSyncStatus = {
   repoStatus: "Local Only", // Synced, Out of Sync, Conflict, Local Only
   lastSyncTime: "",
   loadedSha: "",
-  productionUrl: process.env.APP_URL || "https://web-aimed.vercel.app"
+  productionUrl: process.env.APP_URL || "https://aimed-coe.vercel.app/"
 };
 
 // Helper to format date in YYYY-MM-DD HH:mm:ss format
