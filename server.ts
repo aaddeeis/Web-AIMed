@@ -47,7 +47,7 @@ app.get("/api/health", (req, res) => {
 
 // GET /api/cms/load - Load custom CMS data from server disk if available
 app.get("/api/cms/load", (req, res) => {
-  const dataPath = path.join(process.cwd(), "src", "data", "cms_data.json");
+  const dataPath = path.join(process.cwd(), "cms_data.json");
   
   if (fs.existsSync(dataPath)) {
     try {
@@ -63,7 +63,7 @@ app.get("/api/cms/load", (req, res) => {
 
 // POST /api/cms/save - Save custom CMS data directly to server disk so it is preserved in workspace/git
 app.post("/api/cms/save", (req, res) => {
-  const dataPath = path.join(process.cwd(), "src", "data", "cms_data.json");
+  const dataPath = path.join(process.cwd(), "cms_data.json");
   const dirPath = path.dirname(dataPath);
 
   try {
@@ -71,7 +71,7 @@ app.post("/api/cms/save", (req, res) => {
       fs.mkdirSync(dirPath, { recursive: true });
     }
     fs.writeFileSync(dataPath, JSON.stringify(req.body, null, 2), "utf8");
-    console.log("Successfully wrote updated CMS data to src/data/cms_data.json");
+    console.log("Successfully wrote updated CMS data to root cms_data.json");
     return res.json({ status: "success" });
   } catch (e: any) {
     console.error("Failed to write cms_data.json:", e);
