@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import { 
   Publication, 
   Researcher, 
@@ -792,14 +793,9 @@ const defaultMassMedia = [
 ];
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Helper to load or fallback
+  // Migration total: nonaktifkan localStorage agar database Supabase menjadi SATU-SATUNYA sumber data utama.
   const getStored = <T,>(key: string, fallback: T): T => {
-    try {
-      const stored = localStorage.getItem(`aimed_${key}`);
-      return stored ? JSON.parse(stored) : fallback;
-    } catch {
-      return fallback;
-    }
+    return fallback;
   };
 
   const [researchGroups, setResearchGroups] = useState<ResearchGroup[]>(() => 
@@ -890,29 +886,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getStored('promotions', initialPromotions)
   );
 
-  // Sync to local storage on changes
-  useEffect(() => { localStorage.setItem('aimed_researchGroups', JSON.stringify(researchGroups)); }, [researchGroups]);
-  useEffect(() => { localStorage.setItem('aimed_showcaseProjects', JSON.stringify(showcaseProjects)); }, [showcaseProjects]);
-  useEffect(() => { localStorage.setItem('aimed_publicationsData', JSON.stringify(publicationsData)); }, [publicationsData]);
-  useEffect(() => { localStorage.setItem('aimed_datasets', JSON.stringify(datasets)); }, [datasets]);
-  useEffect(() => { localStorage.setItem('aimed_news', JSON.stringify(news)); }, [news]);
-  useEffect(() => { localStorage.setItem('aimed_events', JSON.stringify(events)); }, [events]);
-  useEffect(() => { localStorage.setItem('aimed_leadership', JSON.stringify(leadership)); }, [leadership]);
-  useEffect(() => { localStorage.setItem('aimed_assistants', JSON.stringify(assistants)); }, [assistants]);
-  useEffect(() => { localStorage.setItem('aimed_members', JSON.stringify(members)); }, [members]);
-  useEffect(() => { localStorage.setItem('aimed_collaborators', JSON.stringify(collaborators)); }, [collaborators]);
-  useEffect(() => { localStorage.setItem('aimed_postgraduate', JSON.stringify(postgraduate)); }, [postgraduate]);
-  useEffect(() => { localStorage.setItem('aimed_graduate', JSON.stringify(graduate)); }, [graduate]);
-  useEffect(() => { localStorage.setItem('aimed_undergraduate', JSON.stringify(undergraduate)); }, [undergraduate]);
-  useEffect(() => { localStorage.setItem('aimed_youtubeVideos', JSON.stringify(youtubeVideos)); }, [youtubeVideos]);
-  useEffect(() => { localStorage.setItem('aimed_instagramPosts', JSON.stringify(instagramPosts)); }, [instagramPosts]);
-  useEffect(() => { localStorage.setItem('aimed_massMedia', JSON.stringify(massMedia)); }, [massMedia]);
-  useEffect(() => { localStorage.setItem('aimed_partners', JSON.stringify(partners)); }, [partners]);
-  useEffect(() => { localStorage.setItem('aimed_sdgContent', JSON.stringify(sdgContent)); }, [sdgContent]);
-  useEffect(() => { localStorage.setItem('aimed_conferencesOrganized', JSON.stringify(conferencesOrganized)); }, [conferencesOrganized]);
-  useEffect(() => { localStorage.setItem('aimed_journalsOrganized', JSON.stringify(journalsOrganized)); }, [journalsOrganized]);
-  useEffect(() => { localStorage.setItem('aimed_promotions', JSON.stringify(promotions)); }, [promotions]);
-
+  // Sync to local storage disabled for Supabase single source of truth migration
   const resetToDefault = () => {
     setResearchGroups(initialResearchGroups);
     setShowcaseProjects(initialShowcaseProjects);
@@ -964,7 +938,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return JSON.stringify(data, null, 2);
   };
 
-  // Auto-load CMS data from server disk / cms_data.json
+  // Auto-load CMS data from server and subscribe to Realtime Supabase changes
   useEffect(() => {
     const applyCMSData = (parsed: any) => {
       if (!parsed) return;
@@ -989,57 +963,273 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (parsed.conferencesOrganized) setConferencesOrganized(parsed.conferencesOrganized);
       if (parsed.journalsOrganized) setJournalsOrganized(parsed.journalsOrganized);
       if (parsed.promotions) setPromotions(parsed.promotions);
-      
-      // Also sync to localStorage so they are immediately available
-      Object.keys(parsed).forEach(key => {
-        localStorage.setItem(`aimed_${key}`, JSON.stringify(parsed[key]));
-      });
+    };
+
+    let supabaseChannel: any = null;
+
+    const setupRealtime = async () => {
+      try {
+        const configRes = await fetch('/api/config');
+        if (configRes.ok) {
+          const config = await configRes.json();
+          if (config.supabaseUrl && config.supabaseAnonKey) {
+            console.log('[Supabase Realtime] Initializing client-side subscription...', config.supabaseUrl);
+            const client = createClient(config.supabaseUrl, config.supabaseAnonKey);
+            
+            supabaseChannel = client
+              .channel('public:cms_sections')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_sections' }, (payload: any) => {
+                console.log('[Supabase Realtime] Change received:', payload);
+                const section = payload.new?.section_name;
+                const updatedData = payload.new?.data;
+                if (section && updatedData) {
+                  if (section === 'researchGroups') setResearchGroups(updatedData);
+                  else if (section === 'showcaseProjects') setShowcaseProjects(updatedData);
+                  else if (section === 'publicationsData') setPublicationsData(updatedData);
+                  else if (section === 'datasets') setDatasets(updatedData);
+                  else if (section === 'news') setNews(updatedData);
+                  else if (section === 'events') setEvents(updatedData);
+                  else if (section === 'leadership') setLeadership(updatedData);
+                  else if (section === 'assistants') setAssistants(updatedData);
+                  else if (section === 'members') setMembers(updatedData);
+                  else if (section === 'collaborators') setCollaborators(updatedData);
+                  else if (section === 'postgraduate') setPostgraduate(updatedData);
+                  else if (section === 'graduate') setGraduate(updatedData);
+                  else if (section === 'undergraduate') setUndergraduate(updatedData);
+                  else if (section === 'youtubeVideos') setYoutubeVideos(updatedData);
+                  else if (section === 'instagramPosts') setInstagramPosts(updatedData);
+                  else if (section === 'massMedia') setMassMedia(updatedData);
+                  else if (section === 'partners') setPartners(updatedData);
+                  else if (section === 'sdgContent') setSdgContent(updatedData);
+                  else if (section === 'conferencesOrganized') setConferencesOrganized(updatedData);
+                  else if (section === 'journalsOrganized') setJournalsOrganized(updatedData);
+                  else if (section === 'promotions') setPromotions(updatedData);
+                }
+              })
+              .subscribe();
+          }
+        }
+      } catch (err) {
+        console.warn('[Supabase Realtime] Setup error (expected if running without keys):', err);
+      }
     };
 
     const loadData = async () => {
       try {
-        console.log('Loading CMS data from server disk...');
+        console.log('Loading CMS data from server (Supabase PostgreSQL)...');
         const response = await fetch('/api/cms/load');
-        const result = await response.json();
-        if (result.status === 'success' && result.data) {
-          applyCMSData(result.data);
-          console.log('CMS data loaded successfully from server disk.');
-        } else {
-          console.log('No saved CMS data found on server disk, using default data.');
+        
+        const contentType = response.headers.get('content-type');
+        if (response.ok && contentType && contentType.includes('application/json')) {
+          const result = await response.json();
+          if (result.status === 'success' && result.data) {
+            applyCMSData(result.data);
+            console.log('CMS data loaded successfully from server.');
+            setupRealtime();
+            return;
+          }
         }
+        throw new Error('Not a valid JSON response from server API.');
       } catch (err) {
-        console.error('Failed to load CMS data from server disk:', err);
+        console.warn('Failed to load CMS data from local server API. Attempting client-side raw GitHub fallback...', err);
+        
+        // Attempt to fetch from GitHub raw content
+        try {
+          const owner = (import.meta as any).env.VITE_GITHUB_REPO_OWNER || localStorage.getItem('cms_github_owner') || 'aaddeeis';
+          const repo = (import.meta as any).env.VITE_GITHUB_REPO_NAME || localStorage.getItem('cms_github_repo') || 'Web-AIMed';
+          const branch = (import.meta as any).env.VITE_GITHUB_REPO_BRANCH || localStorage.getItem('cms_github_branch') || 'main';
+          
+          const githubRawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/cms_data.json`;
+          console.log(`Attempting raw GitHub load from: ${githubRawUrl}`);
+          
+          const ghRes = await fetch(githubRawUrl);
+          if (ghRes.ok) {
+            const data = await ghRes.json();
+            applyCMSData(data);
+            console.log('CMS data loaded successfully from raw GitHub!');
+            return;
+          } else {
+            console.warn(`GitHub Raw fetch returned status ${ghRes.status}`);
+          }
+        } catch (ghErr) {
+          console.error('Failed raw GitHub load:', ghErr);
+        }
+
+        // Final fallback: try fetching local static cms_data.json
+        try {
+          console.log('Attempting static fallback load for cms_data.json...');
+          const res = await fetch('/cms_data.json');
+          if (res.ok) {
+            const data = await res.json();
+            applyCMSData(data);
+            console.log('CMS data loaded successfully from static /cms_data.json fallback.');
+          }
+        } catch (staticErr) {
+          console.warn('Static /cms_data.json fallback load also failed:', staticErr);
+        }
       }
     };
     loadData();
+
+    return () => {
+      if (supabaseChannel) {
+        console.log('[Supabase Realtime] Unsubscribing channel...');
+        supabaseChannel.unsubscribe();
+      }
+    };
   }, []);
+
+  const pushToGitHubClientSide = async (contentString: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    const token = (import.meta as any).env.VITE_GITHUB_TOKEN || localStorage.getItem('cms_github_token');
+    const owner = (import.meta as any).env.VITE_GITHUB_REPO_OWNER || localStorage.getItem('cms_github_owner') || 'aaddeeis';
+    const repo = (import.meta as any).env.VITE_GITHUB_REPO_NAME || localStorage.getItem('cms_github_repo') || 'Web-AIMed';
+    const branch = (import.meta as any).env.VITE_GITHUB_REPO_BRANCH || localStorage.getItem('cms_github_branch') || 'main';
+    const path = 'cms_data.json';
+
+    if (!token) {
+      return { 
+        success: false, 
+        error: 'GitHub Token is not configured. Please open CMS Settings (top-right gear icon) to setup GITHUB_TOKEN so you can save directly from Vercel!' 
+      };
+    }
+
+    try {
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      
+      // Get existing file SHA if it exists
+      let sha: string | undefined = undefined;
+      try {
+        const getRes = await fetch(`${url}?ref=${branch}`, {
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Cache-Control': 'no-cache'
+          }
+        });
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          sha = fileData.sha;
+        }
+      } catch (e) {
+        console.log('File does not exist or fetch SHA failed:', e);
+      }
+
+      // Modern Unicode-safe base64 conversion
+      const utf8Bytes = new TextEncoder().encode(contentString);
+      let binary = "";
+      for (let i = 0; i < utf8Bytes.length; i++) {
+        binary += String.fromCharCode(utf8Bytes[i]);
+      }
+      const base64Content = btoa(binary);
+
+      // Format Indonesian Date
+      const now = new Date();
+      const months = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      const day = now.getDate();
+      const month = months[now.getMonth()];
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const commitMessage = `Update CMS - ${day} ${month} ${year} ${hours}:${minutes}`;
+
+      const body: any = {
+        message: commitMessage,
+        content: base64Content,
+        branch
+      };
+      if (sha) {
+        body.sha = sha;
+      }
+
+      const putRes = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (putRes.ok) {
+        return { success: true, message: `Successfully committed directly to GitHub branch ${branch}: "${commitMessage}"` };
+      } else {
+        const errData = await putRes.json();
+        return { success: false, error: errData.message || 'Failed to push to GitHub' };
+      }
+    } catch (err: any) {
+      return { success: false, error: err.message || String(err) };
+    }
+  };
 
   const saveToServer = async (): Promise<{ success: boolean; error?: string; githubSync?: { enabled: boolean; success?: boolean; message?: string; error?: string } }> => {
     try {
       const dataStr = exportData();
       
       console.log('Saving CMS data to server disk (cms_data.json)...');
-      const response = await fetch('/api/cms/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: dataStr
-      });
-      
-      const result = await response.json();
-      if (result.status === 'success') {
-        console.log('Saved CMS data to server disk successfully.');
-        return { 
-          success: true, 
-          githubSync: result.githubSync
-        };
-      } else {
-        return { 
-          success: false, 
-          error: result.error || 'Failed to save to server disk.' 
-        };
+      let response: Response | null = null;
+      let useClientFallback = false;
+      let fallbackReason = "";
+
+      try {
+        response = await fetch('/api/cms/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: dataStr
+        });
+
+        const contentType = response.headers.get('content-type');
+        if (!response.ok || !contentType || !contentType.includes('application/json')) {
+          useClientFallback = true;
+          fallbackReason = `HTTP ${response?.status}: Server did not return JSON. This is expected if running on a static host like Vercel.`;
+        }
+      } catch (fetchErr) {
+        useClientFallback = true;
+        fallbackReason = `Fetch failed: Server API is unreachable.`;
       }
+
+      if (useClientFallback) {
+        console.log(`${fallbackReason} Falling back to Client-side Direct GitHub sync...`);
+        const ghResult = await pushToGitHubClientSide(dataStr);
+        if (ghResult.success) {
+          return {
+            success: true,
+            githubSync: {
+              enabled: true,
+              success: true,
+              message: ghResult.message || 'Updated directly via GitHub API client-side'
+            }
+          };
+        } else {
+          return {
+            success: false,
+            error: `Direct GitHub sync failed: ${ghResult.error}`
+          };
+        }
+      }
+
+      if (response) {
+        const result = await response.json();
+        if (result.status === 'success') {
+          console.log('Saved CMS data to server disk successfully.');
+          return { 
+            success: true, 
+            githubSync: result.githubSync
+          };
+        } else {
+          return { 
+            success: false, 
+            error: result.error || 'Failed to save to server disk.' 
+          };
+        }
+      }
+
+      return { success: false, error: 'Unknown save state' };
     } catch (e: any) {
       console.error('Failed to save CMS data:', e);
       return { success: false, error: e?.message || String(e) };

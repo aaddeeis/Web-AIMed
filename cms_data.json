@@ -470,7 +470,7 @@
   "leadership": [
     {
       "id": "samsuryadi",
-      "name": "Prof siti ",
+      "name": "Prof. Dr. Ir. Samsuryadi, M.T.",
       "role": {
         "en": "Chairperson / Ketua AIMed CoE",
         "id": "Ketua / Chairperson AIMed CoE"
@@ -499,11 +499,7 @@
       "latestPublications": [
         "Deep Multi-Attention U-Net for Chamber Segmentation in Fetal Echocardiography Ultrasound (2025)",
         "Dual-Discriminator Generative Adversarial Networks for Ultrasound Speckle Suppression (2025)"
-      ],
-      "researchFocus": {
-        "en": "",
-        "id": ""
-      }
+      ]
     },
     {
       "id": "sukemi",

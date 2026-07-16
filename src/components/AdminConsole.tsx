@@ -26,6 +26,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useData, Person, PublicationsData } from '../context/DataContext';
+import { StatusSyncDashboard } from './StatusSyncDashboard';
 import { Language } from '../types';
 
 interface AdminConsoleProps {
@@ -200,6 +201,13 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
   // Auto-fetch loading indicator state
   const [isAutoFetching, setIsAutoFetching] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // GitHub Client-Side Credentials
+  const [isGithubSettingsOpen, setIsGithubSettingsOpen] = useState(false);
+  const [ghToken, setGhToken] = useState(() => localStorage.getItem('cms_github_token') || '');
+  const [ghOwner, setGhOwner] = useState(() => localStorage.getItem('cms_github_owner') || 'aaddeeis');
+  const [ghRepo, setGhRepo] = useState(() => localStorage.getItem('cms_github_repo') || 'Web-AIMed');
+  const [ghBranch, setGhBranch] = useState(() => localStorage.getItem('cms_github_branch') || 'main');
 
   const getYoutubeId = (url: string): string => {
     if (!url) return '';
@@ -980,6 +988,18 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
             />
 
             <button 
+              onClick={() => setIsGithubSettingsOpen(!isGithubSettingsOpen)}
+              title={lang === 'en' ? 'Direct GitHub Sync Settings' : 'Pengaturan Sinkronisasi GitHub'}
+              className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                isGithubSettingsOpen 
+                  ? 'bg-teal-500/10 text-teal-500 border-teal-500/30' 
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-black/10 dark:border-white/10 hover:text-teal-500 dark:hover:text-teal-400'
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
+            <button 
               disabled={isPublishing}
               onClick={async () => {
                 setIsPublishing(true);
@@ -987,8 +1007,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                 setIsPublishing(false);
                 if (result.success) {
                   let msg = lang === 'en' 
-                    ? 'Changes successfully published to the server disk (cms_data.json)!' 
-                    : 'Perubahan berhasil dipublikasikan ke server disk (cms_data.json)!';
+                    ? 'Changes successfully published (cms_data.json)!' 
+                    : 'Perubahan berhasil dipublikasikan (cms_data.json)!';
                   
                   if (result.githubSync) {
                     if (result.githubSync.enabled) {
@@ -1011,8 +1031,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                 } else {
                   const errorMsg = result.error ? String(result.error) : '';
                   showMsg(lang === 'en' 
-                    ? `Failed to publish changes to server: ${errorMsg}` 
-                    : `Gagal mempublikasikan perubahan ke server: ${errorMsg}`, 'error');
+                    ? `Failed to publish changes: ${errorMsg}` 
+                    : `Gagal mempublikasikan perubahan: ${errorMsg}`, 'error');
                 }
               }}
               className="px-3 py-1.5 bg-gradient-to-r from-teal-500 to-sky-500 hover:from-teal-600 hover:to-sky-600 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1025,7 +1045,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
               <span>
                 {isPublishing 
                   ? (lang === 'en' ? 'Publishing...' : 'Mempublikasikan...') 
-                  : (lang === 'en' ? 'Publish to Server' : 'Publikasikan ke Server')}
+                  : (lang === 'en' ? 'Publish Changes' : 'Publikasikan')}
               </span>
             </button>
 
@@ -1053,6 +1073,96 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
           </div>
         </div>
 
+        {/* GitHub Direct Sync Settings Panel */}
+        {isGithubSettingsOpen && (
+          <div className="bg-slate-50 dark:bg-slate-950 border-b border-black/5 dark:border-white/5 p-5 animate-in slide-in-from-top duration-200">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-teal-500/10 text-teal-500 rounded-lg">
+                    <Settings className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                      {lang === 'en' ? 'Direct GitHub Sync Settings' : 'Pengaturan Sinkronisasi Langsung ke GitHub'}
+                    </h4>
+                    <p className="text-[10px] text-slate-400">
+                      {lang === 'en' 
+                        ? 'Configure client-side credentials to publish changes directly to your GitHub repository (useful for Vercel/static deployments).'
+                        : 'Konfigurasikan kredensial client-side untuk mempublikasikan perubahan langsung ke repositori GitHub Anda (sangat berguna di Vercel/static).'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsGithubSettingsOpen(false)}
+                  className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
+                <div className="flex flex-col gap-1 md:col-span-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    {lang === 'en' ? 'GitHub Personal Access Token (PAT)' : 'Token Akses Pribadi GitHub (PAT)'}
+                  </label>
+                  <input
+                    type="password"
+                    value={ghToken}
+                    onChange={(e) => setGhToken(e.target.value)}
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxx"
+                    className="px-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    {lang === 'en' ? 'Repository Owner' : 'Pemilik Repositori'}
+                  </label>
+                  <input
+                    type="text"
+                    value={ghOwner}
+                    onChange={(e) => setGhOwner(e.target.value)}
+                    placeholder="e.g. aaddeeis"
+                    className="px-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    {lang === 'en' ? 'Repository Name' : 'Nama Repositori'}
+                  </label>
+                  <input
+                    type="text"
+                    value={ghRepo}
+                    onChange={(e) => setGhRepo(e.target.value)}
+                    placeholder="e.g. Web-AIMed"
+                    className="px-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  onClick={() => {
+                    localStorage.setItem('cms_github_token', ghToken);
+                    localStorage.setItem('cms_github_owner', ghOwner);
+                    localStorage.setItem('cms_github_repo', ghRepo);
+                    localStorage.setItem('cms_github_branch', ghBranch);
+                    
+                    showMsg(lang === 'en' 
+                      ? 'GitHub credentials saved successfully to local browser storage!' 
+                      : 'Kredensial GitHub berhasil disimpan ke penyimpanan browser lokal!');
+                    setIsGithubSettingsOpen(false);
+                  }}
+                  className="px-3 py-1.5 bg-teal-500 hover:bg-teal-600 text-white font-bold text-xs rounded-lg flex items-center gap-1 cursor-pointer transition-all active:scale-[0.98]"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{lang === 'en' ? 'Save Settings' : 'Simpan Pengaturan'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Message Banner */}
         {message && (
           <div className={`px-6 py-2.5 flex items-center justify-between text-xs font-bold ${
@@ -1073,6 +1183,21 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
           {/* Sidebar Nav Collections */}
           <div className="w-64 border-r border-black/5 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/20 overflow-y-auto p-4 flex flex-col space-y-6">
             
+            <div>
+              <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase block mb-2 px-2">System Controls</span>
+              <div className="space-y-1">
+                <button
+                  onClick={() => setActiveTab('status_sync')}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer ${
+                    activeTab === 'status_sync' ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Database className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Sync & Status' : 'Status & Sinkronisasi'}</span>
+                </button>
+              </div>
+            </div>
+
             <div>
               <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase block mb-2 px-2">Core Content</span>
               <div className="space-y-1">
@@ -1300,11 +1425,13 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
             {/* List Actions Toolbar */}
             <div className="flex justify-between items-center mb-6">
               <h4 className="font-extrabold text-slate-800 dark:text-white tracking-tight uppercase text-xs">
-                {activeTab === 'sdg_alignment' 
-                  ? (lang === 'en' ? 'SDGs Commitment Configuration' : 'Konfigurasi Komitmen SDG')
-                  : (lang === 'en' ? `List of ${activeTab.replace('_', ' ')}` : `Daftar ${activeTab.replace('_', ' ')}`)}
+                {activeTab === 'status_sync'
+                  ? (lang === 'en' ? 'System Sync & Database Status' : 'Status Sinkronisasi & Database Sistem')
+                  : activeTab === 'sdg_alignment' 
+                    ? (lang === 'en' ? 'SDGs Commitment Configuration' : 'Konfigurasi Komitmen SDG')
+                    : (lang === 'en' ? `List of ${activeTab.replace('_', ' ')}` : `Daftar ${activeTab.replace('_', ' ')}`)}
               </h4>
-              {activeTab !== 'sdg_alignment' && (
+              {activeTab !== 'sdg_alignment' && activeTab !== 'status_sync' && (
                 <button
                   onClick={openAddForm}
                   className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl flex items-center space-x-2 cursor-pointer transition-all"
@@ -1317,7 +1444,9 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
 
             {/* List Items Scroll Box */}
             <div className="flex-1 overflow-y-auto space-y-3.5 pr-2">
-              {activeTab === 'sdg_alignment' ? (
+              {activeTab === 'status_sync' ? (
+                <StatusSyncDashboard lang={lang} />
+              ) : activeTab === 'sdg_alignment' ? (
                 <div className="space-y-6 pb-8">
                   <div className="p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl">
                     <p className="text-xs font-medium text-teal-700 dark:text-teal-400 leading-normal">
