@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Check, 
   AlertTriangle, 
-  Database, 
   ExternalLink, 
   Loader2, 
   RefreshCw, 
-  Play, 
-  Copy, 
-  Server, 
-  Wifi, 
+  ArrowDown, 
+  ArrowUp, 
+  Github, 
   Globe, 
   Activity,
   FileText
@@ -21,24 +19,25 @@ interface StatusSyncDashboardProps {
 
 export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }) => {
   const [status, setStatus] = useState<any>({
-    dbConnected: false,
-    supabaseConnected: false,
-    githubConnected: false,
-    repoSynced: false,
+    localUpdated: true,
+    githubSynced: false,
     vercelDeploySuccess: false,
-    vercelDeployStatus: "Idle",
+    vercelDeployStatus: "Idle", // Idle, Building, Success, Failed
     lastPublish: "",
     lastCommit: "",
     lastDeploy: "",
     lastError: "",
-    productionUrl: "https://web-aimed.vercel.app"
+    repoStatus: "Local Only", // Synced, Out of Sync, Conflict, Local Only
+    lastSyncTime: "",
+    loadedSha: "",
+    productionUrl: "https://aimed-coe.vercel.app/"
   });
 
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
-  const [seeding, setSeeding] = useState(false);
-  const [seedMsg, setSeedMsg] = useState({ text: '', type: '' });
-  const [copied, setCopied] = useState(false);
+  const [pulling, setPulling] = useState(false);
+  const [pushing, setPushing] = useState(false);
+  const [actionMsg, setActionMsg] = useState({ text: '', type: '' });
 
   const fetchStatus = async () => {
     try {
@@ -58,19 +57,24 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
 
   useEffect(() => {
     fetchStatus();
-    // Refresh status every 15 seconds to monitor Vercel build transitions
-    const interval = setInterval(fetchStatus, 15000);
+    // Refresh status every 12 seconds to monitor Vercel build transitions
+    const interval = setInterval(fetchStatus, 12000);
     return () => clearInterval(interval);
   }, []);
 
   const handleTestConnections = async () => {
     setTesting(true);
+    setActionMsg({ text: '', type: '' });
     try {
       const res = await fetch('/api/sync/test-connections', { method: 'POST' });
       if (res.ok) {
         const result = await res.json();
         if (result.status === 'success' && result.syncStatus) {
           setStatus(result.syncStatus);
+          setActionMsg({
+            text: lang === 'en' ? 'Connection test complete!' : 'Uji koneksi selesai!',
+            type: 'success'
+          });
         }
       }
     } catch (err) {
@@ -80,51 +84,76 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
     }
   };
 
-  const handleSeedDatabase = async () => {
-    if (!window.confirm(lang === 'en' 
-      ? 'Are you sure you want to seed the Supabase database with the current local cms_data.json backup? This will overwrite existing values in Supabase.' 
-      : 'Apakah Anda yakin ingin menyemai database Supabase dengan backup local cms_data.json? Ini akan menimpa nilai yang ada di Supabase.')) {
-      return;
-    }
+  const handlePullData = async () => {
+    const confirmMsg = lang === 'en'
+      ? 'Are you sure you want to pull the latest file from GitHub? This will overwrite your local unsaved changes with the version from GitHub.'
+      : 'Apakah Anda yakin ingin menarik data terbaru dari GitHub? Ini akan menimpa perubahan lokal Anda yang belum disimpan dengan versi dari GitHub.';
+    
+    if (!window.confirm(confirmMsg)) return;
 
-    setSeeding(true);
-    setSeedMsg({ text: '', type: '' });
+    setPulling(true);
+    setActionMsg({ text: '', type: '' });
     try {
-      const res = await fetch('/api/sync/seed', { method: 'POST' });
+      const res = await fetch('/api/sync/pull', { method: 'POST' });
       const result = await res.json();
       if (res.ok && result.status === 'success') {
-        setSeedMsg({
-          text: lang === 'en' ? 'Database successfully seeded!' : 'Database berhasil disemai!',
+        setStatus(result.syncStatus);
+        setActionMsg({
+          text: lang === 'en' ? 'Successfully pulled data from GitHub repository!' : 'Berhasil mengambil data dari repositori GitHub!',
           type: 'success'
         });
-        fetchStatus();
+        // Force refresh page after a small delay to load new data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } else {
-        setSeedMsg({
-          text: result.error || (lang === 'en' ? 'Failed to seed database.' : 'Gagal menyemai database.'),
+        setActionMsg({
+          text: result.error || (lang === 'en' ? 'Failed to pull data from GitHub.' : 'Gagal menarik data dari GitHub.'),
           type: 'error'
         });
       }
     } catch (err: any) {
-      setSeedMsg({
+      setActionMsg({
         text: err.message || String(err),
         type: 'error'
       });
     } finally {
-      setSeeding(false);
+      setPulling(false);
     }
   };
 
-  const handleCopySQL = () => {
-    const sql = `CREATE TABLE IF NOT EXISTS public.cms_sections (
-  section_name TEXT PRIMARY KEY,
-  data JSONB NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
+  const handlePushData = async () => {
+    const confirmMsg = lang === 'en'
+      ? 'Force push local cms_data.json to GitHub repository? This will overwrite the version on GitHub branch and trigger a Vercel rebuild.'
+      : 'Paksa kirim cms_data.json lokal ke repositori GitHub? Ini akan menimpa versi di branch GitHub dan memicu bangun ulang Vercel.';
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
-    navigator.clipboard.writeText(sql);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (!window.confirm(confirmMsg)) return;
+
+    setPushing(true);
+    setActionMsg({ text: '', type: '' });
+    try {
+      const res = await fetch('/api/sync/push', { method: 'POST' });
+      const result = await res.json();
+      if (res.ok && result.status === 'success') {
+        setStatus(result.syncStatus);
+        setActionMsg({
+          text: lang === 'en' ? 'Successfully pushed data and triggered Vercel redeployment!' : 'Berhasil mengirim data dan memicu rilis ulang Vercel!',
+          type: 'success'
+        });
+      } else {
+        setActionMsg({
+          text: result.error || (lang === 'en' ? 'Failed to push data to GitHub.' : 'Gagal mengirim data ke GitHub.'),
+          type: 'error'
+        });
+      }
+    } catch (err: any) {
+      setActionMsg({
+        text: err.message || String(err),
+        type: 'error'
+      });
+    } finally {
+      setPushing(false);
+    }
   };
 
   const formatDate = (isoStr: string) => {
@@ -149,7 +178,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
         <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-          {lang === 'en' ? 'Fetching integration metrics...' : 'Mengambil metrik integrasi...'}
+          {lang === 'en' ? 'Fetching sync metrics...' : 'Mengambil metrik sinkronisasi...'}
         </p>
       </div>
     );
@@ -157,37 +186,23 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
 
   const checklistItems = [
     {
-      key: 'dbConnected',
-      title: lang === 'en' ? 'Database Connected' : 'Database Terhubung',
-      desc: lang === 'en' ? 'PostgreSQL schema status and table accessibility' : 'Status skema PostgreSQL dan aksesibilitas tabel',
-      status: status.dbConnected,
-      icon: Database
+      key: 'localUpdated',
+      title: lang === 'en' ? 'Local cms_data.json Updated' : 'cms_data.json Lokal Diperbarui',
+      desc: lang === 'en' ? 'Durable local file write status' : 'Status penulisan file lokal yang awet',
+      status: status.localUpdated,
+      icon: FileText
     },
     {
-      key: 'supabaseConnected',
-      title: lang === 'en' ? 'Supabase Connected' : 'Supabase Terhubung',
-      desc: lang === 'en' ? 'REST API & websocket connection validation' : 'Validasi koneksi REST API & websocket',
-      status: status.supabaseConnected,
-      icon: Server
-    },
-    {
-      key: 'githubConnected',
-      title: lang === 'en' ? 'GitHub Connected' : 'GitHub Terhubung',
-      desc: lang === 'en' ? 'Personal Access Token and repository handshake' : 'Personal Access Token dan persetujuan repositori',
-      status: status.githubConnected,
-      icon: Wifi
-    },
-    {
-      key: 'repoSynced',
-      title: lang === 'en' ? 'Repository Synced' : 'Repositori Sinkron',
-      desc: lang === 'en' ? 'Backup files matched to production branch' : 'Kesesuaian file backup dengan branch produksi',
-      status: status.repoSynced,
-      icon: Activity
+      key: 'githubSynced',
+      title: lang === 'en' ? 'GitHub Synced' : 'GitHub Tersinkron',
+      desc: lang === 'en' ? 'GitHub push status & token permission' : 'Status push GitHub & izin akses token',
+      status: status.githubSynced,
+      icon: Github
     },
     {
       key: 'vercelDeploySuccess',
-      title: lang === 'en' ? 'Vercel Deploy Success' : 'Deploy Vercel Sukses',
-      desc: lang === 'en' ? 'Latest deployment status of the website' : 'Status rilis kompilasi situs web terbaru',
+      title: lang === 'en' ? 'Vercel Deployment Success' : 'Rilis Web Vercel Sukses',
+      desc: lang === 'en' ? 'Redeployment build status on production server' : 'Status bangun rilis ulang di server produksi',
       status: status.vercelDeploySuccess,
       icon: Globe
     }
@@ -198,11 +213,11 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
       
       {/* Banner Error if exists */}
       {status.lastError && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start space-x-3">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start space-x-3 animate-fade-in">
           <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
           <div>
             <h5 className="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider mb-1">
-              {lang === 'en' ? 'Latest Transaction Error' : 'Kesalahan Transaksi Terakhir'}
+              {lang === 'en' ? 'Sync Transaction Warning' : 'Peringatan Transaksi Sinkronisasi'}
             </h5>
             <p className="text-xs text-red-600 dark:text-red-300 leading-relaxed font-mono">
               {status.lastError}
@@ -220,10 +235,10 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
             <div className="flex justify-between items-center border-b border-black/5 dark:border-white/5 pb-3">
               <div>
                 <h4 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">
-                  {lang === 'en' ? 'Integration Health Indicators' : 'Indikator Kesehatan Integrasi'}
+                  {lang === 'en' ? 'Synchronization Pipeline Health' : 'Kesehatan Jalur Sinkronisasi'}
                 </h4>
                 <p className="text-[10px] text-slate-400">
-                  {lang === 'en' ? 'Status checks of full-stack data pipelines' : 'Pengecekan status pipa data full-stack'}
+                  {lang === 'en' ? 'Status checks of local-to-GitHub data pipelines' : 'Pengecekan status pipa data lokal-ke-GitHub'}
                 </p>
               </div>
               
@@ -237,7 +252,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
                 ) : (
                   <RefreshCw className="w-3.5 h-3.5" />
                 )}
-                <span>{lang === 'en' ? 'Verify Now' : 'Verifikasi Sekarang'}</span>
+                <span>{lang === 'en' ? 'Check Now' : 'Periksa Sekarang'}</span>
               </button>
             </div>
 
@@ -245,7 +260,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
               {checklistItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.key} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
+                  <div key={item.key} className="py-3.5 flex items-center justify-between first:pt-0 last:pb-0">
                     <div className="flex items-center space-x-3.5">
                       <div className={`p-2 rounded-xl ${
                         item.status 
@@ -273,12 +288,12 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
                       ) : item.status ? (
                         <span className="px-2.5 py-1 text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10 rounded-full flex items-center space-x-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>{lang === 'en' ? 'Active' : 'Aktif'}</span>
+                          <span>{lang === 'en' ? 'Success' : 'Sukses'}</span>
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 text-[9px] font-bold bg-red-500/10 text-red-500 border border-red-500/10 rounded-full flex items-center space-x-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                          <span>{lang === 'en' ? 'Inactive' : 'Tidak Aktif'}</span>
+                          <span>{lang === 'en' ? 'Pending' : 'Tertunda'}</span>
                         </span>
                       )}
                     </div>
@@ -287,19 +302,127 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
               })}
             </div>
           </div>
+
+          {/* Action Helper: Pull or Push Manual */}
+          <div className="bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl p-5 space-y-4 shadow-sm">
+            <div>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                {lang === 'en' ? 'Manual Sync Controllers' : 'Kontrol Sinkronisasi Manual'}
+              </h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                {lang === 'en' 
+                  ? 'Resolve conflicts or force update the data flow manually' 
+                  : 'Selesaikan konflik atau paksa pembaruan alur data secara manual'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Tarik Data */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-3 border border-black/5 dark:border-white/5">
+                <div className="flex items-center space-x-2">
+                  <ArrowDown className="w-4 h-4 text-teal-600" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    {lang === 'en' ? 'Pull Latest Data' : 'Tarik Data Terbaru'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  {lang === 'en'
+                    ? 'Pull the newest cms_data.json from GitHub, replacing your local cache. Helps resolve conflict state.'
+                    : 'Tarik cms_data.json terbaru dari GitHub untuk menimpa cache lokal. Membantu menyelesaikan status konflik.'}
+                </p>
+                <button
+                  onClick={handlePullData}
+                  disabled={pulling || status.repoStatus === 'Local Only'}
+                  className="px-3 py-2 w-full bg-teal-600 hover:bg-teal-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 text-white font-bold text-[11px] rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+                >
+                  {pulling ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  )}
+                  <span>{lang === 'en' ? 'Pull & Refresh' : 'Tarik & Refresh'}</span>
+                </button>
+              </div>
+
+              {/* Kirim Data */}
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-3 border border-black/5 dark:border-white/5">
+                <div className="flex items-center space-x-2">
+                  <ArrowUp className="w-4 h-4 text-teal-600" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                    {lang === 'en' ? 'Push Local Changes' : 'Kirim Perubahan Lokal'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  {lang === 'en'
+                    ? 'Force push local cms_data.json to GitHub repository, overwriting remote and triggering Vercel build.'
+                    : 'Paksa push cms_data.json lokal ke repositori GitHub, menimpa data jarak jauh dan memicu build Vercel.'}
+                </p>
+                <button
+                  onClick={handlePushData}
+                  disabled={pushing || status.repoStatus === 'Local Only'}
+                  className="px-3 py-2 w-full bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 text-white font-bold text-[11px] rounded-xl flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+                >
+                  {pushing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  )}
+                  <span>{lang === 'en' ? 'Force Push & Deploy' : 'Paksa Push & Rilis'}</span>
+                </button>
+              </div>
+            </div>
+
+            {actionMsg.text && (
+              <div className={`p-3 rounded-xl border text-[11px] font-semibold flex items-center space-x-2 animate-fade-in ${
+                actionMsg.type === 'success' 
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
+                  : 'bg-red-500/10 border-red-500/20 text-red-500'
+              }`}>
+                <span>{actionMsg.text}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Sync Times & Info Panel (Right 1 col) */}
         <div className="space-y-4">
           <div className="bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl p-5 space-y-4 shadow-sm">
             <h4 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider border-b border-black/5 dark:border-white/5 pb-3">
-              {lang === 'en' ? 'Deployment & Pipeline Logs' : 'Log Rilis & Jalur Sinkronisasi'}
+              {lang === 'en' ? 'Deployment & Repository Logs' : 'Log Rilis & Repositori'}
             </h4>
 
             <div className="space-y-4 text-xs">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  {lang === 'en' ? 'Last Publish' : 'Publikasi Terakhir'}
+                  {lang === 'en' ? 'Repository Status' : 'Status Repositori'}
+                </span>
+                <span className={`inline-flex self-start items-center space-x-1 px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase ${
+                  status.repoStatus === 'Synced' 
+                    ? 'bg-emerald-500/10 text-emerald-600' 
+                    : status.repoStatus === 'Conflict'
+                    ? 'bg-red-500/10 text-red-500 animate-pulse'
+                    : status.repoStatus === 'Out of Sync'
+                    ? 'bg-amber-500/10 text-amber-500'
+                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                }`}>
+                  <span>{status.repoStatus}</span>
+                </span>
+              </div>
+
+              {status.loadedSha && (
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                    {lang === 'en' ? 'Loaded File SHA' : 'SHA File yang Terbuka'}
+                  </span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200 mt-0.5 font-mono text-[11px]">
+                    {status.loadedSha.slice(0, 10)}...
+                  </span>
+                </div>
+              )}
+
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                  {lang === 'en' ? 'Last Local Save' : 'Penyimpanan Lokal Terakhir'}
                 </span>
                 <span className="font-semibold text-slate-700 dark:text-slate-200 mt-0.5">
                   {formatDate(status.lastPublish)}
@@ -308,25 +431,27 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
 
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  {lang === 'en' ? 'Last GitHub Commit' : 'Commit GitHub Terakhir'}
+                  {lang === 'en' ? 'Last GitHub Push' : 'Push GitHub Terakhir'}
                 </span>
-                <span className="font-semibold text-slate-700 dark:text-slate-200 mt-0.5">
-                  {formatDate(status.lastCommit)}
+                <span className="font-semibold text-slate-700 dark:text-slate-200 mt-0.5 font-mono text-[11px]">
+                  {status.githubSynced ? formatDate(status.lastSyncTime) : '-'}
                 </span>
               </div>
 
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  {lang === 'en' ? 'Last Vercel Trigger' : 'Pemicu Vercel Terakhir'}
+                  {lang === 'en' ? 'Vercel Deployment Build' : 'Status Membangun Vercel'}
                 </span>
-                <span className="font-semibold text-slate-700 dark:text-slate-200 mt-0.5">
-                  {formatDate(status.lastDeploy)}
+                <span className={`font-semibold mt-0.5 ${
+                  status.vercelDeployStatus === 'Building' ? 'text-amber-500 animate-pulse' : 'text-slate-700 dark:text-slate-200'
+                }`}>
+                  {status.vercelDeployStatus || 'Idle'}
                 </span>
               </div>
 
               <div className="flex flex-col border-t border-black/5 dark:border-white/5 pt-3.5">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                  {lang === 'en' ? 'Production URL' : 'Link Web Produksi'}
+                  {lang === 'en' ? 'Production Website URL' : 'Link Web Produksi'}
                 </span>
                 <a 
                   href={status.productionUrl} 
@@ -340,93 +465,8 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`;
               </div>
             </div>
           </div>
-
-          {/* Action Helper: Seed database */}
-          <div className="bg-slate-100/60 dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-2xl p-5 space-y-3.5 shadow-sm">
-            <div>
-              <h5 className="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">
-                {lang === 'en' ? 'Initial DB Seeding Helper' : 'Penyemai Database Awal'}
-              </h5>
-              <p className="text-[10px] text-slate-400 leading-normal mt-0.5">
-                {lang === 'en'
-                  ? 'If Supabase is blank, use this button to populate/bootstrap it with existing backup CMS data in one click.'
-                  : 'Jika Supabase masih kosong, gunakan tombol ini untuk menyemai database dengan data cadangan CMS lokal Anda dalam satu klik.'}
-              </p>
-            </div>
-
-            <button
-              onClick={handleSeedDatabase}
-              disabled={seeding || !status.supabaseConnected}
-              className="w-full py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold text-xs rounded-xl flex items-center justify-center space-x-2 cursor-pointer transition-all active:scale-[0.98]"
-            >
-              {seeding ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Play className="w-3.5 h-3.5" />
-              )}
-              <span>{lang === 'en' ? 'Seed Supabase Data' : 'Semai Data Supabase'}</span>
-            </button>
-
-            {seedMsg.text && (
-              <p className={`text-[10px] font-bold text-center ${
-                seedMsg.type === 'success' ? 'text-emerald-500' : 'text-red-500'
-              }`}>
-                {seedMsg.text}
-              </p>
-            )}
-          </div>
         </div>
       </div>
-
-      {/* SQL Setup Guide (Bento Box) */}
-      {!status.dbConnected && (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-slate-100 space-y-4">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-amber-500/10 text-amber-500 rounded-xl">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-200">
-                  {lang === 'en' ? 'Required Database Schema Setup' : 'Penyusunan Skema Database Diperlukan'}
-                </h4>
-                <p className="text-[10px] text-slate-400">
-                  {lang === 'en' ? 'Run this query inside your Supabase SQL Editor' : 'Jalankan kueri ini di dalam SQL Editor Supabase Anda'}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={handleCopySQL}
-              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl transition-all cursor-pointer"
-              title={lang === 'en' ? 'Copy SQL' : 'Salin SQL'}
-            >
-              {copied ? (
-                <Check className="w-4 h-4 text-emerald-400" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-
-          <div className="bg-black/50 rounded-2xl p-4 font-mono text-[11px] text-teal-400 overflow-x-auto border border-white/5 whitespace-pre leading-relaxed">
-{`CREATE TABLE IF NOT EXISTS public.cms_sections (
-  section_name TEXT PRIMARY KEY,
-  data JSONB NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- Enable realtime support for updates
-ALTER PUBLICATION supabase_realtime ADD TABLE public.cms_sections;`}
-          </div>
-
-          <p className="text-[10px] text-slate-400 leading-normal">
-            {lang === 'en' 
-              ? 'By enabling realtime on the cms_sections table, all changes made in this admin panel will automatically propagate and instantly refresh any connected client or Vercel production website in real-time.'
-              : 'Dengan mengaktifkan dukungan realtime di tabel cms_sections, semua perubahan yang dibuat di panel admin ini akan otomatis dikirim dan memperbarui klien yang terhubung atau situs web produksi Vercel secara instan.'}
-          </p>
-        </div>
-      )}
 
     </div>
   );

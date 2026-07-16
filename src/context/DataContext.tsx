@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { 
   Publication, 
   Researcher, 
@@ -106,7 +105,12 @@ interface DataContextType {
   resetToDefault: () => void;
   exportData: () => string;
   importData: (jsonData: string) => boolean;
-  saveToServer: () => Promise<{ success: boolean; error?: string; githubSync?: { enabled: boolean; success?: boolean; message?: string; error?: string } }>;
+  saveToServer: (force?: boolean) => Promise<{ 
+    success: boolean; 
+    conflict?: boolean;
+    error?: string; 
+    githubSync?: { enabled: boolean; success?: boolean; message?: string; error?: string } 
+  }>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -886,6 +890,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getStored('promotions', initialPromotions)
   );
 
+  const [loadedSha, setLoadedSha] = useState<string>('');
+
   // Sync to local storage disabled for Supabase single source of truth migration
   const resetToDefault = () => {
     setResearchGroups(initialResearchGroups);
@@ -938,7 +944,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return JSON.stringify(data, null, 2);
   };
 
-  // Auto-load CMS data from server and subscribe to Realtime Supabase changes
+  // Auto-load CMS data from server
   useEffect(() => {
     const applyCMSData = (parsed: any) => {
       if (!parsed) return;
@@ -965,58 +971,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (parsed.promotions) setPromotions(parsed.promotions);
     };
 
-    let supabaseChannel: any = null;
-
-    const setupRealtime = async () => {
-      try {
-        const configRes = await fetch('/api/config');
-        if (configRes.ok) {
-          const config = await configRes.json();
-          if (config.supabaseUrl && config.supabaseAnonKey) {
-            console.log('[Supabase Realtime] Initializing client-side subscription...', config.supabaseUrl);
-            const client = createClient(config.supabaseUrl, config.supabaseAnonKey);
-            
-            supabaseChannel = client
-              .channel('public:cms_sections')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_sections' }, (payload: any) => {
-                console.log('[Supabase Realtime] Change received:', payload);
-                const section = payload.new?.section_name;
-                const updatedData = payload.new?.data;
-                if (section && updatedData) {
-                  if (section === 'researchGroups') setResearchGroups(updatedData);
-                  else if (section === 'showcaseProjects') setShowcaseProjects(updatedData);
-                  else if (section === 'publicationsData') setPublicationsData(updatedData);
-                  else if (section === 'datasets') setDatasets(updatedData);
-                  else if (section === 'news') setNews(updatedData);
-                  else if (section === 'events') setEvents(updatedData);
-                  else if (section === 'leadership') setLeadership(updatedData);
-                  else if (section === 'assistants') setAssistants(updatedData);
-                  else if (section === 'members') setMembers(updatedData);
-                  else if (section === 'collaborators') setCollaborators(updatedData);
-                  else if (section === 'postgraduate') setPostgraduate(updatedData);
-                  else if (section === 'graduate') setGraduate(updatedData);
-                  else if (section === 'undergraduate') setUndergraduate(updatedData);
-                  else if (section === 'youtubeVideos') setYoutubeVideos(updatedData);
-                  else if (section === 'instagramPosts') setInstagramPosts(updatedData);
-                  else if (section === 'massMedia') setMassMedia(updatedData);
-                  else if (section === 'partners') setPartners(updatedData);
-                  else if (section === 'sdgContent') setSdgContent(updatedData);
-                  else if (section === 'conferencesOrganized') setConferencesOrganized(updatedData);
-                  else if (section === 'journalsOrganized') setJournalsOrganized(updatedData);
-                  else if (section === 'promotions') setPromotions(updatedData);
-                }
-              })
-              .subscribe();
-          }
-        }
-      } catch (err) {
-        console.warn('[Supabase Realtime] Setup error (expected if running without keys):', err);
-      }
-    };
-
     const loadData = async () => {
       try {
-        console.log('Loading CMS data from server (Supabase PostgreSQL)...');
+        console.log('Loading CMS data from server...');
         const response = await fetch('/api/cms/load');
         
         const contentType = response.headers.get('content-type');
@@ -1024,37 +981,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const result = await response.json();
           if (result.status === 'success' && result.data) {
             applyCMSData(result.data);
-            console.log('CMS data loaded successfully from server.');
-            setupRealtime();
+            if (result.sha) {
+              setLoadedSha(result.sha);
+            }
+            console.log('CMS data loaded successfully from server. SHA:', result.sha);
             return;
           }
         }
         throw new Error('Not a valid JSON response from server API.');
       } catch (err) {
-        console.warn('Failed to load CMS data from local server API. Attempting client-side raw GitHub fallback...', err);
+        console.warn('Failed to load CMS data from local server API. Attempting client-side fallback...', err);
         
-        // Attempt to fetch from GitHub raw content
-        try {
-          const owner = (import.meta as any).env.VITE_GITHUB_REPO_OWNER || localStorage.getItem('cms_github_owner') || 'aaddeeis';
-          const repo = (import.meta as any).env.VITE_GITHUB_REPO_NAME || localStorage.getItem('cms_github_repo') || 'Web-AIMed';
-          const branch = (import.meta as any).env.VITE_GITHUB_REPO_BRANCH || localStorage.getItem('cms_github_branch') || 'main';
-          
-          const githubRawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/cms_data.json`;
-          console.log(`Attempting raw GitHub load from: ${githubRawUrl}`);
-          
-          const ghRes = await fetch(githubRawUrl);
-          if (ghRes.ok) {
-            const data = await ghRes.json();
-            applyCMSData(data);
-            console.log('CMS data loaded successfully from raw GitHub!');
-            return;
-          } else {
-            console.warn(`GitHub Raw fetch returned status ${ghRes.status}`);
-          }
-        } catch (ghErr) {
-          console.error('Failed raw GitHub load:', ghErr);
-        }
-
         // Final fallback: try fetching local static cms_data.json
         try {
           console.log('Attempting static fallback load for cms_data.json...');
@@ -1070,13 +1007,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
     loadData();
-
-    return () => {
-      if (supabaseChannel) {
-        console.log('[Supabase Realtime] Unsubscribing channel...');
-        supabaseChannel.unsubscribe();
-      }
-    };
   }, []);
 
   const pushToGitHubClientSide = async (contentString: string): Promise<{ success: boolean; message?: string; error?: string }> => {
@@ -1165,11 +1095,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const saveToServer = async (): Promise<{ success: boolean; error?: string; githubSync?: { enabled: boolean; success?: boolean; message?: string; error?: string } }> => {
+  const saveToServer = async (force: boolean = false): Promise<{ 
+    success: boolean; 
+    conflict?: boolean;
+    error?: string; 
+    githubSync?: { enabled: boolean; success?: boolean; message?: string; error?: string } 
+  }> => {
     try {
       const dataStr = exportData();
+      const parsedData = JSON.parse(dataStr);
       
-      console.log('Saving CMS data to server disk (cms_data.json)...');
+      console.log('Saving CMS data to server (cms_data.json)...');
       let response: Response | null = null;
       let useClientFallback = false;
       let fallbackReason = "";
@@ -1180,13 +1116,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           headers: {
             'Content-Type': 'application/json'
           },
-          body: dataStr
+          body: JSON.stringify({
+            data: parsedData,
+            loadedSha: loadedSha,
+            force: force
+          })
         });
+
+        if (response.status === 409) {
+          const result = await response.json();
+          return {
+            success: false,
+            conflict: true,
+            error: result.message || 'Conflict detected! Someone else has updated the CMS on GitHub.'
+          };
+        }
 
         const contentType = response.headers.get('content-type');
         if (!response.ok || !contentType || !contentType.includes('application/json')) {
           useClientFallback = true;
-          fallbackReason = `HTTP ${response?.status}: Server did not return JSON. This is expected if running on a static host like Vercel.`;
+          fallbackReason = `HTTP ${response?.status}: Server did not return JSON.`;
         }
       } catch (fetchErr) {
         useClientFallback = true;
@@ -1194,37 +1143,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (useClientFallback) {
-        console.log(`${fallbackReason} Falling back to Client-side Direct GitHub sync...`);
-        const ghResult = await pushToGitHubClientSide(dataStr);
-        if (ghResult.success) {
-          return {
-            success: true,
-            githubSync: {
-              enabled: true,
-              success: true,
-              message: ghResult.message || 'Updated directly via GitHub API client-side'
-            }
-          };
-        } else {
-          return {
-            success: false,
-            error: `Direct GitHub sync failed: ${ghResult.error}`
-          };
-        }
+        return {
+          success: false,
+          error: `Save failed: ${fallbackReason}`
+        };
       }
 
       if (response) {
         const result = await response.json();
         if (result.status === 'success') {
-          console.log('Saved CMS data to server disk successfully.');
+          console.log('Saved CMS data to server successfully.');
+          if (result.syncStatus && result.syncStatus.loadedSha) {
+            setLoadedSha(result.syncStatus.loadedSha);
+          }
           return { 
             success: true, 
             githubSync: result.githubSync
           };
+        } else if (result.status === 'github_failed') {
+          console.warn('Local save succeeded, but GitHub push failed:', result.error);
+          return {
+            success: true,
+            error: result.error,
+            githubSync: result.github
+          };
         } else {
           return { 
             success: false, 
-            error: result.error || 'Failed to save to server disk.' 
+            error: result.error || 'Failed to save to server.' 
           };
         }
       }

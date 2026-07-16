@@ -41,90 +41,56 @@ function getAiClient(): GoogleGenAI | null {
   return aiClient;
 }
 
-// Lazy initialize Supabase Client
-let supabaseClient: any = null;
-
-function getSupabaseClient() {
-  if (!supabaseClient) {
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (supabaseUrl && supabaseKey) {
-      try {
-        supabaseClient = createClient(supabaseUrl, supabaseKey, {
-          auth: {
-            persistSession: false
-          }
-        });
-        console.log("Supabase Client initialized successfully.");
-      } catch (e) {
-        console.error("Failed to initialize Supabase Client:", e);
-      }
-    }
-  }
-  return supabaseClient;
-}
-
 // Global sync status tracker (Single Source of Truth)
 const lastSyncStatus = {
-  dbConnected: false,
-  supabaseConnected: false,
-  githubConnected: false,
-  repoSynced: false,
+  localUpdated: true,
+  githubSynced: false,
   vercelDeploySuccess: false,
   vercelDeployStatus: "Idle", // Idle, Building, Success, Failed
   lastPublish: "",
   lastCommit: "",
   lastDeploy: "",
   lastError: "",
+  repoStatus: "Local Only", // Synced, Out of Sync, Conflict, Local Only
+  lastSyncTime: "",
+  loadedSha: "",
   productionUrl: process.env.APP_URL || "https://web-aimed.vercel.app"
 };
 
-// Test connections on server start and on demand
-async function testSupabaseConnection(): Promise<boolean> {
-  const client = getSupabaseClient();
-  if (!client) {
-    lastSyncStatus.supabaseConnected = false;
-    lastSyncStatus.dbConnected = false;
-    return false;
-  }
-  try {
-    const { data, error } = await client
-      .from("cms_sections")
-      .select("section_name")
-      .limit(1);
-
-    if (error) {
-      console.warn("Supabase connection test warning:", error.message);
-      const tableMissing = error.message && error.message.includes("does not exist");
-      lastSyncStatus.supabaseConnected = true;
-      lastSyncStatus.dbConnected = !tableMissing;
-      return true;
-    }
-
-    lastSyncStatus.supabaseConnected = true;
-    lastSyncStatus.dbConnected = true;
-    return true;
-  } catch (err) {
-    console.error("Failed to connect to Supabase:", err);
-    lastSyncStatus.supabaseConnected = false;
-    lastSyncStatus.dbConnected = false;
-    return false;
-  }
+// Helper to format date in YYYY-MM-DD HH:mm:ss format
+function formatCommitDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-async function testGithubConnection(): Promise<boolean> {
+// Check if GitHub is fully configured
+function isGitHubConfigured(): boolean {
   const token = process.env.GITHUB_TOKEN;
   const owner = process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
+  return !!(token && owner && repo);
+}
+
+// Fetch file info from GitHub
+async function getGitHubFileInfo(): Promise<{ sha: string | null; content: string | null; lastModified: string | null; error?: string }> {
+  const token = process.env.GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
+  const branch = process.env.GITHUB_REPO_BRANCH || process.env.GITHUB_BRANCH || "main";
+  const filePath = "cms_data.json";
 
   if (!token || !owner || !repo) {
-    lastSyncStatus.githubConnected = false;
-    return false;
+    return { sha: null, content: null, lastModified: null, error: "GitHub is not configured" };
   }
 
   try {
-    const url = `https://api.github.com/repos/${owner}/${repo}`;
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`;
     const response = await fetch(url, {
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -133,13 +99,95 @@ async function testGithubConnection(): Promise<boolean> {
       }
     });
 
-    const ok = response.ok;
-    lastSyncStatus.githubConnected = ok;
-    return ok;
-  } catch (err) {
-    console.error("Failed to connect to GitHub:", err);
-    lastSyncStatus.githubConnected = false;
-    return false;
+    if (response.ok) {
+      const fileData: any = await response.json();
+      const content = Buffer.from(fileData.content, "base64").toString("utf8");
+      return {
+        sha: fileData.sha,
+        content,
+        lastModified: response.headers.get("last-modified") || null
+      };
+    } else if (response.status === 404) {
+      return { sha: null, content: null, lastModified: null };
+    } else {
+      const errText = await response.text();
+      return { sha: null, content: null, lastModified: null, error: `GitHub API status ${response.status}: ${errText}` };
+    }
+  } catch (err: any) {
+    return { sha: null, content: null, lastModified: null, error: err.message || String(err) };
+  }
+}
+
+// Push updated CMS data to GitHub via REST API
+async function pushToGitHub(contentString: string): Promise<{ success: boolean; sha?: string; message?: string; error?: string }> {
+  const token = process.env.GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
+  const branch = process.env.GITHUB_REPO_BRANCH || process.env.GITHUB_BRANCH || "main";
+  const filePath = "cms_data.json";
+
+  if (!token || !owner || !repo) {
+    return { success: false, error: "GitHub is not configured." };
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+    const headers: Record<string, string> = {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/vnd.github.v3+json",
+      "User-Agent": "AimedCOE-CMS-App",
+    };
+
+    // 1. Get the existing file's SHA
+    let sha: string | undefined = undefined;
+    try {
+      const getResponse = await fetch(`${url}?ref=${branch}`, { headers });
+      if (getResponse.ok) {
+        const fileData: any = await getResponse.json();
+        sha = fileData.sha;
+      }
+    } catch (getErr) {
+      console.warn("[GitHub Sync] Warning getting file SHA:", getErr);
+    }
+
+    // 2. Put the updated content
+    const base64Content = Buffer.from(contentString, "utf8").toString("base64");
+    const commitMessage = `Update CMS - ${formatCommitDate()}`;
+    const body: any = {
+      message: commitMessage,
+      content: base64Content,
+      branch
+    };
+    if (sha) {
+      body.sha = sha;
+    }
+
+    console.log(`[GitHub Sync] Pushing updated cms_data.json to ${owner}/${repo} (${branch})...`);
+    const putResponse = await fetch(url, {
+      method: "PUT",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (putResponse.ok) {
+      const putData: any = await putResponse.json();
+      console.log(`[GitHub Sync] Committed and pushed successfully.`);
+      return {
+        success: true,
+        sha: putData.content?.sha,
+        message: `Committed to branch ${branch}. SHA: ${putData.commit?.sha?.slice(0, 7) || ""}`
+      };
+    } else {
+      const errText = await putResponse.text();
+      console.error(`[GitHub Sync] Put failed:`, errText);
+      return { success: false, error: errText };
+    }
+  } catch (err: any) {
+    console.error("[GitHub Sync] Error:", err);
+    return { success: false, error: err.message || String(err) };
   }
 }
 
@@ -160,25 +208,24 @@ async function triggerVercelDeploy(): Promise<{ success: boolean; message?: stri
       lastSyncStatus.lastDeploy = new Date().toISOString();
       lastSyncStatus.vercelDeploySuccess = false;
 
-      // Start a background check task to simulate compilation and verify status
+      // Simulate deployment completion
       setTimeout(async () => {
         try {
           lastSyncStatus.vercelDeployStatus = "Success";
           lastSyncStatus.vercelDeploySuccess = true;
-          console.log(`[Vercel Deploy] Status updated to Success.`);
+          console.log(`[Vercel Deploy] Deployment marked as Success.`);
         } catch (pollErr) {
           lastSyncStatus.vercelDeployStatus = "Failed";
-          console.error(`[Vercel Deploy] Background status error:`, pollErr);
         }
-      }, 45000); // 45 seconds build approximation
+      }, 30000); // 30 seconds
 
       return { success: true, message: "Deploy hook triggered successfully." };
     } else {
       const errText = await response.text();
-      return { success: false, error: `Vercel returned status ${response.status}: ${errText}` };
+      return { success: false, error: `Vercel returned ${response.status}: ${errText}` };
     }
   } catch (err: any) {
-    console.error(`[Vercel Deploy] Error triggering hook:`, err);
+    console.error(`[Vercel Deploy] Error:`, err);
     return { success: false, error: err.message || String(err) };
   }
 }
@@ -188,295 +235,241 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", mode: process.env.NODE_ENV || "development" });
 });
 
-// GET /api/cms/load - Load custom CMS data from Supabase with local fallback
+// GET /api/cms/load - Load custom CMS data with automatic GitHub pull
 app.get("/api/cms/load", async (req, res) => {
-  const client = getSupabaseClient();
-  let loadedFromSupabase = false;
+  const dataPath = path.join(process.cwd(), "cms_data.json");
   let parsedData: any = null;
 
-  if (client) {
+  // 1. Try pulling latest from GitHub if configured
+  if (isGitHubConfigured()) {
     try {
-      console.log("[Supabase] Loading CMS data from database...");
-      const { data: rows, error } = await client
-        .from("cms_sections")
-        .select("*");
-
-      if (error) {
-        console.warn("[Supabase] Failed to select from cms_sections:", error.message);
-      } else if (rows && rows.length > 0) {
-        parsedData = {};
-        rows.forEach((row: any) => {
-          parsedData[row.section_name] = row.data;
-        });
-        loadedFromSupabase = true;
-        lastSyncStatus.supabaseConnected = true;
-        lastSyncStatus.dbConnected = true;
-        console.log(`[Supabase] Successfully loaded ${rows.length} sections from database.`);
+      console.log("[CMS Load] Fetching latest cms_data.json from GitHub repository...");
+      const result = await getGitHubFileInfo();
+      if (!result.error && result.content && result.sha) {
+        parsedData = JSON.parse(result.content);
+        
+        // Write to local file so we update the local copy
+        fs.writeFileSync(dataPath, result.content, "utf8");
+        
+        lastSyncStatus.localUpdated = true;
+        lastSyncStatus.githubSynced = true;
+        lastSyncStatus.loadedSha = result.sha;
+        lastSyncStatus.repoStatus = "Synced";
+        lastSyncStatus.lastSyncTime = new Date().toISOString();
+        if (result.lastModified) {
+          lastSyncStatus.lastCommit = result.lastModified;
+        }
+        console.log(`[CMS Load] Synchronized with GitHub SHA: ${result.sha}`);
       } else {
-        console.log("[Supabase] Table is empty, needs seeding.");
-        lastSyncStatus.supabaseConnected = true;
-        lastSyncStatus.dbConnected = true;
+        console.warn("[CMS Load] Could not load from GitHub:", result.error || "empty file");
+        lastSyncStatus.repoStatus = "Out of Sync";
       }
     } catch (err: any) {
-      console.error("[Supabase] Query error loading data:", err);
+      console.error("[CMS Load] GitHub fetch error:", err);
+      lastSyncStatus.repoStatus = "Out of Sync";
     }
   }
 
-  // Fallback to local files if Supabase load failed
-  if (!loadedFromSupabase) {
-    const dataPath = path.join(process.cwd(), "cms_data.json");
+  // 2. Fallback to local file if GitHub sync didn't yield data
+  if (!parsedData) {
     if (fs.existsSync(dataPath)) {
       try {
         const rawData = fs.readFileSync(dataPath, "utf8");
         parsedData = JSON.parse(rawData);
-        console.log("[CMS Load] Fallback: loaded from cms_data.json.");
+        console.log("[CMS Load] Loaded fallback from local cms_data.json.");
+        if (isGitHubConfigured()) {
+          lastSyncStatus.repoStatus = "Out of Sync";
+        } else {
+          lastSyncStatus.repoStatus = "Local Only";
+        }
       } catch (e: any) {
-        console.error("[CMS Load] Failed to read cms_data.json fallback:", e);
-        return res.status(500).json({ error: "Failed to parse saved fallback data." });
+        console.error("[CMS Load] Failed to read local cms_data.json:", e);
+        return res.status(500).json({ error: "Failed to parse local data file." });
       }
     } else {
-      return res.json({ status: "not_found", message: "No data source available." });
+      return res.status(404).json({ status: "not_found", message: "No local data file or GitHub connection found." });
     }
   }
 
   return res.json({
     status: "success",
-    source: loadedFromSupabase ? "supabase" : "local_file",
-    data: parsedData
+    source: lastSyncStatus.repoStatus === "Synced" ? "github" : "local_file",
+    data: parsedData,
+    sha: lastSyncStatus.loadedSha
   });
 });
 
 // GET /api/config - Expose public config to client
 app.get("/api/config", (req, res) => {
   res.json({
-    supabaseUrl: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-    productionUrl: process.env.APP_URL || "https://web-aimed.vercel.app"
+    productionUrl: process.env.APP_URL || "https://web-aimed.vercel.app",
+    githubConfigured: isGitHubConfigured()
   });
 });
 
-// GET /api/sync/status - Returns connection and deployment status
-app.get("/api/sync/status", async (req, res) => {
-  testSupabaseConnection();
-  testGithubConnection();
-
+// GET /api/sync/status - Returns sync status
+app.get("/api/sync/status", (req, res) => {
   return res.json({
     status: "success",
     syncStatus: lastSyncStatus
   });
 });
 
-// POST /api/sync/test-connections - Verifies connections
+// POST /api/sync/test-connections - Verify connections
 app.post("/api/sync/test-connections", async (req, res) => {
-  const sbOk = await testSupabaseConnection();
-  const ghOk = await testGithubConnection();
+  const ghConfigured = isGitHubConfigured();
+  let ghOk = false;
+  if (ghConfigured) {
+    const fileInfo = await getGitHubFileInfo();
+    ghOk = !!(fileInfo.sha);
+    if (ghOk) {
+      lastSyncStatus.loadedSha = fileInfo.sha || "";
+      lastSyncStatus.repoStatus = "Synced";
+      if (fileInfo.lastModified) lastSyncStatus.lastCommit = fileInfo.lastModified;
+    } else {
+      lastSyncStatus.repoStatus = "Out of Sync";
+      if (fileInfo.error) lastSyncStatus.lastError = fileInfo.error;
+    }
+  } else {
+    lastSyncStatus.repoStatus = "Local Only";
+  }
 
   return res.json({
     status: "success",
-    supabaseConnected: sbOk,
     githubConnected: ghOk,
     syncStatus: lastSyncStatus
   });
 });
 
-// POST /api/sync/seed - Manual trigger to seed Supabase with current local cms_data.json backup
-app.post("/api/sync/seed", async (req, res) => {
-  const client = getSupabaseClient();
-  if (!client) {
-    return res.status(400).json({ error: "Supabase client is not configured." });
+// POST /api/sync/pull - Force pull newest data from GitHub
+app.post("/api/sync/pull", async (req, res) => {
+  if (!isGitHubConfigured()) {
+    return res.status(400).json({ error: "GitHub is not configured." });
+  }
+
+  try {
+    const fileInfo = await getGitHubFileInfo();
+    if (fileInfo.error) {
+      return res.status(500).json({ error: fileInfo.error });
+    }
+    if (!fileInfo.content || !fileInfo.sha) {
+      return res.status(404).json({ error: "No cms_data.json file found on GitHub repository." });
+    }
+
+    const dataPath = path.join(process.cwd(), "cms_data.json");
+    fs.writeFileSync(dataPath, fileInfo.content, "utf8");
+
+    lastSyncStatus.localUpdated = true;
+    lastSyncStatus.githubSynced = true;
+    lastSyncStatus.loadedSha = fileInfo.sha;
+    lastSyncStatus.repoStatus = "Synced";
+    lastSyncStatus.lastSyncTime = new Date().toISOString();
+    if (fileInfo.lastModified) lastSyncStatus.lastCommit = fileInfo.lastModified;
+    lastSyncStatus.lastError = "";
+
+    return res.json({
+      status: "success",
+      message: "Successfully pulled newest data from GitHub repository.",
+      data: JSON.parse(fileInfo.content),
+      sha: fileInfo.sha,
+      syncStatus: lastSyncStatus
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || String(err) });
+  }
+});
+
+// POST /api/sync/push - Force push current local data to GitHub
+app.post("/api/sync/push", async (req, res) => {
+  if (!isGitHubConfigured()) {
+    return res.status(400).json({ error: "GitHub is not configured." });
   }
 
   const dataPath = path.join(process.cwd(), "cms_data.json");
   if (!fs.existsSync(dataPath)) {
-    return res.status(404).json({ error: "No local cms_data.json backup found to seed from." });
+    return res.status(404).json({ error: "No local cms_data.json file found to push." });
   }
 
   try {
     const rawData = fs.readFileSync(dataPath, "utf8");
-    const parsed = JSON.parse(rawData);
+    const syncResult = await pushToGitHub(rawData);
 
-    console.log("[Supabase Seed] Seeding database with local backup data...");
+    if (syncResult.success) {
+      lastSyncStatus.localUpdated = true;
+      lastSyncStatus.githubSynced = true;
+      if (syncResult.sha) lastSyncStatus.loadedSha = syncResult.sha;
+      lastSyncStatus.repoStatus = "Synced";
+      lastSyncStatus.lastCommit = new Date().toISOString();
+      lastSyncStatus.lastSyncTime = new Date().toISOString();
+      lastSyncStatus.lastError = "";
 
-    for (const key of Object.keys(parsed)) {
-      const sectionData = parsed[key];
-      const { error } = await client
-        .from("cms_sections")
-        .upsert({
-          section_name: key,
-          data: sectionData,
-          updated_at: new Date().toISOString()
-        });
+      // Trigger Vercel
+      await triggerVercelDeploy();
 
-      if (error) {
-        console.error(`[Supabase Seed] Failed to seed section ${key}:`, error);
-        return res.status(500).json({ error: `Failed to seed section ${key}: ${error.message}` });
-      }
+      return res.json({
+        status: "success",
+        message: syncResult.message || "Successfully pushed current local data to GitHub.",
+        sha: syncResult.sha,
+        syncStatus: lastSyncStatus
+      });
+    } else {
+      lastSyncStatus.githubSynced = false;
+      lastSyncStatus.repoStatus = "Out of Sync";
+      lastSyncStatus.lastError = syncResult.error || "GitHub push failed.";
+      return res.status(500).json({ error: syncResult.error || "Failed to push to GitHub." });
     }
-
-    lastSyncStatus.dbConnected = true;
-    lastSyncStatus.supabaseConnected = true;
-    console.log("[Supabase Seed] Database successfully seeded.");
-    return res.json({ status: "success", message: "Supabase database successfully seeded with all CMS data!" });
   } catch (err: any) {
-    console.error("[Supabase Seed] Seeding error:", err);
-    return res.status(500).json({ error: "Seeding failed: " + err.message });
+    return res.status(500).json({ error: err.message || String(err) });
   }
 });
 
-// Helper to format date in YYYY-MM-DD HH:mm:ss format
-function formatCommitDate(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
-// Helper function to push updated CMS data to GitHub via REST API
-async function pushToGitHub(contentString: string): Promise<{ enabled: boolean; success?: boolean; message?: string; error?: string }> {
-  const token = process.env.GITHUB_TOKEN;
-  const owner = process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
-  const repo = process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
-  const branch = process.env.GITHUB_REPO_BRANCH || process.env.GITHUB_BRANCH || "main";
-  const filePath = process.env.GITHUB_FILE_PATH || "cms_data.json";
-
-  if (!token || !owner || !repo) {
-    return { enabled: false };
-  }
-
-  try {
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-    const headers: Record<string, string> = {
-      "Authorization": `Bearer ${token}`,
-      "Accept": "application/vnd.github.v3+json",
-      "User-Agent": "AimedCOE-CMS-App",
-    };
-
-    // 1. Get the existing file's SHA if it exists
-    let sha: string | undefined = undefined;
-    try {
-      const getUrl = `${url}?ref=${branch}`;
-      console.log(`[GitHub Sync] Checking existing file: ${getUrl}`);
-      const getResponse = await fetch(getUrl, { headers });
-
-      if (getResponse.ok) {
-        const fileData: any = await getResponse.json();
-        sha = fileData.sha;
-        console.log(`[GitHub Sync] Found existing file with SHA: ${sha}`);
-      } else if (getResponse.status === 404) {
-        console.log("[GitHub Sync] File does not exist yet. A new file will be created.");
-      } else {
-        const errText = await getResponse.text();
-        console.warn(`[GitHub Sync] Failed to check status (Status: ${getResponse.status}):`, errText);
-      }
-    } catch (getErr: any) {
-      console.error("[GitHub Sync] Error fetching file info:", getErr);
-    }
-
-    // 2. Put the updated content
-    const base64Content = Buffer.from(contentString, "utf8").toString("base64");
-    const commitMessage = `Update CMS ${formatCommitDate()}`;
-    const body: any = {
-      message: commitMessage,
-      content: base64Content,
-      branch
-    };
-    if (sha) {
-      body.sha = sha;
-    }
-
-    console.log(`[GitHub Sync] Pushing updated cms_data.json to ${owner}/${repo} on branch ${branch}...`);
-    const putResponse = await fetch(url, {
-      method: "PUT",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (putResponse.ok) {
-      const putData: any = await putResponse.json();
-      console.log(`[GitHub Sync] Successfully committed and pushed!`);
-      return {
-        enabled: true,
-        success: true,
-        message: `Committed to branch ${branch}. Commit SHA: ${putData.commit?.sha?.slice(0, 7) || ""}`
-      };
-    } else {
-      const errText = await putResponse.text();
-      console.error(`[GitHub Sync] Failed to push (Status: ${putResponse.status}):`, errText);
-      let parsedError = errText;
-      try {
-        const errJson = JSON.parse(errText);
-        parsedError = errJson.message || errText;
-      } catch (_) {}
-      return {
-        enabled: true,
-        success: false,
-        error: `GitHub API returned status ${putResponse.status}: ${parsedError}`
-      };
-    }
-  } catch (err: any) {
-    console.error("[GitHub Sync] Error syncing:", err);
-    return {
-      enabled: true,
-      success: false,
-      error: err.message || String(err)
-    };
-  }
-}
-
-// POST /api/cms/save - Save custom CMS data directly to Supabase and trigger sync flows
+// POST /api/cms/save - Save CMS changes locally, handle conflicts, push to GitHub, and trigger Vercel
 app.post("/api/cms/save", async (req, res) => {
-  const cmsData = req.body;
+  // Support both old flat format and new structured format with loadedSha
+  let cmsData: any = null;
+  let loadedSha: string = "";
+  let force: boolean = false;
+
+  if (req.body && typeof req.body === "object") {
+    if (req.body.data && typeof req.body.data === "object") {
+      cmsData = req.body.data;
+      loadedSha = req.body.loadedSha || "";
+      force = req.body.force || false;
+    } else {
+      cmsData = req.body;
+    }
+  }
+
   if (!cmsData || typeof cmsData !== "object" || Object.keys(cmsData).length === 0) {
     return res.status(400).json({ error: "Invalid CMS data structure." });
   }
 
-  console.log("[CMS Save] Initiating migration-compliant save...");
+  console.log("[CMS Save] Initiating CMS file save workflow...");
   lastSyncStatus.lastPublish = new Date().toISOString();
 
-  // 1. Save to Supabase
-  const client = getSupabaseClient();
-  if (!client) {
-    const errMsg = "Supabase is not configured. Please define SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.";
-    lastSyncStatus.lastError = errMsg;
-    return res.status(500).json({ error: errMsg });
-  }
-
-  try {
-    console.log("[CMS Save] Saving sections to Supabase PostgreSQL...");
-    for (const key of Object.keys(cmsData)) {
-      const { error } = await client
-        .from("cms_sections")
-        .upsert({
-          section_name: key,
-          data: cmsData[key],
-          updated_at: new Date().toISOString()
+  // 1. Conflict Detection (if GitHub is configured and not a forced save)
+  if (isGitHubConfigured() && !force) {
+    try {
+      console.log("[CMS Save] Checking for remote conflicts on GitHub...");
+      const fileInfo = await getGitHubFileInfo();
+      if (fileInfo.sha && loadedSha && fileInfo.sha !== loadedSha) {
+        console.warn(`[CMS Save] CONFLICT DETECTED. Loaded SHA: ${loadedSha}, Remote SHA: ${fileInfo.sha}`);
+        lastSyncStatus.repoStatus = "Conflict";
+        lastSyncStatus.lastError = "Conflict: Remote changes detected on GitHub. Please Pull Latest Data first.";
+        return res.status(409).json({
+          status: "conflict",
+          message: "Conflict detected! Someone else has modified the data in the repository since you last loaded it. Please sync first.",
+          loadedSha: loadedSha,
+          remoteSha: fileInfo.sha,
+          syncStatus: lastSyncStatus
         });
-
-      if (error) {
-        const errMsg = `Failed to save section "${key}" to Supabase: ${error.message}`;
-        lastSyncStatus.lastError = errMsg;
-        console.error(errMsg);
-        return res.status(500).json({ error: errMsg });
       }
+    } catch (confErr) {
+      console.warn("[CMS Save] Warning during conflict check:", confErr);
     }
-    console.log("[CMS Save] All sections successfully saved to Supabase!");
-    lastSyncStatus.dbConnected = true;
-    lastSyncStatus.supabaseConnected = true;
-  } catch (err: any) {
-    const errMsg = `Supabase Transaction Error: ${err.message || String(err)}`;
-    lastSyncStatus.lastError = errMsg;
-    console.error(errMsg);
-    return res.status(500).json({ error: errMsg });
   }
 
-  // 2. Generate backup JSON to disk
+  // 2. Write to local file first
   const dataPath = path.join(process.cwd(), "cms_data.json");
   const dirPath = path.dirname(dataPath);
   let jsonStr = "";
@@ -486,52 +479,70 @@ app.post("/api/cms/save", async (req, res) => {
     }
     jsonStr = JSON.stringify(cmsData, null, 2);
     fs.writeFileSync(dataPath, jsonStr, "utf8");
-    console.log("[CMS Save] Local backup JSON generated successfully.");
+    console.log("[CMS Save] Local cms_data.json file successfully updated.");
+    lastSyncStatus.localUpdated = true;
   } catch (err: any) {
-    const errMsg = `Failed to write backup JSON on disk: ${err.message}`;
+    const errMsg = `Failed to write local cms_data.json file: ${err.message}`;
     lastSyncStatus.lastError = errMsg;
     console.error(errMsg);
     return res.status(500).json({ error: errMsg });
   }
 
-  // 3. Commit and push automatically to GitHub
+  // 3. Push automatically to GitHub if configured
   let githubResult = { enabled: false, success: false, message: "", error: "" };
-  const ghToken = process.env.GITHUB_TOKEN;
-  if (ghToken) {
+  if (isGitHubConfigured()) {
     try {
       console.log("[CMS Save] Automating GitHub Push...");
       const syncResult = await pushToGitHub(jsonStr);
       githubResult = {
         enabled: true,
-        success: syncResult.success || false,
+        success: syncResult.success,
         message: syncResult.message || "",
         error: syncResult.error || ""
       };
 
       if (!syncResult.success) {
-        const errMsg = `GitHub Commit Failed: ${syncResult.error || "Unknown Error"}. Halting Vercel deployment.`;
+        const errMsg = `GitHub push failed: ${syncResult.error || "Unknown Error"}`;
         lastSyncStatus.lastError = errMsg;
-        lastSyncStatus.repoSynced = false;
+        lastSyncStatus.githubSynced = false;
+        lastSyncStatus.repoStatus = "Out of Sync";
         console.error(errMsg);
-        return res.status(500).json({ error: errMsg, github: githubResult });
+        
+        // We do NOT revert/delete local file, return warning state so user can retry push
+        return res.json({
+          status: "github_failed",
+          error: errMsg,
+          github: githubResult,
+          syncStatus: lastSyncStatus
+        });
       }
 
       console.log("[CMS Save] GitHub Sync succeeded.");
-      lastSyncStatus.repoSynced = true;
-      lastSyncStatus.githubConnected = true;
+      lastSyncStatus.githubSynced = true;
+      lastSyncStatus.repoStatus = "Synced";
+      if (syncResult.sha) lastSyncStatus.loadedSha = syncResult.sha;
       lastSyncStatus.lastCommit = new Date().toISOString();
+      lastSyncStatus.lastSyncTime = new Date().toISOString();
     } catch (err: any) {
-      const errMsg = `GitHub Sync Error: ${err.message || String(err)}. Halting Vercel deployment.`;
+      const errMsg = `GitHub Push Error: ${err.message || String(err)}`;
       lastSyncStatus.lastError = errMsg;
-      lastSyncStatus.repoSynced = false;
+      lastSyncStatus.githubSynced = false;
+      lastSyncStatus.repoStatus = "Out of Sync";
       console.error(errMsg);
-      return res.status(500).json({ error: errMsg });
+      return res.json({
+        status: "github_failed",
+        error: errMsg,
+        github: githubResult,
+        syncStatus: lastSyncStatus
+      });
     }
   } else {
-    console.log("[CMS Save] GitHub Token not configured, skipping GitHub push.");
+    console.log("[CMS Save] GitHub is not configured, skipping push.");
+    lastSyncStatus.githubSynced = false;
+    lastSyncStatus.repoStatus = "Local Only";
   }
 
-  // 4. Trigger Vercel Deploy Hook
+  // 4. Trigger Vercel Deploy Hook if configured
   let vercelResult = { enabled: false, success: false, message: "", error: "" };
   const vercelHook = process.env.VERCEL_DEPLOY_HOOK;
   if (vercelHook) {
@@ -540,30 +551,16 @@ app.post("/api/cms/save", async (req, res) => {
       const vResult = await triggerVercelDeploy();
       vercelResult = {
         enabled: true,
-        success: vResult.success || false,
+        success: vResult.success,
         message: vResult.message || "",
         error: vResult.error || ""
       };
-
-      if (!vResult.success) {
-        const errMsg = `Vercel Deploy Hook failed: ${vResult.error || "Unknown Error"}`;
-        lastSyncStatus.lastError = errMsg;
-        console.error(errMsg);
-        return res.status(500).json({ error: errMsg, github: githubResult, vercel: vercelResult });
-      }
-
-      console.log("[CMS Save] Vercel Deployment automated successfully.");
     } catch (err: any) {
-      const errMsg = `Vercel Deployment Error: ${err.message || String(err)}`;
-      lastSyncStatus.lastError = errMsg;
-      console.error(errMsg);
-      return res.status(500).json({ error: errMsg });
+      console.error("[CMS Save] Vercel Deploy Hook failed:", err);
     }
-  } else {
-    console.log("[CMS Save] Vercel Deploy Hook not configured, skipping Vercel trigger.");
   }
 
-  // Reset last error if everything was successful
+  // Clear last error if everything was successful
   lastSyncStatus.lastError = "";
 
   return res.json({

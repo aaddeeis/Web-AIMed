@@ -1003,8 +1003,23 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
               disabled={isPublishing}
               onClick={async () => {
                 setIsPublishing(true);
-                const result = await data.saveToServer();
+                let result = await data.saveToServer();
                 setIsPublishing(false);
+                
+                if (result.conflict) {
+                  const forceSave = window.confirm(lang === 'en' 
+                    ? 'Conflict detected! The database on GitHub has been updated by someone else. Do you want to FORCE overwrite GitHub with your local changes?' 
+                    : 'Konflik terdeteksi! Database di GitHub telah diperbarui oleh orang lain. Apakah Anda ingin memaksa menulis ulang GitHub dengan perubahan lokal Anda?'
+                  );
+                  if (forceSave) {
+                    setIsPublishing(true);
+                    result = await data.saveToServer(true);
+                    setIsPublishing(false);
+                  } else {
+                    return;
+                  }
+                }
+
                 if (result.success) {
                   let msg = lang === 'en' 
                     ? 'Changes successfully published (cms_data.json)!' 
@@ -1656,8 +1671,23 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                       disabled={isPublishing}
                       onClick={async () => {
                         setIsPublishing(true);
-                        const result = await data.saveToServer();
+                        let result = await data.saveToServer();
                         setIsPublishing(false);
+
+                        if (result.conflict) {
+                          const forceSave = window.confirm(lang === 'en' 
+                            ? 'Conflict detected! The database on GitHub has been updated by someone else. Do you want to FORCE overwrite GitHub with your local changes?' 
+                            : 'Konflik terdeteksi! Database di GitHub telah diperbarui oleh orang lain. Apakah Anda ingin memaksa menulis ulang GitHub dengan perubahan lokal Anda?'
+                          );
+                          if (forceSave) {
+                            setIsPublishing(true);
+                            result = await data.saveToServer(true);
+                            setIsPublishing(false);
+                          } else {
+                            return;
+                          }
+                        }
+
                         if (result.success) {
                           let msg = lang === 'en' 
                             ? 'SDG Alignment saved successfully to server disk!' 
