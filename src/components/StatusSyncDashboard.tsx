@@ -12,12 +12,15 @@ import {
   Activity,
   FileText
 } from 'lucide-react';
+import { safeLocalStorage } from '../lib/safeStorage';
+import { useData } from '../context/DataContext';
 
 interface StatusSyncDashboardProps {
   lang: 'en' | 'id';
 }
 
 export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }) => {
+  const { exportData } = useData();
   const [status, setStatus] = useState<any>({
     localUpdated: true,
     githubSynced: false,
@@ -39,9 +42,24 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
   const [pushing, setPushing] = useState(false);
   const [actionMsg, setActionMsg] = useState({ text: '', type: '' });
 
+  const getSyncHeaders = () => {
+    const token = safeLocalStorage.getItem('cms_github_token') || '';
+    const owner = safeLocalStorage.getItem('cms_github_owner') || 'aaddeeis';
+    const repo = safeLocalStorage.getItem('cms_github_repo') || 'Web-AIMed';
+    const branch = safeLocalStorage.getItem('cms_github_branch') || 'main';
+    return {
+      'X-GitHub-Token': token,
+      'X-GitHub-Owner': owner,
+      'X-GitHub-Repo': repo,
+      'X-GitHub-Branch': branch
+    };
+  };
+
   const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/sync/status');
+      const res = await fetch('/api/sync/status', {
+        headers: getSyncHeaders()
+      });
       if (res.ok) {
         const result = await res.json();
         if (result.status === 'success' && result.syncStatus) {
@@ -66,7 +84,10 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
     setTesting(true);
     setActionMsg({ text: '', type: '' });
     try {
-      const res = await fetch('/api/sync/test-connections', { method: 'POST' });
+      const res = await fetch('/api/sync/test-connections', { 
+        method: 'POST',
+        headers: getSyncHeaders()
+      });
       if (res.ok) {
         const result = await res.json();
         if (result.status === 'success' && result.syncStatus) {
@@ -94,7 +115,10 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
     setPulling(true);
     setActionMsg({ text: '', type: '' });
     try {
-      const res = await fetch('/api/sync/pull', { method: 'POST' });
+      const res = await fetch('/api/sync/pull', { 
+        method: 'POST',
+        headers: getSyncHeaders()
+      });
       const result = await res.json();
       if (res.ok && result.status === 'success') {
         setStatus(result.syncStatus);
@@ -132,7 +156,22 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
     setPushing(true);
     setActionMsg({ text: '', type: '' });
     try {
-      const res = await fetch('/api/sync/push', { method: 'POST' });
+      const dataStr = exportData();
+      let parsedData = null;
+      try {
+        parsedData = JSON.parse(dataStr);
+      } catch (e) {}
+
+      const res = await fetch('/api/sync/push', { 
+        method: 'POST',
+        headers: {
+          ...getSyncHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: parsedData
+        })
+      });
       const result = await res.json();
       if (res.ok && result.status === 'success') {
         setStatus(result.syncStatus);

@@ -68,20 +68,31 @@ function formatCommitDate(): string {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+interface GitHubCreds {
+  token?: string;
+  owner?: string;
+  repo?: string;
+  branch?: string;
+}
+
+function extractGitHubCredentials(req?: any): GitHubCreds {
+  const token = req?.body?.ghToken || req?.query?.ghToken || req?.headers?.["x-github-token"] || process.env.GITHUB_TOKEN;
+  const owner = req?.body?.ghOwner || req?.query?.ghOwner || req?.headers?.["x-github-owner"] || process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
+  const repo = req?.body?.ghRepo || req?.query?.ghRepo || req?.headers?.["x-github-repo"] || process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
+  const branch = req?.body?.ghBranch || req?.query?.ghBranch || req?.headers?.["x-github-branch"] || process.env.GITHUB_REPO_BRANCH || process.env.GITHUB_BRANCH || "main";
+  return { token, owner, repo, branch };
+}
+
 // Check if GitHub is fully configured
-function isGitHubConfigured(): boolean {
-  const token = process.env.GITHUB_TOKEN;
-  const owner = process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
-  const repo = process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
-  return !!(token && owner && repo);
+function isGitHubConfigured(creds?: GitHubCreds): boolean {
+  const active = creds || extractGitHubCredentials();
+  return !!(active.token && active.owner && active.repo);
 }
 
 // Fetch file info from GitHub
-async function getGitHubFileInfo(): Promise<{ sha: string | null; content: string | null; lastModified: string | null; error?: string }> {
-  const token = process.env.GITHUB_TOKEN;
-  const owner = process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
-  const repo = process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
-  const branch = process.env.GITHUB_REPO_BRANCH || process.env.GITHUB_BRANCH || "main";
+async function getGitHubFileInfo(creds?: GitHubCreds): Promise<{ sha: string | null; content: string | null; lastModified: string | null; error?: string }> {
+  const activeCreds = creds || extractGitHubCredentials();
+  const { token, owner, repo, branch } = activeCreds;
   const filePath = "cms_data.json";
 
   if (!token || !owner || !repo) {
@@ -118,11 +129,9 @@ async function getGitHubFileInfo(): Promise<{ sha: string | null; content: strin
 }
 
 // Push updated CMS data to GitHub via REST API
-async function pushToGitHub(contentString: string): Promise<{ success: boolean; sha?: string; message?: string; error?: string }> {
-  const token = process.env.GITHUB_TOKEN;
-  const owner = process.env.GITHUB_REPO_OWNER || process.env.GITHUB_OWNER;
-  const repo = process.env.GITHUB_REPO_NAME || process.env.GITHUB_REPO;
-  const branch = process.env.GITHUB_REPO_BRANCH || process.env.GITHUB_BRANCH || "main";
+async function pushToGitHub(contentString: string, creds?: GitHubCreds): Promise<{ success: boolean; sha?: string; message?: string; error?: string }> {
+  const activeCreds = creds || extractGitHubCredentials();
+  const { token, owner, repo, branch } = activeCreds;
   const filePath = "cms_data.json";
 
   if (!token || !owner || !repo) {
@@ -238,12 +247,13 @@ app.get("/api/health", (req, res) => {
 app.get("/api/cms/load", async (req, res) => {
   const dataPath = path.join(process.cwd(), "cms_data.json");
   let parsedData: any = null;
+  const creds = extractGitHubCredentials(req);
 
   // 1. Try pulling latest from GitHub if configured
-  if (isGitHubConfigured()) {
+  if (isGitHubConfigured(creds)) {
     try {
       console.log("[CMS Load] Fetching latest cms_data.json from GitHub repository...");
-      const result = await getGitHubFileInfo();
+      const result = await getGitHubFileInfo(creds);
       if (!result.error && result.content && result.sha) {
         parsedData = JSON.parse(result.content);
         
@@ -280,7 +290,7 @@ app.get("/api/cms/load", async (req, res) => {
         const rawData = fs.readFileSync(dataPath, "utf8");
         parsedData = JSON.parse(rawData);
         console.log("[CMS Load] Loaded fallback from local cms_data.json.");
-        if (isGitHubConfigured()) {
+        if (isGitHubConfigured(creds)) {
           lastSyncStatus.repoStatus = "Out of Sync";
         } else {
           lastSyncStatus.repoStatus = "Local Only";
@@ -304,9 +314,10 @@ app.get("/api/cms/load", async (req, res) => {
 
 // GET /api/config - Expose public config to client
 app.get("/api/config", (req, res) => {
+  const creds = extractGitHubCredentials(req);
   res.json({
-    productionUrl: process.env.APP_URL || "https://web-aimed.vercel.app",
-    githubConfigured: isGitHubConfigured()
+    productionUrl: process.env.APP_URL || "https://aimed-coe.vercel.app/",
+    githubConfigured: isGitHubConfigured(creds)
   });
 });
 
@@ -320,10 +331,11 @@ app.get("/api/sync/status", (req, res) => {
 
 // POST /api/sync/test-connections - Verify connections
 app.post("/api/sync/test-connections", async (req, res) => {
-  const ghConfigured = isGitHubConfigured();
+  const creds = extractGitHubCredentials(req);
+  const ghConfigured = isGitHubConfigured(creds);
   let ghOk = false;
   if (ghConfigured) {
-    const fileInfo = await getGitHubFileInfo();
+    const fileInfo = await getGitHubFileInfo(creds);
     ghOk = !!(fileInfo.sha);
     if (ghOk) {
       lastSyncStatus.loadedSha = fileInfo.sha || "";
@@ -346,12 +358,13 @@ app.post("/api/sync/test-connections", async (req, res) => {
 
 // POST /api/sync/pull - Force pull newest data from GitHub
 app.post("/api/sync/pull", async (req, res) => {
-  if (!isGitHubConfigured()) {
+  const creds = extractGitHubCredentials(req);
+  if (!isGitHubConfigured(creds)) {
     return res.status(400).json({ error: "GitHub is not configured." });
   }
 
   try {
-    const fileInfo = await getGitHubFileInfo();
+    const fileInfo = await getGitHubFileInfo(creds);
     if (fileInfo.error) {
       return res.status(500).json({ error: fileInfo.error });
     }
@@ -388,18 +401,24 @@ app.post("/api/sync/pull", async (req, res) => {
 
 // POST /api/sync/push - Force push current local data to GitHub
 app.post("/api/sync/push", async (req, res) => {
-  if (!isGitHubConfigured()) {
+  const creds = extractGitHubCredentials(req);
+  if (!isGitHubConfigured(creds)) {
     return res.status(400).json({ error: "GitHub is not configured." });
   }
 
   const dataPath = path.join(process.cwd(), "cms_data.json");
-  if (!fs.existsSync(dataPath)) {
-    return res.status(404).json({ error: "No local cms_data.json file found to push." });
-  }
-
+  
   try {
-    const rawData = fs.readFileSync(dataPath, "utf8");
-    const syncResult = await pushToGitHub(rawData);
+    let rawData = "";
+    if (req.body && req.body.data) {
+      rawData = typeof req.body.data === "string" ? req.body.data : JSON.stringify(req.body.data, null, 2);
+    } else if (fs.existsSync(dataPath)) {
+      rawData = fs.readFileSync(dataPath, "utf8");
+    } else {
+      return res.status(404).json({ error: "No local data or request body data found to push." });
+    }
+
+    const syncResult = await pushToGitHub(rawData, creds);
 
     if (syncResult.success) {
       lastSyncStatus.localUpdated = true;
@@ -451,14 +470,16 @@ app.post("/api/cms/save", async (req, res) => {
     return res.status(400).json({ error: "Invalid CMS data structure." });
   }
 
+  const creds = extractGitHubCredentials(req);
+
   console.log("[CMS Save] Initiating CMS file save workflow...");
   lastSyncStatus.lastPublish = new Date().toISOString();
 
   // 1. Conflict Detection (if GitHub is configured and not a forced save)
-  if (isGitHubConfigured() && !force) {
+  if (isGitHubConfigured(creds) && !force) {
     try {
       console.log("[CMS Save] Checking for remote conflicts on GitHub...");
-      const fileInfo = await getGitHubFileInfo();
+      const fileInfo = await getGitHubFileInfo(creds);
       if (fileInfo.sha && loadedSha && fileInfo.sha !== loadedSha) {
         console.warn(`[CMS Save] CONFLICT DETECTED. Loaded SHA: ${loadedSha}, Remote SHA: ${fileInfo.sha}`);
         lastSyncStatus.repoStatus = "Conflict";
@@ -493,7 +514,7 @@ app.post("/api/cms/save", async (req, res) => {
       console.warn("[CMS Save] Warning: could not write local file (expected on serverless platforms):", fsErr.message);
       // On Vercel / serverless environments, the filesystem is read-only.
       // If GitHub is configured or we are in Vercel, we can still proceed since GitHub push is what matters.
-      if (!isGitHubConfigured() && !process.env.VERCEL) {
+      if (!isGitHubConfigured(creds) && !process.env.VERCEL) {
         throw fsErr;
       }
       lastSyncStatus.localUpdated = true; // pretend it's ok for local state
@@ -507,10 +528,10 @@ app.post("/api/cms/save", async (req, res) => {
 
   // 3. Push automatically to GitHub if configured
   let githubResult = { enabled: false, success: false, message: "", error: "" };
-  if (isGitHubConfigured()) {
+  if (isGitHubConfigured(creds)) {
     try {
       console.log("[CMS Save] Automating GitHub Push...");
-      const syncResult = await pushToGitHub(jsonStr);
+      const syncResult = await pushToGitHub(jsonStr, creds);
       githubResult = {
         enabled: true,
         success: syncResult.success,

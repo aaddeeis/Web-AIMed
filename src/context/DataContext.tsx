@@ -975,7 +975,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadData = async () => {
       try {
         console.log('Loading CMS data from server...');
-        const response = await fetch('/api/cms/load');
+        const token = safeLocalStorage.getItem('cms_github_token') || '';
+        const owner = safeLocalStorage.getItem('cms_github_owner') || 'aaddeeis';
+        const repo = safeLocalStorage.getItem('cms_github_repo') || 'Web-AIMed';
+        const branch = safeLocalStorage.getItem('cms_github_branch') || 'main';
+
+        const response = await fetch('/api/cms/load', {
+          headers: {
+            'X-GitHub-Token': token,
+            'X-GitHub-Owner': owner,
+            'X-GitHub-Repo': repo,
+            'X-GitHub-Branch': branch
+          }
+        });
         
         const contentType = response.headers.get('content-type');
         if (response.ok && contentType && contentType.includes('application/json')) {
@@ -1112,10 +1124,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let fallbackReason = "";
 
       try {
+        const token = safeLocalStorage.getItem('cms_github_token') || '';
+        const owner = safeLocalStorage.getItem('cms_github_owner') || 'aaddeeis';
+        const repo = safeLocalStorage.getItem('cms_github_repo') || 'Web-AIMed';
+        const branch = safeLocalStorage.getItem('cms_github_branch') || 'main';
+
         response = await fetch('/api/cms/save', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-GitHub-Token': token,
+            'X-GitHub-Owner': owner,
+            'X-GitHub-Repo': repo,
+            'X-GitHub-Branch': branch
           },
           body: JSON.stringify({
             data: parsedData,
