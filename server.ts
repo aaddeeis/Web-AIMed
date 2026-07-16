@@ -61,6 +61,21 @@ app.get("/api/cms/load", (req, res) => {
   return res.json({ status: "not_found" });
 });
 
+// Helper to format date in Indonesian format (e.g. "16 Juli 2026 19:00")
+function formatIndonesianDate(): string {
+  const now = new Date();
+  const months = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+  const day = now.getDate();
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${day} ${month} ${year} ${hours}:${minutes}`;
+}
+
 // Helper function to push updated CMS data to GitHub via REST API
 async function pushToGitHub(contentString: string): Promise<{ enabled: boolean; success?: boolean; message?: string; error?: string }> {
   const token = process.env.GITHUB_TOKEN;
@@ -104,8 +119,9 @@ async function pushToGitHub(contentString: string): Promise<{ enabled: boolean; 
 
     // 2. Put the updated content
     const base64Content = Buffer.from(contentString, "utf8").toString("base64");
+    const commitMessage = `Update CMS - ${formatIndonesianDate()}`;
     const body: any = {
-      message: `cms: update cms_data.json via Admin Console at ${new Date().toISOString()}`,
+      message: commitMessage,
       content: base64Content,
       branch
     };
