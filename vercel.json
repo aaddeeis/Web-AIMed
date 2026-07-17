@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "cms_data.json"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
