@@ -101,7 +101,7 @@ export interface NewsItem {
     en: string;
     id: string;
   };
-  category: 'research' | 'award' | 'seminar' | 'workshop' | 'achievement' | 'grant';
+  category?: string;
   date: string;
   content: {
     en: string;
@@ -109,7 +109,7 @@ export interface NewsItem {
   };
   image: string;
   images?: string[];
-  tags: string[];
+  tags?: string[];
 }
 
 export interface EventItem {

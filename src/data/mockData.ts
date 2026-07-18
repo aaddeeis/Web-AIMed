@@ -22,7 +22,7 @@ export const RESEARCH_GROUPS: ResearchGroup[] = [
       en: 'Developing deep learning algorithms to analyze, enhance, and segment 2D/3D medical scans including MRI, CT, and Ultrasound.',
       id: 'Mengembangkan algoritma deep learning untuk menganalisis, menyempurnakan, dan mensegmentasi pemindaian medis 2D/3D termasuk MRI, CT, dan Ultrasonografi.'
     },
-    lead: 'Prof. Dr. Ir. Samsuryadi, M.T.',
+    lead: 'Prof. Ir. Siti Nurmaini, M.T, Ph.D',
     keywords: ['MRI', 'Ultrasound', 'CT Scans', 'Segmentation', 'Reconstruction'],
     icon: 'Activity'
   },
@@ -461,10 +461,9 @@ export const NEWS: NewsItem[] = [
   {
     id: 'news-1',
     title: {
-      en: 'AIMed CoE Secures Prestigious BRIN Research Grant for Fetal AI Imaging',
-      id: 'AIMed CoE Mengamankan Hibah Penelitian BRIN yang Bergengsi untuk Pencitraan AI Janin'
+      en: 'AIMed CoE Mengamankan Hibah Penelitian BRIN Bergengsi untuk Pencitraan AI Janin',
+      id: 'AIMed CoE Mengamankan Hibah Penelitian BRIN Bergengsi untuk Pencitraan AI Janin'
     },
-    category: 'research',
     date: '2026-05-18',
     image: 'https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800',
     images: [
@@ -473,38 +472,34 @@ export const NEWS: NewsItem[] = [
       'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&q=80&w=800'
     ],
     content: {
-      en: 'The National Research and Innovation Agency of Indonesia (BRIN) has awarded AIMed CoE a major research funding grant of IDR 1.2 Billion to expand the CHDxAI suite. This funding will sponsor GPU server hardware additions, multi-center clinical trials in rural Palembang clinics, and graduate student assistantships over the next two years.',
+      en: 'Badan Riset dan Inovasi Nasional (BRIN) telah menganugerahi AIMed CoE hibah pendanaan penelitian utama sebesar Rp 1,2 Miliar untuk memperluas rangkaian CHDxAI. Pendanaan ini akan mendanai penambahan perangkat keras server GPU, uji klinis multi-pusat di klinik pedesaan Palembang, dan beasiswa asisten mahasiswa pascasarjana selama dua tahun ke depan.',
       id: 'Badan Riset dan Inovasi Nasional (BRIN) telah menganugerahi AIMed CoE hibah pendanaan penelitian utama sebesar Rp 1,2 Miliar untuk memperluas rangkaian CHDxAI. Pendanaan ini akan mendanai penambahan perangkat keras server GPU, uji klinis multi-pusat di klinik pedesaan Palembang, dan beasiswa asisten mahasiswa pascasarjana selama dua tahun ke depan.'
-    },
-    tags: ['BRIN', 'Research Funding', 'CHDxAI', 'Fetal Echocardiography']
+    }
   },
   {
     id: 'news-2',
     title: {
-      en: 'Prof. Samsuryadi Named Among Top 2% World Scientists in AI & Medical Imaging',
-      id: 'Prof. Samsuryadi Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam AI & Pencitraan Medis'
+      en: 'Prof. Ir. Siti Nurmaini, M.T, Ph.D Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam Bidang AI',
+      id: 'Prof. Ir. Siti Nurmaini, M.T, Ph.D Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam Bidang AI'
     },
-    category: 'achievement',
     date: '2025-11-10',
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800',
     images: [
+      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800',
       'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800',
-      'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800'
+      'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800'
     ],
     content: {
-      en: 'AIMed CoE’s Executive Director, Prof. Dr. Ir. Samsuryadi, M.T., has been recognized by Stanford University’s annual indexing as part of the Top 2% most cited scientists worldwide in the subfields of Artificial Intelligence, Computer Vision, and Biomedical Engineering. His pioneering work on ultrasound cardiac segmentation continues to drive Indonesian medical computing onward.',
-      id: 'Direktur Executif AIMed CoE, Prof. Dr. Ir. Samsuryadi, M.T., telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori segmentasi jantung ultrasound terus mendorong komputasi medis Indonesia maju.'
-    },
-    tags: ['Stanford Ranking', 'Faculty Award', 'Citation Excellence']
+      en: 'Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju.',
+      id: 'Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju.'
+    }
   },
   {
     id: 'news-3',
     title: {
-      en: 'International Hybrid Seminar on Explainable Deep Models for Patient Safety',
+      en: 'Seminar Hibrida Internasional tentang Model Deep Learning Terjelaskan untuk Keselamatan Pasien',
       id: 'Seminar Hibrida Internasional tentang Model Deep Learning Terjelaskan untuk Keselamatan Pasien'
     },
-    category: 'seminar',
     date: '2026-03-05',
     image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800',
     images: [
@@ -513,10 +508,9 @@ export const NEWS: NewsItem[] = [
       'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800'
     ],
     content: {
-      en: 'AIMed CoE hosted a global hybrid seminar highlighting "Clinical Trust and XAI Systems" featuring distinguished speakers from Tohoku University and National University Hospital Singapore. Over 500 online researchers joined to examine the usage of Layer-wise Relevance Propagation over clinical imaging pipelines.',
-      id: 'AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti "Kepercayaan Klinis dan Sistem XAI" yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis.'
-    },
-    tags: ['Hybrid Seminar', 'Explainable AI', 'Tohoku University', 'NUH Singapore']
+      en: 'AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti \'Kepercayaan Klinis dan Sistem XAI\' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis.',
+      id: 'AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti \'Kepercayaan Klinis dan Sistem XAI\' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis.'
+    }
   }
 ];
 
@@ -664,7 +658,7 @@ export const OPEN_POSITIONS = [
   {
     id: 'pos-1',
     title: { en: 'PhD Research Fellowship: Explainable Cardiac Deep Learning', id: 'Beasiswa Penelitian PhD: Explainable Cardiac Deep Learning' },
-    supervisor: 'Prof. Dr. Ir. Samsuryadi, M.T.',
+    supervisor: 'Prof. Ir. Siti Nurmaini, M.T, Ph.D',
     scholarship: 'BRIN National Fellowship / Faculty Support',
     requirements: {
       en: ['M.Sc. in Computer Science or Biomedical Eng', 'Proficient in PyTorch, CNNs, Transformers', 'First-author paper in indexed proceedings'],

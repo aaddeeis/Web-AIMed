@@ -180,14 +180,11 @@ export default function Communication({ lang }: CommunicationProps) {
   const filteredNews = newsList.filter(art => {
     const title = lang === 'en' ? art.title.en : art.title.id;
     const content = lang === 'en' ? art.content.en : art.content.id;
-    const category = art.category || '';
     const matchesSearch = (
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.toLowerCase().includes(searchQuery.toLowerCase())
+      content.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    const matchesCategory = selectedNewsCategory === 'all' || art.category === selectedNewsCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   const filteredEvents = events.filter(evt => {
@@ -200,7 +197,7 @@ export default function Communication({ lang }: CommunicationProps) {
   });
 
   // Unique news categories for sub-filtering
-  const newsCategories = ['all', ...Array.from(new Set(newsList.map(item => item.category)))];
+  const newsCategories: string[] = [];
 
   // Paginated slices
   const paginatedYoutube = filteredYoutube.slice(0, visibleYoutubeCount);
@@ -623,23 +620,6 @@ export default function Communication({ lang }: CommunicationProps) {
                     <Newspaper className="w-5 h-5 text-teal-500 mr-2" />
                     <span>{lang === 'en' ? 'Center Announcements' : 'Kabar & Pengumuman Pusat'}</span>
                   </h4>
-
-                  {/* News Category Selector */}
-                  <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-1">
-                    {newsCategories.map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => { setSelectedNewsCategory(cat); setVisibleNewsCount(4); }}
-                        className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg capitalize whitespace-nowrap transition-all cursor-pointer ${
-                          selectedNewsCategory === cat
-                            ? 'bg-teal-500 text-white shadow-xs'
-                            : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        {cat === 'all' ? (lang === 'en' ? 'All categories' : 'Semua') : cat}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 {paginatedNews.length === 0 ? (
@@ -664,10 +644,6 @@ export default function Communication({ lang }: CommunicationProps) {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
                             
-                            <span className="absolute top-4 left-4 px-2.5 py-1 bg-black/60 backdrop-blur-md text-white font-extrabold text-[9px] rounded-md uppercase tracking-wider border border-white/5">
-                              {art.category}
-                            </span>
-
                             {art.images && art.images.length > 1 && (
                               <div className="absolute top-4 right-4 px-2 py-1 bg-slate-950/85 backdrop-blur-md text-teal-400 font-extrabold text-[10px] rounded-md flex items-center gap-1.5 border border-white/10 shadow-sm z-10">
                                 <Images className="w-3.5 h-3.5" />
@@ -930,9 +906,6 @@ export default function Communication({ lang }: CommunicationProps) {
               {/* Modal Content */}
               <div className="p-6 sm:p-10 space-y-6 max-h-[55vh] md:max-h-[60vh] overflow-y-auto">
                 <div className="space-y-3">
-                  <span className="text-[10px] font-extrabold text-teal-600 dark:text-teal-300 bg-teal-500/10 dark:bg-teal-500/20 px-3 py-1 rounded-full tracking-widest uppercase">
-                    {selectedArticle.category}
-                  </span>
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
                     {lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id}
                   </h3>

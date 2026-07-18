@@ -2381,7 +2381,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                 {/* NEWS FIELDS */}
                 {activeTab === 'news' && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
                         <input 
@@ -2404,28 +2404,15 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">News Category</label>
-                        <select 
-                          value={editingItem.category || 'research'} 
-                          onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        >
-                          <option value="research">Research</option>
-                          <option value="seminar">Seminar</option>
-                          <option value="workshop">Workshop</option>
-                          <option value="achievement">Achievement</option>
-                        </select>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date / Tanggal</label>
                         <input 
                           type="date" 
                           value={editingItem.date || ''} 
                           onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
                           required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 w-full"
                         />
                       </div>
                     </div>
@@ -2453,27 +2440,49 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tags (comma separated)</label>
-                        <input 
-                          type="text" 
-                          value={editingItem.tags || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, tags: e.target.value })}
-                          placeholder="tag1, tag2, tag3"
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 w-full"
-                        />
-                     <div className="grid grid-cols-1 gap-4">
-                      <ImageUploadField 
-                        label={lang === 'en' ? 'News Photo (Upload)' : 'Foto Kegiatan / Berita (Unggah)'} 
-                        value={editingItem.image || ''} 
-                        onChange={(val) => setEditingItem({ 
-                          ...editingItem, 
-                          image: val, 
-                          images: val ? [val] : [] 
-                        })} 
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 gap-4 border-t border-black/10 dark:border-white/10 pt-4">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          {lang === 'en' ? 'Photos Gallery' : 'Galeri Foto Kegiatan (Beberapa Foto)'}
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {(editingItem.images || []).map((img: string, idx: number) => (
+                            <div key={idx} className="relative group h-24 rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-slate-900">
+                              <img src={img} alt="Gallery item" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newImgs = (editingItem.images || []).filter((_: any, i: number) => i !== idx);
+                                  setEditingItem({
+                                    ...editingItem,
+                                    images: newImgs,
+                                    image: newImgs[0] || ""
+                                  });
+                                }}
+                                className="absolute top-1.5 right-1.5 p-1 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors cursor-pointer shadow-md animate-in fade-in"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                          <div className="relative h-24 flex items-center justify-center">
+                            <ImageUploadField
+                              label={lang === 'en' ? '+ Add Photo' : '+ Tambah Foto'}
+                              value=""
+                              onChange={(val) => {
+                                if (val) {
+                                  const currentImgs = editingItem.images || (editingItem.image ? [editingItem.image] : []);
+                                  const newImgs = [...currentImgs, val];
+                                  setEditingItem({
+                                    ...editingItem,
+                                    images: newImgs,
+                                    image: editingItem.image || val
+                                  });
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </>
