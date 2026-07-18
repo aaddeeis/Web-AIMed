@@ -831,10 +831,30 @@ export default function Communication({ lang }: CommunicationProps) {
         const currentImage = articleImages[activeImageIndex] || selectedArticle.image;
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="relative bg-white dark:bg-slate-900 w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800">
-              {/* Header / Interactive Image Slider */}
-              <div className="relative h-64 sm:h-80 bg-slate-950 flex items-center justify-center overflow-hidden">
+          <div className="fixed inset-0 z-50 bg-white dark:bg-slate-950 overflow-y-auto animate-in fade-in duration-200 flex flex-col">
+            {/* Top Navigation Bar */}
+            <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-900/80 px-4 sm:px-8 py-4 flex items-center justify-between">
+              <button
+                onClick={() => setSelectedArticle(null)}
+                className="flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-teal-500 dark:hover:text-teal-400 bg-slate-100 dark:bg-slate-900/50 rounded-xl transition-all cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>{lang === 'en' ? 'Back' : 'Kembali'}</span>
+              </button>
+              <span className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:inline">
+                {lang === 'en' ? 'Announcements & News Details' : 'Detail Kabar & Pengumuman'}
+              </span>
+              <button
+                onClick={() => setSelectedArticle(null)}
+                className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="relative w-full max-w-5xl mx-auto flex-1 flex flex-col pb-16 px-4 sm:px-6 md:px-8 pt-6">
+              {/* Main Banner / Interactive Image Slider */}
+              <div className="relative h-72 sm:h-96 md:h-[480px] bg-slate-950 flex items-center justify-center overflow-hidden rounded-3xl shadow-lg">
                 <img 
                   src={currentImage} 
                   alt={lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id} 
@@ -868,14 +888,6 @@ export default function Communication({ lang }: CommunicationProps) {
                   </>
                 )}
 
-                {/* Close Button on Image */}
-                <button 
-                  onClick={() => setSelectedArticle(null)}
-                  className="absolute top-4 right-4 p-2 bg-slate-950/80 hover:bg-slate-950 text-white rounded-full transition-colors z-20 cursor-pointer shadow-lg"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
                 {/* Image counter indicator */}
                 {articleImages.length > 1 && (
                   <div className="absolute bottom-4 right-4 px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-md text-[10px] text-white font-mono font-bold z-10">
@@ -886,12 +898,12 @@ export default function Communication({ lang }: CommunicationProps) {
 
               {/* Interactive Gallery Thumbnails */}
               {articleImages.length > 1 && (
-                <div className="px-6 pt-4 pb-1 flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-teal-500/20">
+                <div className="mt-4 p-2 flex gap-2 overflow-x-auto scrollbar-none justify-start sm:justify-center">
                   {articleImages.map((imgUrl: string, idx: number) => (
                     <button
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
-                      className={`relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 cursor-pointer ${
+                      className={`relative w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 transition-all border-2 cursor-pointer ${
                         idx === activeImageIndex 
                           ? 'border-teal-500 scale-95 shadow-sm opacity-100' 
                           : 'border-transparent opacity-60 hover:opacity-90'
@@ -903,10 +915,10 @@ export default function Communication({ lang }: CommunicationProps) {
                 </div>
               )}
 
-              {/* Modal Content */}
-              <div className="p-6 sm:p-10 space-y-6 max-h-[55vh] md:max-h-[60vh] overflow-y-auto">
+              {/* Details Content */}
+              <div className="space-y-6 mt-8">
                 <div className="space-y-3">
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
                     {lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id}
                   </h3>
                 </div>
@@ -916,28 +928,32 @@ export default function Communication({ lang }: CommunicationProps) {
                   <span className="ml-1.5 font-mono text-slate-800 dark:text-slate-200 font-extrabold">{selectedArticle.date}</span>
                 </div>
                 
-                <p className="text-sm sm:text-base text-slate-700 dark:text-slate-200 leading-relaxed font-medium font-sans">
+                <p className="text-base sm:text-lg text-slate-700 dark:text-slate-200 leading-relaxed font-normal font-sans whitespace-pre-wrap">
                   {lang === 'en' ? selectedArticle.content.en : selectedArticle.content.id}
                 </p>
 
-                {/* simulated deep read */}
-                <div className="p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                  {lang === 'en' ? (
-                    `PALEMBANG — Under the supervision of global advisory teams, AIMed researchers completed model pipelines targeting rural clinic deployments. Clinical accuracy tests held at RSMH Palembang recorded excellent performance, proving that enterprise networks can execute on standard edge ultrasound hardware without computational drops. Future phases plan to install dedicated diagnostic hubs connected directly via regional telehealth grids.`
-                  ) : (
-                    `PALEMBANG — Di bawah pengawasan tim penasihat global, peneliti AIMed menyelesaikan alur model yang menargetkan penerapan klinik pedesaan. Tes akurasi klinis yang diadakan di RSMH Palembang mencatat kinerja yang sangat baik, membuktikan bahwa jaringan perusahaan dapat berjalan pada perangkat keras ultrasound standar tanpa penurunan komputasi. Fase masa depan berencana untuk memasang pusat diagnostik khusus yang terhubung langsung melalui jaringan telehealth regional.`
-                  )}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800/80 text-right">
-                <button
-                  onClick={() => setSelectedArticle(null)}
-                  className="px-6 py-2.5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-sm"
-                >
-                  {lang === 'en' ? 'Close Window' : 'Tutup Jendela'}
-                </button>
+                {/* Grid of several photos inside the narration */}
+                {articleImages.length > 1 && (
+                  <div className="space-y-4 pt-8 border-t border-slate-100 dark:border-slate-800/80">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      {lang === 'en' ? 'Activity Gallery / Documentation' : 'Dokumentasi / Galeri Foto Kegiatan'}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {articleImages.map((imgUrl: string, idx: number) => (
+                        <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900 shadow-sm hover:shadow-md transition-all group">
+                          <img 
+                            src={imgUrl} 
+                            alt={`Gallery image ${idx + 1}`} 
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                            onClick={() => setActiveImageIndex(idx)}
+                          />
+                          <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors pointer-events-none" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
