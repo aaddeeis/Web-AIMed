@@ -245,7 +245,7 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
                 </div>
 
                 {/* Subtab Contents list */}
-                <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto pt-4">
+                <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto pt-4 max-h-[680px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-teal-500/20 dark:scrollbar-thumb-teal-500/40 scrollbar-track-transparent scroll-smooth">
                   
                   {/* International Journals */}
                   {activePubTab === 'journals' && sortedJournals.map((item, idx) => {
