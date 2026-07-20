@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { safeLocalStorage } from '../lib/safeStorage';
 import { 
   Publication, 
@@ -16,18 +16,7 @@ import {
   JournalOrganized,
   Promotion
 } from '../types';
-import { 
-  RESEARCH_GROUPS as initialResearchGroups,
-  SHOWCASE_PROJECTS as initialShowcaseProjects,
-  DATASETS as initialDatasets,
-  NEWS as initialNews,
-  EVENTS as initialEvents,
-  PARTNERS as initialPartners,
-  SDG_CONTENT as initialSdgContent,
-  CONFERENCES_ORGANIZED as initialConferencesOrganized,
-  JOURNALS_ORGANIZED as initialJournalsOrganized,
-  PROMOTIONS as initialPromotions,
-} from '../data/mockData';
+import cmsData from '../../cms_data.json';
 
 
 // Re-define Person interface matching Researchers.tsx
@@ -55,6 +44,36 @@ export interface PublicationsData {
   ipr: any[];
   books: any[];
 }
+
+/**
+ * Temporary data source while the CMS service is unavailable.
+ *
+ * Vite includes this JSON in the client build, so the public site renders with
+ * the current CMS content without making a request to `/api/cms/load`.
+ */
+const hardcodedCmsData = cmsData as unknown as {
+  researchGroups: ResearchGroup[];
+  showcaseProjects: ShowcaseProject[];
+  publicationsData: PublicationsData;
+  datasets: Dataset[];
+  news: NewsItem[];
+  events: EventItem[];
+  leadership: Person[];
+  assistants: Person[];
+  members: Person[];
+  collaborators: Person[];
+  postgraduate: Person[];
+  graduate: Person[];
+  undergraduate: Person[];
+  youtubeVideos: any[];
+  instagramPosts: any[];
+  massMedia: any[];
+  partners: Partner[];
+  sdgContent: SDGContent;
+  conferencesOrganized: ConferenceOrganized[];
+  journalsOrganized: JournalOrganized[];
+  promotions: Promotion[];
+};
 
 interface DataContextType {
   researchGroups: ResearchGroup[];
@@ -798,16 +817,16 @@ const defaultMassMedia = [
 ];
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Migration total: nonaktifkan localStorage agar database Supabase menjadi SATU-SATUNYA sumber data utama.
-  const getStored = <T,>(key: string, fallback: T): T => {
+  // Selama CMS belum tersedia, selalu gunakan data yang sudah dibundel.
+  const getStored = <T,>(_key: string, fallback: T): T => {
     return fallback;
   };
 
   const [researchGroups, setResearchGroups] = useState<ResearchGroup[]>(() => 
-    getStored('researchGroups', initialResearchGroups)
+    getStored('researchGroups', hardcodedCmsData.researchGroups)
   );
   const [showcaseProjects, setShowcaseProjects] = useState<ShowcaseProject[]>(() => {
-    const loaded = getStored('showcaseProjects', initialShowcaseProjects);
+    const loaded = getStored('showcaseProjects', hardcodedCmsData.showcaseProjects);
     const hasDenoising = loaded.some(p => p.id === 'us-denoising');
     if (hasDenoising) {
       const filtered = loaded.filter(p => p.id !== 'us-denoising');
@@ -817,105 +836,105 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return loaded;
   });
   const [publicationsData, setPublicationsData] = useState<PublicationsData>(() => 
-    getStored('publicationsData', defaultPublicationsData)
+    getStored('publicationsData', hardcodedCmsData.publicationsData)
   );
   const [datasets, setDatasets] = useState<Dataset[]>(() => {
-    const loaded = getStored('datasets', initialDatasets);
+    const loaded = getStored('datasets', hardcodedCmsData.datasets);
     const hasOldValues = loaded.some(d => d.paperRef?.includes('Samsuryadi et al.') || d.benchmark?.includes('Dice Score') || d.paperRef?.includes('Sukemi et al.'));
     if (hasOldValues) {
-      safeLocalStorage.setItem('aimed_datasets', JSON.stringify(initialDatasets));
-      return initialDatasets;
+      safeLocalStorage.setItem('aimed_datasets', JSON.stringify(hardcodedCmsData.datasets));
+      return hardcodedCmsData.datasets;
     }
     return loaded;
   });
   const [news, setNews] = useState<NewsItem[]>(() => 
-    getStored('news', initialNews)
+    getStored('news', hardcodedCmsData.news)
   );
   const [events, setEvents] = useState<EventItem[]>(() => 
-    getStored('events', initialEvents)
+    getStored('events', hardcodedCmsData.events)
   );
   const [leadership, setLeadership] = useState<Person[]>(() => 
-    getStored('leadership', defaultLeadership)
+    getStored('leadership', hardcodedCmsData.leadership)
   );
   const [assistants, setAssistants] = useState<Person[]>(() => 
-    getStored('assistants', defaultAssistants)
+    getStored('assistants', hardcodedCmsData.assistants)
   );
   const [members, setMembers] = useState<Person[]>(() => 
-    getStored('members', defaultMembers)
+    getStored('members', hardcodedCmsData.members)
   );
   const [collaborators, setCollaborators] = useState<Person[]>(() => 
-    getStored('collaborators', defaultCollaborators)
+    getStored('collaborators', hardcodedCmsData.collaborators)
   );
   const [postgraduate, setPostgraduate] = useState<Person[]>(() => 
-    getStored('postgraduate', defaultPostgraduate)
+    getStored('postgraduate', hardcodedCmsData.postgraduate)
   );
   const [graduate, setGraduate] = useState<Person[]>(() => 
-    getStored('graduate', defaultGraduate)
+    getStored('graduate', hardcodedCmsData.graduate)
   );
   const [undergraduate, setUndergraduate] = useState<Person[]>(() => 
-    getStored('undergraduate', defaultUndergraduate)
+    getStored('undergraduate', hardcodedCmsData.undergraduate)
   );
   const [youtubeVideos, setYoutubeVideos] = useState<any[]>(() => {
-    const loaded = getStored('youtubeVideos', defaultYoutubeVideos);
-    if (loaded.length < defaultYoutubeVideos.length) {
-      safeLocalStorage.setItem('aimed_youtubeVideos', JSON.stringify(defaultYoutubeVideos));
-      return defaultYoutubeVideos;
+    const loaded = getStored('youtubeVideos', hardcodedCmsData.youtubeVideos);
+    if (loaded.length < hardcodedCmsData.youtubeVideos.length) {
+      safeLocalStorage.setItem('aimed_youtubeVideos', JSON.stringify(hardcodedCmsData.youtubeVideos));
+      return hardcodedCmsData.youtubeVideos;
     }
     return loaded;
   });
   const [instagramPosts, setInstagramPosts] = useState<any[]>(() => {
-    const loaded = getStored('instagramPosts', defaultInstagramPosts);
+    const loaded = getStored('instagramPosts', hardcodedCmsData.instagramPosts);
     const needsLinks = loaded.some((p: any) => !p.link);
-    if (loaded.length < defaultInstagramPosts.length || needsLinks) {
-      safeLocalStorage.setItem('aimed_instagramPosts', JSON.stringify(defaultInstagramPosts));
-      return defaultInstagramPosts;
+    if (loaded.length < hardcodedCmsData.instagramPosts.length || needsLinks) {
+      safeLocalStorage.setItem('aimed_instagramPosts', JSON.stringify(hardcodedCmsData.instagramPosts));
+      return hardcodedCmsData.instagramPosts;
     }
     return loaded;
   });
   const [massMedia, setMassMedia] = useState<any[]>(() => 
-    getStored('massMedia', defaultMassMedia)
+    getStored('massMedia', hardcodedCmsData.massMedia)
   );
   const [partners, setPartners] = useState<Partner[]>(() => 
-    getStored('partners', initialPartners)
+    getStored('partners', hardcodedCmsData.partners)
   );
   const [sdgContent, setSdgContent] = useState<SDGContent>(() => 
-    getStored('sdgContent', initialSdgContent)
+    getStored('sdgContent', hardcodedCmsData.sdgContent)
   );
   const [conferencesOrganized, setConferencesOrganized] = useState<ConferenceOrganized[]>(() => 
-    getStored('conferencesOrganized', initialConferencesOrganized)
+    getStored('conferencesOrganized', hardcodedCmsData.conferencesOrganized)
   );
   const [journalsOrganized, setJournalsOrganized] = useState<JournalOrganized[]>(() => 
-    getStored('journalsOrganized', initialJournalsOrganized)
+    getStored('journalsOrganized', hardcodedCmsData.journalsOrganized)
   );
   const [promotions, setPromotions] = useState<Promotion[]>(() => 
-    getStored('promotions', initialPromotions)
+    getStored('promotions', hardcodedCmsData.promotions)
   );
 
   const [loadedSha, setLoadedSha] = useState<string>('');
 
   // Sync to local storage disabled for Supabase single source of truth migration
   const resetToDefault = () => {
-    setResearchGroups(initialResearchGroups);
-    setShowcaseProjects(initialShowcaseProjects);
-    setPublicationsData(defaultPublicationsData);
-    setDatasets(initialDatasets);
-    setNews(initialNews);
-    setEvents(initialEvents);
-    setLeadership(defaultLeadership);
-    setAssistants(defaultAssistants);
-    setMembers(defaultMembers);
-    setCollaborators(defaultCollaborators);
-    setPostgraduate(defaultPostgraduate);
-    setGraduate(defaultGraduate);
-    setUndergraduate(defaultUndergraduate);
-    setYoutubeVideos(defaultYoutubeVideos);
-    setInstagramPosts(defaultInstagramPosts);
-    setMassMedia(defaultMassMedia);
-    setPartners(initialPartners);
-    setSdgContent(initialSdgContent);
-    setConferencesOrganized(initialConferencesOrganized);
-    setJournalsOrganized(initialJournalsOrganized);
-    setPromotions(initialPromotions);
+    setResearchGroups(hardcodedCmsData.researchGroups);
+    setShowcaseProjects(hardcodedCmsData.showcaseProjects);
+    setPublicationsData(hardcodedCmsData.publicationsData);
+    setDatasets(hardcodedCmsData.datasets);
+    setNews(hardcodedCmsData.news);
+    setEvents(hardcodedCmsData.events);
+    setLeadership(hardcodedCmsData.leadership);
+    setAssistants(hardcodedCmsData.assistants);
+    setMembers(hardcodedCmsData.members);
+    setCollaborators(hardcodedCmsData.collaborators);
+    setPostgraduate(hardcodedCmsData.postgraduate);
+    setGraduate(hardcodedCmsData.graduate);
+    setUndergraduate(hardcodedCmsData.undergraduate);
+    setYoutubeVideos(hardcodedCmsData.youtubeVideos);
+    setInstagramPosts(hardcodedCmsData.instagramPosts);
+    setMassMedia(hardcodedCmsData.massMedia);
+    setPartners(hardcodedCmsData.partners);
+    setSdgContent(hardcodedCmsData.sdgContent);
+    setConferencesOrganized(hardcodedCmsData.conferencesOrganized);
+    setJournalsOrganized(hardcodedCmsData.journalsOrganized);
+    setPromotions(hardcodedCmsData.promotions);
   };
 
   const exportData = () => {
@@ -944,83 +963,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     return JSON.stringify(data, null, 2);
   };
-
-  // Auto-load CMS data from server
-  useEffect(() => {
-    const applyCMSData = (parsed: any) => {
-      if (!parsed) return;
-      if (parsed.researchGroups) setResearchGroups(parsed.researchGroups);
-      if (parsed.showcaseProjects) setShowcaseProjects(parsed.showcaseProjects);
-      if (parsed.publicationsData) setPublicationsData(parsed.publicationsData);
-      if (parsed.datasets) setDatasets(parsed.datasets);
-      if (parsed.news) setNews(parsed.news);
-      if (parsed.events) setEvents(parsed.events);
-      if (parsed.leadership) setLeadership(parsed.leadership);
-      if (parsed.assistants) setAssistants(parsed.assistants);
-      if (parsed.members) setMembers(parsed.members);
-      if (parsed.collaborators) setCollaborators(parsed.collaborators);
-      if (parsed.postgraduate) setPostgraduate(parsed.postgraduate);
-      if (parsed.graduate) setGraduate(parsed.graduate);
-      if (parsed.undergraduate) setUndergraduate(parsed.undergraduate);
-      if (parsed.youtubeVideos) setYoutubeVideos(parsed.youtubeVideos);
-      if (parsed.instagramPosts) setInstagramPosts(parsed.instagramPosts);
-      if (parsed.massMedia) setMassMedia(parsed.massMedia);
-      if (parsed.partners) setPartners(parsed.partners);
-      if (parsed.sdgContent) setSdgContent(parsed.sdgContent);
-      if (parsed.conferencesOrganized) setConferencesOrganized(parsed.conferencesOrganized);
-      if (parsed.journalsOrganized) setJournalsOrganized(parsed.journalsOrganized);
-      if (parsed.promotions) setPromotions(parsed.promotions);
-    };
-
-    const loadData = async () => {
-      try {
-        console.log('Loading CMS data from server...');
-        const token = safeLocalStorage.getItem('cms_github_token') || '';
-        const owner = safeLocalStorage.getItem('cms_github_owner') || 'aaddeeis';
-        const repo = safeLocalStorage.getItem('cms_github_repo') || 'Web-AIMed';
-        const branch = safeLocalStorage.getItem('cms_github_branch') || 'main';
-
-        const response = await fetch('/api/cms/load', {
-          headers: {
-            'X-GitHub-Token': token,
-            'X-GitHub-Owner': owner,
-            'X-GitHub-Repo': repo,
-            'X-GitHub-Branch': branch
-          }
-        });
-        
-        const contentType = response.headers.get('content-type');
-        if (response.ok && contentType && contentType.includes('application/json')) {
-          const result = await response.json();
-          if (result.status === 'success' && result.data) {
-            applyCMSData(result.data);
-            if (result.sha) {
-              setLoadedSha(result.sha);
-            }
-            console.log('CMS data loaded successfully from server. SHA:', result.sha);
-            return;
-          }
-        }
-        throw new Error('Not a valid JSON response from server API.');
-      } catch (err) {
-        console.warn('Failed to load CMS data from local server API. Attempting client-side fallback...', err);
-        
-        // Final fallback: try fetching local static cms_data.json
-        try {
-          console.log('Attempting static fallback load for cms_data.json...');
-          const res = await fetch('/cms_data.json');
-          if (res.ok) {
-            const data = await res.json();
-            applyCMSData(data);
-            console.log('CMS data loaded successfully from static /cms_data.json fallback.');
-          }
-        } catch (staticErr) {
-          console.warn('Static /cms_data.json fallback load also failed:', staticErr);
-        }
-      }
-    };
-    loadData();
-  }, []);
 
   const pushToGitHubClientSide = async (contentString: string): Promise<{ success: boolean; message?: string; error?: string }> => {
     const token = (import.meta as any).env.VITE_GITHUB_TOKEN || safeLocalStorage.getItem('cms_github_token');
