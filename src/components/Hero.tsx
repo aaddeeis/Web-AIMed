@@ -293,11 +293,51 @@ export default function Hero({ lang, setActiveSection }: HeroProps) {
           </motion.div>
 
           {/* Dynamic Subtitle */}
-          <p className="text-base sm:text-lg lg:text-xl text-slate-500 dark:text-slate-400 font-medium max-w-3xl mx-auto mb-10 leading-relaxed">
-            {lang === 'en' 
-              ? 'AIMed CoE aims to develop AI-based technological solutions for the early screening (detection) of non-communicable diseases that are accurate, efficient, ethical, and usable by non-specialist healthcare workers in primary care settings, through a mobile platform integrated with telemedicine.'
-              : 'AIMed CoE bertujuan untuk mengembangkan solusi teknologi berbasis AI untuk skrining (deteksi) dini penyakit tidak menular yang akurat, efisien, etis, dan dapat digunakan oleh tenaga kesehatan non-spesialis di fasilitas pelayanan kesehatan primer, melalui platform seluler yang terintegrasi dengan telemedisin.'}
-          </p>
+          <div className="text-base sm:text-lg lg:text-xl text-slate-500 dark:text-slate-400 font-medium max-w-4xl mx-auto mb-10 leading-relaxed">
+            {lang === 'en' ? (
+              <>
+                The Artificial Intelligence-Medical Center of Excellence (AIMed CoE) is a leading center of excellence composed of researchers and members from diverse academic levels, including lecturers, undergraduate students, graduate students, and postgraduate scholars from the Faculty of Computer Science, Universitas Sriwijaya, Indonesia. AIMed CoE was established in 2018, which houses the{' '}
+                <a 
+                  href="http://isysrg.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center font-semibold"
+                >
+                  Intelligent System research group (ISys RG)
+                </a>{' '}
+                and the{' '}
+                <a 
+                  href="https://fasilkom.unsri.ac.id" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center font-semibold"
+                >
+                  Medical Immersive Technology RG (MIT RG)
+                </a>.
+              </>
+            ) : (
+              <>
+                Artificial Intelligence-Medical Center of Excellence (AIMed CoE) adalah pusat unggulan terkemuka yang terdiri dari peneliti dan anggota dari berbagai jenjang akademik, termasuk dosen, mahasiswa sarjana, mahasiswa magister, dan akademisi pascasarjana dari Fakultas Ilmu Komputer, Universitas Sriwijaya, Indonesia. AIMed CoE didirikan pada tahun 2018, yang menaungi{' '}
+                <a 
+                  href="http://isysrg.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center font-semibold"
+                >
+                  Intelligent System research group (ISys RG)
+                </a>{' '}
+                dan{' '}
+                <a 
+                  href="https://fasilkom.unsri.ac.id" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center font-semibold"
+                >
+                  Medical Immersive Technology RG (MIT RG)
+                </a>.
+              </>
+            )}
+          </div>
 
           {/* Action Call to Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
