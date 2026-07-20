@@ -67,7 +67,13 @@ export default function ImpactDashboard({ lang }: ImpactDashboardProps) {
   const yearTrendData = useMemo(() => {
     const counts: Record<number, number> = {};
     currentList.forEach((item: any) => {
-      const year = Number(item.year);
+      let year = Number(item.year);
+      if (!year && item.date) {
+        const match = item.date.match(/\d{4}/);
+        if (match) {
+          year = Number(match[0]);
+        }
+      }
       if (year) {
         counts[year] = (counts[year] || 0) + 1;
       }
@@ -241,8 +247,8 @@ export default function ImpactDashboard({ lang }: ImpactDashboardProps) {
             </div>
 
             {/* Dynamic Custom Chart */}
-            <div className="bg-slate-50 dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-5 flex flex-col justify-between flex-grow min-h-[220px]">
-              <div className="flex items-end justify-between flex-grow gap-4 h-full relative">
+            <div className="bg-slate-50 dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl p-5 flex flex-col justify-between flex-grow min-h-[260px]">
+              <div className="h-40 flex items-end justify-between gap-4 relative w-full mt-4">
                 {/* Gridlines */}
                 <div className="absolute inset-x-0 bottom-1/4 border-b border-slate-200/30 dark:border-slate-800/40 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-2/4 border-b border-slate-200/30 dark:border-slate-800/40 pointer-events-none" />
@@ -252,9 +258,9 @@ export default function ImpactDashboard({ lang }: ImpactDashboardProps) {
                   const heightPct = (data.count / maxYearCount) * 80; // cap at 80%
                   
                   return (
-                    <div key={idx} className="flex-1 flex flex-col items-center group relative z-10">
+                    <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full group relative z-10">
                       {/* Hover tooltip */}
-                      <span className="absolute -top-9 scale-0 group-hover:scale-100 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md pointer-events-none transition-all duration-200">
+                      <span className="absolute bottom-[calc(100%-20px)] scale-0 group-hover:scale-100 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md pointer-events-none transition-all duration-200 whitespace-nowrap">
                         {data.count} {lang === 'en' ? 'items' : 'item'}
                       </span>
 
