@@ -202,6 +202,7 @@ interface ImageUploadFieldProps {
   placeholder?: string;
   maxDimension?: number;
   quality?: number;
+  skipCompression?: boolean;
 }
 
 const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ 
@@ -210,13 +211,24 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   onChange, 
   placeholder,
   maxDimension = 400,
-  quality = 0.55
+  quality = 0.55,
+  skipCompression = false
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const handleFile = async (file: File) => {
     if (file && file.type.startsWith('image/')) {
+      if (skipCompression) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result && typeof e.target.result === 'string') {
+            onChange(e.target.result);
+          }
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
       try {
         const compressed = await compressImage(file, maxDimension, quality);
         if (compressed) {
@@ -4355,6 +4367,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         onChange={(val) => setEditingItem({ ...editingItem, image: val })}
                         maxDimension={180}
                         quality={0.45}
+                        skipCompression={true}
                       />
                     </div>
 
