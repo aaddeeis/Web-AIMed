@@ -35,6 +35,106 @@ import { Language } from '../types';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
+// Helper to compress an uploaded Image file to lightweight base64 JPEG
+const compressImage = (file: File, maxDimension = 1000, quality = 0.75): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!file || !file.type.startsWith('image/')) {
+      resolve('');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => {
+        resolve(e.target?.result as string);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => {
+      resolve('');
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+// Helper to compress an existing base64 image string to lightweight JPEG
+const compressBase64Image = (base64Str: string, maxDimension = 1000, quality = 0.75): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!base64Str || !base64Str.startsWith('data:image/')) {
+      resolve(base64Str);
+      return;
+    }
+    // If it's already small enough (e.g., under 135KB which is ~100KB binary), don't re-compress
+    if (base64Str.length < 135000) {
+      resolve(base64Str);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxDimension) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        }
+      } else {
+        if (height > maxDimension) {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64Str);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => {
+      resolve(base64Str);
+    };
+    img.src = base64Str;
+  });
+};
+
 interface AdminConsoleProps {
   lang: Language;
   isOpen: boolean;
@@ -79,15 +179,24 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, value, onCha
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result && typeof e.target.result === 'string') {
-          onChange(e.target.result);
+      try {
+        const compressed = await compressImage(file);
+        if (compressed) {
+          onChange(compressed);
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        // Fallback to reading file directly
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result && typeof e.target.result === 'string') {
+            onChange(e.target.result);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -331,11 +440,37 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
   const handleSaveLabContent = async () => {
     setIsSavingLab(true);
     try {
+      showMsg(lang === 'en' ? 'Optimizing and compressing images...' : 'Mengoptimalkan dan mengompres gambar...');
+
+      // Compress labGeneral images
+      const compressedGeneral = { ...labGeneral };
+      if (compressedGeneral.room1?.image) {
+        compressedGeneral.room1.image = await compressBase64Image(compressedGeneral.room1.image);
+      }
+      if (compressedGeneral.room2?.image) {
+        compressedGeneral.room2.image = await compressBase64Image(compressedGeneral.room2.image);
+      }
+
+      // Compress pcs images
+      const compressedPcs = await Promise.all(
+        labPcs.map(async (pc: any) => {
+          if (pc.image) {
+            const compImage = await compressBase64Image(pc.image);
+            return { ...pc, image: compImage };
+          }
+          return pc;
+        })
+      );
+
       const docRef = doc(db, 'cms_data', 'laboratory_content');
-      await setDoc(docRef, { general: labGeneral, pcs: labPcs });
+      await setDoc(docRef, { general: compressedGeneral, pcs: compressedPcs });
       
-      localStorage.setItem('aimed_laboratory_general', JSON.stringify(labGeneral));
-      localStorage.setItem('aimed_laboratory_pcs', JSON.stringify(labPcs));
+      // Update local state and storage
+      setLabGeneral(compressedGeneral);
+      setLabPcs(compressedPcs);
+
+      localStorage.setItem('aimed_laboratory_general', JSON.stringify(compressedGeneral));
+      localStorage.setItem('aimed_laboratory_pcs', JSON.stringify(compressedPcs));
       
       showMsg(lang === 'en' ? 'Laboratory content saved successfully!' : 'Konten laboratorium berhasil disimpan!');
     } catch (error: any) {
@@ -399,33 +534,55 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
     setLabPcs(updated);
   };
 
-  const handleLabPCImageUpload = (id: string, file: File) => {
+  const handleLabPCImageUpload = async (id: string, file: File) => {
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          handleUpdateLabPCField(id, 'image', reader.result);
+      try {
+        const compressed = await compressImage(file);
+        if (compressed) {
+          handleUpdateLabPCField(id, 'image', compressed);
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error compressing PC image:', error);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            handleUpdateLabPCField(id, 'image', reader.result);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
-  const handleLabRoomImageUpload = (roomKey: 'room1' | 'room2', file: File) => {
+  const handleLabRoomImageUpload = async (roomKey: 'room1' | 'room2', file: File) => {
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
+      try {
+        const compressed = await compressImage(file);
+        if (compressed) {
           setLabGeneral((prev: any) => ({
             ...prev,
             [roomKey]: {
               ...prev[roomKey],
-              image: reader.result
+              image: compressed
             }
           }));
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error compressing lab room image:', error);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            setLabGeneral((prev: any) => ({
+              ...prev,
+              [roomKey]: {
+                ...prev[roomKey],
+                image: reader.result
+              }
+            }));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
