@@ -173,16 +173,25 @@ interface ImageUploadFieldProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  maxDimension?: number;
+  quality?: number;
 }
 
-const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, value, onChange, placeholder }) => {
+const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ 
+  label, 
+  value, 
+  onChange, 
+  placeholder,
+  maxDimension = 1000,
+  quality = 0.75
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const handleFile = async (file: File) => {
     if (file && file.type.startsWith('image/')) {
       try {
-        const compressed = await compressImage(file);
+        const compressed = await compressImage(file, maxDimension, quality);
         if (compressed) {
           onChange(compressed);
         }
@@ -4297,6 +4306,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         label="Avatar / Photo" 
                         value={editingItem.image || ''} 
                         onChange={(val) => setEditingItem({ ...editingItem, image: val })}
+                        maxDimension={350}
+                        quality={0.65}
                       />
                     </div>
 
