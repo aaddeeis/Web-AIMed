@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Mail, 
   Globe, 
@@ -45,10 +45,21 @@ interface Person {
 }
 
 export default function Researchers({ lang }: ResearchersProps) {
+  const {
+    leadership,
+    assistants,
+    members,
+    collaborators,
+    postgraduate,
+    graduate,
+    undergraduate
+  } = useData();
+
   const [activeTab, setActiveTab] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [activeIndices, setActiveIndices] = useState<{ [key: string]: number }>({});
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
   const scroll = (key: string, direction: 'left' | 'right') => {
     const container = scrollRefs.current[key];
@@ -101,15 +112,35 @@ export default function Researchers({ lang }: ResearchersProps) {
     }
   };
 
-  const {
-    leadership,
-    assistants,
-    members,
-    collaborators,
-    postgraduate,
-    graduate,
-    undergraduate
-  } = useData();
+  // Automatic slideshow autoplay for team categories with multiple members
+  useEffect(() => {
+    const keys = ['assistants', 'members', 'collaborators', 'postgraduate', 'graduate', 'undergraduate'];
+    const intervals: { [key: string]: NodeJS.Timeout } = {};
+
+    keys.forEach((key) => {
+      let dataLength = 0;
+      if (key === 'assistants') dataLength = assistants?.length || 0;
+      else if (key === 'members') dataLength = members?.length || 0;
+      else if (key === 'collaborators') dataLength = collaborators?.length || 0;
+      else if (key === 'postgraduate') dataLength = postgraduate?.length || 0;
+      else if (key === 'graduate') dataLength = graduate?.length || 0;
+      else if (key === 'undergraduate') dataLength = undergraduate?.length || 0;
+
+      if (dataLength <= 1) return;
+
+      intervals[key] = setInterval(() => {
+        if ((activeTab === 'all' || activeTab === key) && hoveredKey !== key) {
+          const currentIndex = activeIndices[key] || 0;
+          const nextIndex = (currentIndex + 1) % dataLength;
+          scrollToItem(key, nextIndex);
+        }
+      }, 4000); // 4 seconds auto-slide
+    });
+
+    return () => {
+      Object.values(intervals).forEach(clearInterval);
+    };
+  }, [activeTab, hoveredKey, activeIndices, assistants, members, collaborators, postgraduate, graduate, undergraduate]);
 
   const tabs = [
     { id: 'all', label: { en: 'All Team', id: 'Semua Tim' } },
@@ -282,7 +313,11 @@ export default function Researchers({ lang }: ResearchersProps) {
                 </h3>
               </div>
               
-              <div className="relative group/carousel max-w-6xl mx-auto">
+              <div 
+                className="relative group/carousel max-w-6xl mx-auto"
+                onMouseEnter={() => setHoveredKey('assistants')}
+                onMouseLeave={() => setHoveredKey(null)}
+              >
                 {/* Scroll Navigation Buttons */}
                 {assistants.length > 1 && (
                   <>
@@ -448,7 +483,11 @@ export default function Researchers({ lang }: ResearchersProps) {
                 </h3>
               </div>
               
-              <div className="relative group/carousel max-w-6xl mx-auto">
+              <div 
+                className="relative group/carousel max-w-6xl mx-auto"
+                onMouseEnter={() => setHoveredKey('members')}
+                onMouseLeave={() => setHoveredKey(null)}
+              >
                 {/* Scroll Navigation Buttons */}
                 {members.length > 1 && (
                   <>
@@ -599,7 +638,11 @@ export default function Researchers({ lang }: ResearchersProps) {
                 </h3>
               </div>
               
-              <div className="relative group/carousel max-w-6xl mx-auto">
+              <div 
+                className="relative group/carousel max-w-6xl mx-auto"
+                onMouseEnter={() => setHoveredKey('collaborators')}
+                onMouseLeave={() => setHoveredKey(null)}
+              >
                 {/* Scroll Navigation Buttons */}
                 {collaborators.length > 1 && (
                   <>
@@ -696,7 +739,11 @@ export default function Researchers({ lang }: ResearchersProps) {
                 </h3>
               </div>
               
-              <div className="relative group/carousel max-w-6xl mx-auto">
+              <div 
+                className="relative group/carousel max-w-6xl mx-auto"
+                onMouseEnter={() => setHoveredKey('postgraduate')}
+                onMouseLeave={() => setHoveredKey(null)}
+              >
                 {/* Scroll Navigation Buttons */}
                 {postgraduate.length > 1 && (
                   <>
@@ -797,7 +844,11 @@ export default function Researchers({ lang }: ResearchersProps) {
                 </h3>
               </div>
               
-              <div className="relative group/carousel max-w-6xl mx-auto">
+              <div 
+                className="relative group/carousel max-w-6xl mx-auto"
+                onMouseEnter={() => setHoveredKey('graduate')}
+                onMouseLeave={() => setHoveredKey(null)}
+              >
                 {/* Scroll Navigation Buttons */}
                 {graduate.length > 1 && (
                   <>
@@ -919,7 +970,11 @@ export default function Researchers({ lang }: ResearchersProps) {
                 </h3>
               </div>
               
-              <div className="relative group/carousel max-w-6xl mx-auto">
+              <div 
+                className="relative group/carousel max-w-6xl mx-auto"
+                onMouseEnter={() => setHoveredKey('undergraduate')}
+                onMouseLeave={() => setHoveredKey(null)}
+              >
                 {/* Scroll Navigation Buttons */}
                 {undergraduate.length > 1 && (
                   <>
