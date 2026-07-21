@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
   Plus, 
@@ -23,12 +23,17 @@ import {
   Youtube,
   Tv,
   ExternalLink,
-  Loader2
+  Loader2,
+  Laptop,
+  Server,
+  Compass
 } from 'lucide-react';
 import { useData, Person, PublicationsData } from '../context/DataContext';
 import { safeLocalStorage } from '../lib/safeStorage';
 import { StatusSyncDashboard } from './StatusSyncDashboard';
 import { Language } from '../types';
+import { db } from '../lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AdminConsoleProps {
   lang: Language;
@@ -60,7 +65,8 @@ type CollectionType =
   | 'sdg_alignment'
   | 'conferences_organized'
   | 'journals_organized'
-  | 'promotions';
+  | 'promotions'
+  | 'laboratory';
 
 interface ImageUploadFieldProps {
   label: string;
@@ -202,6 +208,226 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
   // Auto-fetch loading indicator state
   const [isAutoFetching, setIsAutoFetching] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // Laboratory Content States
+  const [labGeneral, setLabGeneral] = useState<any>(null);
+  const [labPcs, setLabPcs] = useState<any[]>([]);
+  const [isLoadingLab, setIsLoadingLab] = useState(false);
+  const [isSavingLab, setIsSavingLab] = useState(false);
+  const [labTab, setLabTab] = useState<'general' | 'pcs'>('general');
+  const [labSelectedRoomInCms, setLabSelectedRoomInCms] = useState<'room1' | 'room2'>('room1');
+
+  // Load Laboratory Content from Firestore
+  useEffect(() => {
+    if (activeTab === 'laboratory' && !labGeneral) {
+      const fetchLabContent = async () => {
+        setIsLoadingLab(true);
+        try {
+          const docRef = doc(db, 'cms_data', 'laboratory_content');
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const docData = docSnap.data();
+            if (docData.general) setLabGeneral(docData.general);
+            if (docData.pcs) setLabPcs(docData.pcs);
+          } else {
+            const savedLocalPcs = localStorage.getItem('aimed_laboratory_pcs');
+            const savedLocalGen = localStorage.getItem('aimed_laboratory_general');
+            
+            setLabGeneral(savedLocalGen ? JSON.parse(savedLocalGen) : {
+              subtitle: { en: 'ENTERPRISE AI INFRASTRUCTURE', id: 'INFRASTRUKTUR AI PERUSAHAAN' },
+              title: { en: 'Enterprise GPU Computing Lab', id: 'Lab Komputasi GPU Perusahaan' },
+              desc: { en: 'Our center operates an enterprise-grade computing cluster driving parallel deep learning models for complex clinical testing across two dedicated rooms.', id: 'Pusat kami mengoperasikan kluster komputasi tingkat perusahaan yang menggerakkan model pembelajaran mendalam paralel untuk pengujian klinis kompleks di dua ruangan khusus.' },
+              room1: {
+                name: { en: 'Data & Communication Center', id: 'Pusat Data & Komunikasi' },
+                title: { en: 'Data and Communication Center Room', id: 'Ruang Pusat Data dan Komunikasi' },
+                desc: { en: 'The Data & Communication Center Room serves as the center for infrastructure management and data storage.', id: 'Ruang Pusat Data & Komunikasi berperan sebagai pusat pengelolaan infrastruktur dan penyimpanan data.' },
+                image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=1200'
+              },
+              room2: {
+                name: { en: 'Lab Room 02', id: 'Ruang Lab 02' },
+                title: { en: 'Lab Room 2: Edge Diagnostic & Simulation Room', id: 'Ruang Lab 2: Ruang Diagnostik Tepi & Simulasi' },
+                desc: { en: 'Staging area built to mimic standard hospital clinics, equipped with physical diagnostic hardware and edge computers.', id: 'Area uji coba yang dibangun untuk meniru klinik rumah sakit standar, dilengkapi dengan perangkat diagnostik fisik dan komputer tepi.' },
+                image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=1200'
+              }
+            });
+            setLabPcs(savedLocalPcs ? JSON.parse(savedLocalPcs) : [
+              {
+                id: 'dgx-h100',
+                room: 'room1',
+                name: 'NVIDIA DGX H100 Supercomputing Node',
+                image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=600',
+                role: { en: 'Primary Core Supercomputer', id: 'Superkomputer Inti Utama' },
+                specs: {
+                  gpu: '4x NVIDIA H100 Tensor Core (80GB HBM3, SXM5)',
+                  cpu: 'Dual AMD EPYC 9654 (192 Cores, 384 Threads)',
+                  ram: '1.5 TB DDR5 ECC Server Memory',
+                  storage: '30.72 TB PCIe Gen5 Enterprise NVMe RAID-0',
+                }
+              },
+              {
+                id: 'node-beta',
+                room: 'room1',
+                name: 'AIMed Node-Beta Deep Learner',
+                image: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&q=80&w=600',
+                role: { en: 'Inference and Dataset Validation Server', id: 'Server Inferensi & Validasi Dataset' },
+                specs: {
+                  gpu: '4x NVIDIA A100 Tensor Core (80GB PCIe Gen4)',
+                  cpu: 'AMD Ryzen Threadripper PRO 5995WX (64 Cores)',
+                  ram: '512 GB DDR4-3200 ECC Registered RAM',
+                  storage: '15.36 TB PCIe Gen4 NVMe U.2 Enterprise SSD',
+                }
+              },
+              {
+                id: 'node-gamma',
+                room: 'room1',
+                name: 'AIMed Node-Gamma Development Box',
+                image: 'https://images.unsplash.com/photo-1624705002806-5d72df19c3ad?auto=format&fit=crop&q=80&w=600',
+                role: { en: 'Prototyping & Medical Rendering Unit', id: 'Unit Prototipe & Rendering Medis' },
+                specs: {
+                  gpu: '2x NVIDIA GeForce RTX 4090 (24GB GDDR6X, Custom Liquid-Cooled)',
+                  cpu: 'Intel Xeon W9-3495X (56 Cores, Max 4.8 GHz)',
+                  ram: '256 GB DDR5 4800MHz Quad-Channel RAM',
+                  storage: '8 TB (2x 4TB Gen5 SSD RAID-1 Mirroring)',
+                }
+              },
+              {
+                id: 'workstation-delta',
+                room: 'room2',
+                name: 'AIMed Workstation-Delta Diagnostic Host',
+                image: 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&q=80&w=600',
+                role: { en: 'Real-Time Inference Host Workstation', id: 'Workstation Host Inferensi Real-Time' },
+                specs: {
+                  gpu: '1x NVIDIA RTX 4080 Super (16GB GDDR6X, Ada Lovelace)',
+                  cpu: 'Intel Core i9-14900K (24 Cores, Max 6.0 GHz)',
+                  ram: '128 GB DDR5 6000MHz Dual-Channel RAM',
+                  storage: '4 TB NVMe Gen4 High-Speed SSD',
+                }
+              },
+              {
+                id: 'node-epsilon',
+                room: 'room2',
+                name: 'AIMed Edge Jetson Sandbox (Orin Box)',
+                image: 'https://images.unsplash.com/photo-1601524909162-be87252be298?auto=format&fit=crop&q=80&w=600',
+                role: { en: 'Embedded Edge Sandbox Node', id: 'Node Sandbox Tepi Tertanam' },
+                specs: {
+                  gpu: '2x NVIDIA Jetson AGX Orin Dev Kit (64GB Module, Ampere Architecture)',
+                  cpu: '12-core Arm Cortex-A78AE v8.2 64-bit CPU',
+                  ram: '64 GB 256-bit LPDDR5 Memory (204.8 GB/s bandwidth)',
+                  storage: '64 GB eMMC 5.1 + 1 TB M.2 NVMe SSD expansion',
+                }
+              }
+            ]);
+          }
+        } catch (error) {
+          console.error('Error loading Lab Content inside Admin Console:', error);
+        } finally {
+          setIsLoadingLab(false);
+        }
+      };
+      fetchLabContent();
+    }
+  }, [activeTab, labGeneral]);
+
+  const handleSaveLabContent = async () => {
+    setIsSavingLab(true);
+    try {
+      const docRef = doc(db, 'cms_data', 'laboratory_content');
+      await setDoc(docRef, { general: labGeneral, pcs: labPcs });
+      
+      localStorage.setItem('aimed_laboratory_general', JSON.stringify(labGeneral));
+      localStorage.setItem('aimed_laboratory_pcs', JSON.stringify(labPcs));
+      
+      showMsg(lang === 'en' ? 'Laboratory content saved successfully!' : 'Konten laboratorium berhasil disimpan!');
+    } catch (error: any) {
+      console.error('Error saving lab content:', error);
+      showMsg(lang === 'en' ? `Failed to save: ${error.message}` : `Gagal menyimpan: ${error.message}`, 'error');
+    } finally {
+      setIsSavingLab(false);
+    }
+  };
+
+  const handleAddLabPC = () => {
+    const newPC = {
+      id: `pc-${Date.now()}`,
+      room: labSelectedRoomInCms,
+      name: labSelectedRoomInCms === 'room1' ? 'New Supercomputing Node' : 'New Diagnostic Host',
+      image: 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&q=80&w=600',
+      role: { en: 'Research Workstation', id: 'Workstation Penelitian' },
+      specs: {
+        gpu: 'NVIDIA RTX 4090 / H100',
+        cpu: 'Intel Core i9 / AMD EPYC',
+        ram: '64 GB / 128 GB',
+        storage: '2 TB / 4 TB NVMe SSD'
+      }
+    };
+    setLabPcs([...labPcs, newPC]);
+  };
+
+  const handleDeleteLabPC = (id: string) => {
+    setLabPcs(labPcs.filter(pc => pc.id !== id));
+  };
+
+  const handleUpdateLabPCField = (id: string, field: string, value: any, isSpecField = false) => {
+    const updated = labPcs.map(pc => {
+      if (pc.id === id) {
+        if (isSpecField) {
+          return {
+            ...pc,
+            specs: {
+              ...pc.specs,
+              [field]: value
+            }
+          };
+        } else if (field.includes('.')) {
+          const [parent, child] = field.split('.');
+          return {
+            ...pc,
+            [parent]: {
+              ...pc[parent],
+              [child]: value
+            }
+          };
+        } else {
+          return {
+            ...pc,
+            [field]: value
+          };
+        }
+      }
+      return pc;
+    });
+    setLabPcs(updated);
+  };
+
+  const handleLabPCImageUpload = (id: string, file: File) => {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          handleUpdateLabPCField(id, 'image', reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleLabRoomImageUpload = (roomKey: 'room1' | 'room2', file: File) => {
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setLabGeneral((prev: any) => ({
+            ...prev,
+            [roomKey]: {
+              ...prev[roomKey],
+              image: reader.result
+            }
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // GitHub Client-Side Credentials
   const [isGithubSettingsOpen, setIsGithubSettingsOpen] = useState(false);
@@ -1319,6 +1545,15 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                   <Sparkles className="w-4 h-4" />
                   <span>{lang === 'en' ? 'SDGs Alignment' : 'Keselarasan SDG'}</span>
                 </button>
+                <button
+                  onClick={() => setActiveTab('laboratory')}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer ${
+                    activeTab === 'laboratory' ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Server className="w-4 h-4" />
+                  <span>{lang === 'en' ? 'Enterprise GPU Lab' : 'Lab Komputasi GPU'}</span>
+                </button>
               </div>
             </div>
 
@@ -1445,9 +1680,11 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                   ? (lang === 'en' ? 'System Sync & Database Status' : 'Status Sinkronisasi & Database Sistem')
                   : activeTab === 'sdg_alignment' 
                     ? (lang === 'en' ? 'SDGs Commitment Configuration' : 'Konfigurasi Komitmen SDG')
-                    : (lang === 'en' ? `List of ${activeTab.replace('_', ' ')}` : `Daftar ${activeTab.replace('_', ' ')}`)}
+                    : activeTab === 'laboratory'
+                      ? (lang === 'en' ? 'Enterprise Laboratory CMS' : 'CMS Laboratorium Perusahaan')
+                      : (lang === 'en' ? `List of ${activeTab.replace('_', ' ')}` : `Daftar ${activeTab.replace('_', ' ')}`)}
               </h4>
-              {activeTab !== 'sdg_alignment' && activeTab !== 'status_sync' && (
+              {activeTab !== 'sdg_alignment' && activeTab !== 'status_sync' && activeTab !== 'laboratory' && (
                 <button
                   onClick={openAddForm}
                   className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl flex items-center space-x-2 cursor-pointer transition-all"
@@ -1462,6 +1699,602 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
             <div className="flex-1 overflow-y-auto space-y-3.5 pr-2">
               {activeTab === 'status_sync' ? (
                 <StatusSyncDashboard lang={lang} />
+              ) : activeTab === 'laboratory' ? (
+                isLoadingLab || !labGeneral ? (
+                  <div className="flex flex-col items-center justify-center py-20 gap-3">
+                    <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+                    <span className="text-xs font-bold text-slate-400">
+                      {lang === 'en' ? 'Loading laboratory content...' : 'Memuat konten laboratorium...'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-6 pb-12">
+                    {/* Top Lab CMS navigation switcher tabs */}
+                    <div className="flex border-b border-black/5 dark:border-white/5 pb-2.5 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setLabTab('general')}
+                        className={`pb-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+                          labTab === 'general'
+                            ? 'border-teal-500 text-teal-600 dark:text-teal-400'
+                            : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                        }`}
+                      >
+                        {lang === 'en' ? 'Laboratory Content (General)' : 'Konten Umum Lab'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLabTab('pcs')}
+                        className={`pb-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+                          labTab === 'pcs'
+                            ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                            : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                        }`}
+                      >
+                        {lang === 'en' ? 'Manage PCs Specs' : 'Spesifikasi & Manajemen PC'}
+                      </button>
+                    </div>
+
+                    {labTab === 'general' ? (
+                      /* --- TAB 1: LABORATORY GENERAL CONTENT --- */
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                              Section Subtitle (EN) <Globe className="w-3 h-3 text-teal-500" />
+                            </label>
+                            <input
+                              type="text"
+                              value={labGeneral.subtitle?.en || ''}
+                              onChange={(e) => setLabGeneral({
+                                ...labGeneral,
+                                subtitle: { ...labGeneral.subtitle, en: e.target.value }
+                              })}
+                              className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                              Section Subtitle (ID) <Globe className="w-3 h-3 text-teal-500" />
+                            </label>
+                            <input
+                              type="text"
+                              value={labGeneral.subtitle?.id || ''}
+                              onChange={(e) => setLabGeneral({
+                                ...labGeneral,
+                                subtitle: { ...labGeneral.subtitle, id: e.target.value }
+                              })}
+                              className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                              Section Title (EN) <Globe className="w-3 h-3 text-teal-500" />
+                            </label>
+                            <input
+                              type="text"
+                              value={labGeneral.title?.en || ''}
+                              onChange={(e) => setLabGeneral({
+                                ...labGeneral,
+                                title: { ...labGeneral.title, en: e.target.value }
+                              })}
+                              className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                              Section Title (ID) <Globe className="w-3 h-3 text-teal-500" />
+                            </label>
+                            <input
+                              type="text"
+                              value={labGeneral.title?.id || ''}
+                              onChange={(e) => setLabGeneral({
+                                ...labGeneral,
+                                title: { ...labGeneral.title, id: e.target.value }
+                              })}
+                              className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                              Section Description (EN) <Globe className="w-3 h-3 text-teal-500" />
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={labGeneral.desc?.en || ''}
+                              onChange={(e) => setLabGeneral({
+                                ...labGeneral,
+                                desc: { ...labGeneral.desc, en: e.target.value }
+                              })}
+                              className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                              Section Description (ID) <Globe className="w-3 h-3 text-teal-500" />
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={labGeneral.desc?.id || ''}
+                              onChange={(e) => setLabGeneral({
+                                ...labGeneral,
+                                desc: { ...labGeneral.desc, id: e.target.value }
+                              })}
+                              className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Lab Room 1 Config */}
+                        <div className="border-t border-black/5 dark:border-white/5 pt-4 space-y-4">
+                          <h5 className="text-xs font-extrabold text-teal-600 dark:text-teal-400 uppercase tracking-tight">Lab Room 1 (Ruang Pusat Data & Komunikasi)</h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tab Name (EN / ID)</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="EN"
+                                  value={labGeneral.room1?.name?.en || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room1: { ...labGeneral.room1, name: { ...labGeneral.room1.name, en: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="ID"
+                                  value={labGeneral.room1?.name?.id || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room1: { ...labGeneral.room1, name: { ...labGeneral.room1.name, id: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Display Title (EN / ID)</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="EN"
+                                  value={labGeneral.room1?.title?.en || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room1: { ...labGeneral.room1, title: { ...labGeneral.room1.title, en: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="ID"
+                                  value={labGeneral.room1?.title?.id || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room1: { ...labGeneral.room1, title: { ...labGeneral.room1.title, id: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                Room 1 Description (EN) <Globe className="w-3 h-3 text-teal-500" />
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={labGeneral.room1?.desc?.en || ''}
+                                onChange={(e) => setLabGeneral({
+                                  ...labGeneral,
+                                  room1: { ...labGeneral.room1, desc: { ...labGeneral.room1.desc, en: e.target.value } }
+                                })}
+                                className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                Room 1 Description (ID) <Globe className="w-3 h-3 text-teal-500" />
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={labGeneral.room1?.desc?.id || ''}
+                                onChange={(e) => setLabGeneral({
+                                  ...labGeneral,
+                                  room1: { ...labGeneral.room1, desc: { ...labGeneral.room1.desc, id: e.target.value } }
+                                })}
+                                className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-2">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Room 1 Cover Photo</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Direct URL for Room 1 image"
+                                value={labGeneral.room1?.image?.startsWith('data:') ? '' : labGeneral.room1?.image || ''}
+                                onChange={(e) => setLabGeneral({
+                                  ...labGeneral,
+                                  room1: { ...labGeneral.room1, image: e.target.value }
+                                })}
+                                className="flex-1 px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                              />
+                              <label className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>Upload</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleLabRoomImageUpload('room1', file);
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            {labGeneral.room1?.image && (
+                              <div className="h-28 w-44 overflow-hidden rounded-xl border border-black/5 dark:border-white/5 mt-1">
+                                <img src={labGeneral.room1.image} alt="Room 1 Preview" className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Lab Room 2 Config */}
+                        <div className="border-t border-black/5 dark:border-white/5 pt-4 space-y-4">
+                          <h5 className="text-xs font-extrabold text-sky-600 dark:text-sky-400 uppercase tracking-tight">Lab Room 2 (Ruang Diagnostik Tepi & Simulasi)</h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tab Name (EN / ID)</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="EN"
+                                  value={labGeneral.room2?.name?.en || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room2: { ...labGeneral.room2, name: { ...labGeneral.room2.name, en: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="ID"
+                                  value={labGeneral.room2?.name?.id || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room2: { ...labGeneral.room2, name: { ...labGeneral.room2.name, id: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Display Title (EN / ID)</label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="EN"
+                                  value={labGeneral.room2?.title?.en || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room2: { ...labGeneral.room2, title: { ...labGeneral.room2.title, en: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="ID"
+                                  value={labGeneral.room2?.title?.id || ''}
+                                  onChange={(e) => setLabGeneral({
+                                    ...labGeneral,
+                                    room2: { ...labGeneral.room2, title: { ...labGeneral.room2.title, id: e.target.value } }
+                                  })}
+                                  className="w-1/2 px-4 py-2 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                Room 2 Description (EN) <Globe className="w-3 h-3 text-teal-500" />
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={labGeneral.room2?.desc?.en || ''}
+                                onChange={(e) => setLabGeneral({
+                                  ...labGeneral,
+                                  room2: { ...labGeneral.room2, desc: { ...labGeneral.room2.desc, en: e.target.value } }
+                                })}
+                                className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                Room 2 Description (ID) <Globe className="w-3 h-3 text-teal-500" />
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={labGeneral.room2?.desc?.id || ''}
+                                onChange={(e) => setLabGeneral({
+                                  ...labGeneral,
+                                  room2: { ...labGeneral.room2, desc: { ...labGeneral.room2.desc, id: e.target.value } }
+                                })}
+                                className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-2">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Room 2 Cover Photo</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder="Direct URL for Room 2 image"
+                                value={labGeneral.room2?.image?.startsWith('data:') ? '' : labGeneral.room2?.image || ''}
+                                onChange={(e) => setLabGeneral({
+                                  ...labGeneral,
+                                  room2: { ...labGeneral.room2, image: e.target.value }
+                                })}
+                                className="flex-1 px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none"
+                              />
+                              <label className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition-all">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>Upload</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleLabRoomImageUpload('room2', file);
+                                  }}
+                                />
+                              </label>
+                            </div>
+                            {labGeneral.room2?.image && (
+                              <div className="h-28 w-44 overflow-hidden rounded-xl border border-black/5 dark:border-white/5 mt-1">
+                                <img src={labGeneral.room2.image} alt="Room 2 Preview" className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* --- TAB 2: MANAGE LAB COMPUTER SPECS --- */
+                      <div className="space-y-6">
+                        {/* Select Room to Edit PCs for */}
+                        <div className="flex items-center gap-3 bg-slate-500/5 dark:bg-slate-950/10 p-3.5 rounded-2xl border border-black/5 dark:border-white/5">
+                          <span className="text-xs font-extrabold text-slate-500">
+                            {lang === 'en' ? 'Select Target Room:' : 'Pilih Target Ruangan:'}
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setLabSelectedRoomInCms('room1')}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                                labSelectedRoomInCms === 'room1'
+                                  ? 'bg-teal-500 text-white shadow-md'
+                                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800'
+                              }`}
+                            >
+                              {lang === 'en' ? labGeneral.room1?.name?.en || 'Room 1' : labGeneral.room1?.name?.id || 'Ruangan 1'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setLabSelectedRoomInCms('room2')}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                                labSelectedRoomInCms === 'room2'
+                                  ? 'bg-sky-500 text-white shadow-md'
+                                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800'
+                              }`}
+                            >
+                              {lang === 'en' ? labGeneral.room2?.name?.en || 'Room 2' : labGeneral.room2?.name?.id || 'Ruangan 2'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* PC List Container */}
+                        <div className="space-y-6">
+                          {labPcs.filter(pc => pc.room === labSelectedRoomInCms).length === 0 ? (
+                            <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/40">
+                              <Laptop className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
+                              <p className="text-xs font-bold text-slate-400">
+                                {lang === 'en' ? 'No computers configured for this room yet.' : 'Belum ada komputer terkonfigurasi untuk ruangan ini.'}
+                              </p>
+                            </div>
+                          ) : (
+                            labPcs.filter(pc => pc.room === labSelectedRoomInCms).map((pc, idx) => (
+                              <div key={pc.id} className="relative bg-white dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row gap-5">
+                                {/* Delete Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteLabPC(pc.id)}
+                                  className="absolute top-4 right-4 p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-all cursor-pointer"
+                                  title={lang === 'en' ? 'Delete PC' : 'Hapus PC'}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+
+                                {/* Image Preview */}
+                                <div className="lg:w-1/3 flex flex-col gap-2.5">
+                                  <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">
+                                    {lang === 'en' ? `Computer Node Photo #${idx + 1}` : `Foto Node Komputer #${idx + 1}`}
+                                  </span>
+
+                                  <div className="relative h-32 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-center bg-slate-50 dark:bg-slate-950 group">
+                                    {pc.image ? (
+                                      <img src={pc.image} alt={pc.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="flex flex-col items-center justify-center text-center p-4">
+                                        <Upload className="w-6 h-6 text-slate-300 mb-1" />
+                                        <span className="text-[10px] text-slate-400">{lang === 'en' ? 'Upload Image' : 'Unggah Foto'}</span>
+                                      </div>
+                                    )}
+
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5">
+                                      <label className="px-2.5 py-1.5 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-[9px] font-black rounded-lg cursor-pointer shadow hover:scale-105 transition-all">
+                                        {lang === 'en' ? 'Upload Photo' : 'Unggah Foto'}
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          className="hidden"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleLabPCImageUpload(pc.id, file);
+                                          }}
+                                        />
+                                      </label>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="text-[9px] font-bold text-slate-400 block">{lang === 'en' ? 'Or Direct Image URL' : 'Atau Direct URL Gambar'}</label>
+                                    <input
+                                      type="text"
+                                      value={pc.image?.startsWith('data:') ? '' : pc.image || ''}
+                                      placeholder="https://example.com/photo.jpg"
+                                      onChange={(e) => handleUpdateLabPCField(pc.id, 'image', e.target.value)}
+                                      className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-[11px] text-slate-800 dark:text-slate-100 focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Title, Label & Specs Fields */}
+                                <div className="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                  <div className="sm:col-span-2 flex flex-col gap-1">
+                                    <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{lang === 'en' ? 'Computer Node Name' : 'Nama Node Komputer'}</label>
+                                    <input
+                                      type="text"
+                                      value={pc.name || ''}
+                                      onChange={(e) => handleUpdateLabPCField(pc.id, 'name', e.target.value)}
+                                      className="w-full px-3 py-1.5 text-xs font-bold bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-100"
+                                    />
+                                  </div>
+
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{lang === 'en' ? 'Role Label (English)' : 'Label Peran (Inggris)'}</label>
+                                    <input
+                                      type="text"
+                                      value={pc.role?.en || ''}
+                                      onChange={(e) => handleUpdateLabPCField(pc.id, 'role.en', e.target.value)}
+                                      className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-100"
+                                    />
+                                  </div>
+
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">{lang === 'en' ? 'Role Label (Indonesian)' : 'Label Peran (Indonesia)'}</label>
+                                    <input
+                                      type="text"
+                                      value={pc.role?.id || ''}
+                                      onChange={(e) => handleUpdateLabPCField(pc.id, 'role.id', e.target.value)}
+                                      className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-100"
+                                    />
+                                  </div>
+
+                                  {/* Specifications */}
+                                  <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-4 gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-[9px] font-black text-teal-600 dark:text-teal-400 uppercase tracking-wider">GPU Specs</label>
+                                      <input
+                                        type="text"
+                                        value={pc.specs?.gpu || ''}
+                                        onChange={(e) => handleUpdateLabPCField(pc.id, 'gpu', e.target.value, true)}
+                                        className="w-full px-2 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg"
+                                      />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Processor (CPU)</label>
+                                      <input
+                                        type="text"
+                                        value={pc.specs?.cpu || ''}
+                                        onChange={(e) => handleUpdateLabPCField(pc.id, 'cpu', e.target.value, true)}
+                                        className="w-full px-2 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg"
+                                      />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">Memory (RAM)</label>
+                                      <input
+                                        type="text"
+                                        value={pc.specs?.ram || ''}
+                                        onChange={(e) => handleUpdateLabPCField(pc.id, 'ram', e.target.value, true)}
+                                        className="w-full px-2 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg"
+                                      />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                      <label className="text-[9px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-wider">Storage</label>
+                                      <input
+                                        type="text"
+                                        value={pc.specs?.storage || ''}
+                                        onChange={(e) => handleUpdateLabPCField(pc.id, 'storage', e.target.value, true)}
+                                        className="w-full px-2 py-1.5 text-[11px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Add New Computer Button */}
+                        <div className="flex justify-center pt-4">
+                          <button
+                            type="button"
+                            onClick={handleAddLabPC}
+                            className="flex items-center space-x-2 px-6 py-3 border-2 border-dashed border-amber-500/35 hover:border-amber-500 hover:bg-amber-500/5 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-2xl transition-all cursor-pointer shadow-sm"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>
+                              {lang === 'en'
+                                ? `Add New Node to Room ${labSelectedRoomInCms === 'room1' ? '1' : '2'}`
+                                : `Tambah Node Baru ke Ruangan ${labSelectedRoomInCms === 'room1' ? '1' : '2'}`}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bottom Save Control Actions Bar */}
+                    <div className="flex justify-end gap-3 border-t border-slate-200 dark:border-slate-800 pt-5 mt-8">
+                      <button
+                        type="button"
+                        disabled={isSavingLab}
+                        onClick={handleSaveLabContent}
+                        className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 text-white text-xs font-black rounded-xl transition-all shadow-md shadow-amber-500/10 flex items-center space-x-1.5 cursor-pointer"
+                      >
+                        {isSavingLab ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Check className="w-4 h-4" />
+                        )}
+                        <span>
+                          {isSavingLab
+                            ? (lang === 'en' ? 'Saving All...' : 'Menyimpan Semua...')
+                            : (lang === 'en' ? 'Save All Lab Settings' : 'Simpan Semua Konten')}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )
               ) : activeTab === 'sdg_alignment' ? (
                 <div className="space-y-6 pb-8">
                   <div className="p-4 bg-teal-500/5 border border-teal-500/10 rounded-2xl">
