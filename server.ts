@@ -105,16 +105,18 @@ async function getGitHubFileInfo(creds?: GitHubCreds): Promise<{ sha: string | n
     const response = await fetch(url, {
       headers: {
         "Authorization": `Bearer ${token}`,
-        "Accept": "application/vnd.github.v3+json",
+        "Accept": "application/vnd.github.v3.raw",
         "User-Agent": "AimedCOE-CMS-App"
       }
     });
 
     if (response.ok) {
-      const fileData: any = await response.json();
-      const content = Buffer.from(fileData.content, "base64").toString("utf8");
+      const content = await response.text();
+      const etag = response.headers.get("etag") || "";
+      const match = etag.match(/[a-f0-9]{40}/i);
+      const sha = match ? match[0] : null;
       return {
-        sha: fileData.sha,
+        sha,
         content,
         lastModified: response.headers.get("last-modified") || null
       };
@@ -143,17 +145,24 @@ async function pushToGitHub(contentString: string, creds?: GitHubCreds): Promise
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
     const headers: Record<string, string> = {
       "Authorization": `Bearer ${token}`,
-      "Accept": "application/vnd.github.v3+json",
       "User-Agent": "AimedCOE-CMS-App",
     };
 
-    // 1. Get the existing file's SHA
+    // 1. Get the existing file's SHA (using raw Accept header to bypass 1MB JSON limits)
     let sha: string | undefined = undefined;
     try {
-      const getResponse = await fetch(`${url}?ref=${branch}`, { headers });
+      const getResponse = await fetch(`${url}?ref=${branch}`, { 
+        headers: {
+          ...headers,
+          "Accept": "application/vnd.github.v3.raw"
+        } 
+      });
       if (getResponse.ok) {
-        const fileData: any = await getResponse.json();
-        sha = fileData.sha;
+        const etag = getResponse.headers.get("etag") || "";
+        const match = etag.match(/[a-f0-9]{40}/i);
+        if (match) {
+          sha = match[0];
+        }
       }
     } catch (getErr) {
       console.warn("[GitHub Sync] Warning getting file SHA:", getErr);
@@ -176,6 +185,7 @@ async function pushToGitHub(contentString: string, creds?: GitHubCreds): Promise
       method: "PUT",
       headers: {
         ...headers,
+        "Accept": "application/vnd.github.v3+json",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
