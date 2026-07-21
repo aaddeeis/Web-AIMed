@@ -48,6 +48,7 @@ export default function Researchers({ lang }: ResearchersProps) {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const [activeIndices, setActiveIndices] = useState<{ [key: string]: number }>({});
 
   const scroll = (key: string, direction: 'left' | 'right') => {
     const container = scrollRefs.current[key];
@@ -59,6 +60,44 @@ export default function Researchers({ lang }: ResearchersProps) {
         left: targetScroll,
         behavior: 'smooth'
       });
+    }
+  };
+
+  const handleScroll = (key: string) => {
+    const container = scrollRefs.current[key];
+    if (container) {
+      const scrollLeft = container.scrollLeft;
+      const cards = Array.from(container.children) as HTMLElement[];
+      if (cards.length > 0) {
+        let closestIndex = 0;
+        let minDistance = Infinity;
+        cards.forEach((card, idx) => {
+          const cardOffset = card.offsetLeft - container.offsetLeft;
+          const distance = Math.abs(cardOffset - scrollLeft);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestIndex = idx;
+          }
+        });
+        if (activeIndices[key] !== closestIndex) {
+          setActiveIndices(prev => ({ ...prev, [key]: closestIndex }));
+        }
+      }
+    }
+  };
+
+  const scrollToItem = (key: string, index: number) => {
+    const container = scrollRefs.current[key];
+    if (container) {
+      const cards = Array.from(container.children) as HTMLElement[];
+      if (cards && cards[index]) {
+        const card = cards[index];
+        container.scrollTo({
+          left: card.offsetLeft - container.offsetLeft,
+          behavior: 'smooth'
+        });
+        setActiveIndices(prev => ({ ...prev, [key]: index }));
+      }
     }
   };
 
@@ -89,14 +128,14 @@ export default function Researchers({ lang }: ResearchersProps) {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-extrabold tracking-widest text-teal-600 dark:text-teal-400 uppercase bg-teal-500/10 px-3.5 py-1.5 rounded-full">
+          <span className="text-xs font-extrabold tracking-widest text-teal-600 dark:text-teal-400 uppercase bg-teal-500/10 px-4 py-1.5 rounded-full shadow-sm">
             {lang === 'en' ? 'AIMed RESEARCH TEAM' : 'TIM PENELITI AIMed'}
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-4 mb-4">
-            {lang === 'en' ? 'Our Expert Researchers & Students' : 'Peneliti Ahli & Mahasiswa Kami'}
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-5 mb-4">
+            {lang === 'en' ? 'Our Expert Researchers & Scholars' : 'Peneliti Ahli & Akademisi Kami'}
           </h2>
-          <div className="w-16 h-1 bg-sky-600 mx-auto rounded-full mb-4" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
+          <div className="w-20 h-1.5 bg-gradient-to-r from-teal-500 to-sky-600 mx-auto rounded-full mb-6" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             {lang === 'en' 
               ? 'Meet the brilliant minds steering clinical AI innovation, from executive directors to passionate graduate and undergraduate scholars.'
               : 'Temui para pemikir brilian yang mengarahkan inovasi AI klinis, mulai dari direktur eksekutif hingga akademisi sarjana dan magister yang berdedikasi.'}
@@ -104,15 +143,15 @@ export default function Researchers({ lang }: ResearchersProps) {
         </div>
 
         {/* Tab Switcher Pills */}
-        <div className="flex flex-wrap justify-center gap-2 mb-16 max-w-5xl mx-auto" id="team-category-tabs">
+        <div className="flex flex-wrap justify-center gap-2.5 mb-20 max-w-5xl mx-auto" id="team-category-tabs">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all duration-300 cursor-pointer border ${
+              className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all duration-300 cursor-pointer border ${
                 activeTab === tab.id
-                  ? 'bg-teal-500 text-white border-teal-500 shadow-md shadow-teal-500/15 scale-105'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-black/5 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-gradient-to-r from-teal-500 to-sky-600 text-white border-transparent shadow-lg shadow-teal-500/20 scale-105'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-[1.02]'
               }`}
             >
               {lang === 'en' ? tab.label.en : tab.label.id}
@@ -121,122 +160,89 @@ export default function Researchers({ lang }: ResearchersProps) {
         </div>
 
         {/* Team Display Panels */}
-        <div className="space-y-20">
+        <div className="space-y-28">
           
           {/* CATEGORY: Leadership (Ketua & Sekretaris) */}
           {(activeTab === 'all' || activeTab === 'leadership') && (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                <div className="flex items-center space-x-3">
-                  <UserCheck className="w-5 h-5 text-teal-500" />
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'en' ? 'CoE Leadership' : 'Pimpinan Pusat Unggulan (CoE)'}
-                  </h3>
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="p-2 bg-teal-500/10 rounded-xl">
+                  <UserCheck className="w-6 h-6 text-teal-500" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => scroll('leadership', 'left')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scroll('leadership', 'right')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'CoE Leadership' : 'Pimpinan Pusat Unggulan (CoE)'}
+                </h3>
               </div>
               
-              <div 
-                ref={(el) => { scrollRefs.current['leadership'] = el; }}
-                className="flex overflow-x-auto gap-6 scroll-smooth pb-4 snap-x snap-mandatory no-scrollbar"
-              >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {leadership.map((leader) => {
                   return (
                     <div 
                       key={leader.id}
-                      className="w-full sm:w-[480px] md:w-[500px] flex-shrink-0 snap-start glass-card rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col justify-between border border-black/5 dark:border-white/5 hover:border-teal-500/20 dark:hover:border-teal-400/20"
+                      className="glass-card bg-white/80 dark:bg-slate-900/80 border border-slate-100 dark:border-slate-800/80 rounded-3xl p-6 flex flex-col justify-between items-center text-center transition-all duration-500 hover:shadow-2xl hover:scale-[1.01] group hover:border-teal-500/20"
                     >
-                      <div className="p-6 sm:p-8">
-                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                          {leader.image && (
+                      <div className="space-y-5 flex flex-col items-center w-full">
+                        {leader.image && (
+                          <div className="relative overflow-hidden rounded-3xl w-40 h-40 sm:w-44 sm:h-44 shadow-lg border-4 border-slate-100 dark:border-slate-800/80 group-hover:border-teal-500/20">
                             <img 
                               src={leader.image} 
                               alt={leader.name} 
                               referrerPolicy="no-referrer"
-                              className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full border-4 border-teal-500/20 shadow-sm bg-white hover:scale-105 transition-all duration-300 flex-shrink-0"
+                              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
                             />
-                          )}
-                          <div className="space-y-3 text-center sm:text-left flex-grow">
-                            <div>
-                              <h4 className="font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white tracking-tight">
-                                {leader.name}
-                              </h4>
-                              <p className="text-xs font-bold text-teal-600 dark:text-teal-400 mt-1 uppercase tracking-wider">
-                                {lang === 'en' ? leader.role.en : leader.role.id}
-                              </p>
-                            </div>
-                            
-                            {leader.email && (
-                              <a 
-                                href={`mailto:${leader.email}`}
-                                className="inline-flex items-center space-x-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
-                              >
-                                <Mail className="w-4 h-4 text-slate-400" />
-                                <span>{leader.email}</span>
-                              </a>
-                            )}
-
-                            {/* Academic index handles row */}
-                            <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-2">
-                              {leader.scholar && (
-                                <a 
-                                  href={leader.scholar} 
-                                  target="_blank" 
-                                  rel="noreferrer"
-                                  className="px-2.5 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[10px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all"
-                                >
-                                  <span>Google Scholar</span>
-                                  <ExternalLink className="w-2.5 h-2.5" />
-                                </a>
-                              )}
-                              {leader.scopus && (
-                                <a 
-                                  href={leader.scopus} 
-                                  target="_blank" 
-                                  rel="noreferrer"
-                                  className="px-2.5 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[10px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all"
-                                >
-                                  <span>Scopus ID</span>
-                                  <ExternalLink className="w-2.5 h-2.5" />
-                                </a>
-                              )}
-                              {leader.orcid && (
-                                <a 
-                                  href={leader.orcid} 
-                                  target="_blank" 
-                                  rel="noreferrer"
-                                  className="px-2.5 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[10px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all"
-                                >
-                                  <span>ORCID</span>
-                                  <ExternalLink className="w-2.5 h-2.5" />
-                                </a>
-                              )}
-                            </div>
                           </div>
+                        )}
+                        
+                        <div className="space-y-2">
+                          <span className="inline-block px-2.5 py-0.5 text-[9px] font-extrabold tracking-wider text-teal-600 dark:text-teal-400 bg-teal-500/10 rounded-lg uppercase">
+                            {lang === 'en' ? leader.role.en : leader.role.id}
+                          </span>
+                          <h4 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight leading-snug">
+                            {leader.name}
+                          </h4>
+                        </div>
+                        
+                        {/* Scholar links */}
+                        <div className="flex flex-wrap justify-center gap-1.5">
+                          {leader.scholar && (
+                            <a 
+                              href={leader.scholar} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                            >
+                              <span>Google Scholar</span>
+                            </a>
+                          )}
+                          {leader.scopus && (
+                            <a 
+                              href={leader.scopus} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                            >
+                              <span>Scopus ID</span>
+                            </a>
+                          )}
+                          {leader.orcid && (
+                            <a 
+                              href={leader.orcid} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                            >
+                              <span>ORCID</span>
+                            </a>
+                          )}
                         </div>
 
                         {/* Core research focus */}
                         {(leader.researchFocus || leader.interests) && (
-                          <div className="mt-6 pt-4 border-t border-black/5 dark:border-white/5 space-y-1">
-                            <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase block mb-1">
+                          <div className="bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50 w-full mt-3 text-left">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                               {lang === 'en' ? 'Research Focus' : 'Fokus Riset'}
                             </span>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-semibold">
                               {leader.researchFocus 
                                 ? (lang === 'en' ? leader.researchFocus.en : leader.researchFocus.id)
                                 : (lang === 'en' ? leader.interests.en.join(', ') : leader.interests.id.join(', '))
@@ -245,6 +251,18 @@ export default function Researchers({ lang }: ResearchersProps) {
                           </div>
                         )}
                       </div>
+
+                      {leader.email && (
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-5 w-full flex justify-center">
+                          <a 
+                            href={`mailto:${leader.email}`}
+                            className="text-xs font-bold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 hover:underline"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>{leader.email}</span>
+                          </a>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -254,328 +272,412 @@ export default function Researchers({ lang }: ResearchersProps) {
 
           {/* CATEGORY: Research Assistants */}
           {(activeTab === 'all' || activeTab === 'assistants') && (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                <div className="flex items-center space-x-3">
-                  <Briefcase className="w-5 h-5 text-sky-500" />
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'en' ? 'Research Assistants' : 'Asisten Peneliti'}
-                  </h3>
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="p-2 bg-sky-500/10 rounded-xl">
+                  <Briefcase className="w-6 h-6 text-sky-500" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => scroll('assistants', 'left')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scroll('assistants', 'right')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'Research Assistants' : 'Asisten Peneliti'}
+                </h3>
               </div>
               
-              <div 
-                ref={(el) => { scrollRefs.current['assistants'] = el; }}
-                className="flex overflow-x-auto gap-6 scroll-smooth pb-4 snap-x snap-mandatory no-scrollbar"
-              >
-                {assistants.map((assistant) => (
-                  <div 
-                    key={assistant.id}
-                    className="w-full sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start glass-card rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300 border border-black/5 dark:border-white/5 hover:border-sky-500/20"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-4">
-                        {assistant.image && (
-                          <img 
-                            src={assistant.image} 
-                            alt={assistant.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-14 h-14 rounded-full border-2 border-sky-500/20 object-cover shadow-sm bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
-                          />
-                        )}
-                        <div>
-                          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight">
-                            {assistant.name}
-                          </h4>
-                          <span className="px-2 py-0.5 text-[9px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-md inline-block mt-1">
-                            {lang === 'en' ? assistant.role.en : assistant.role.id}
-                          </span>
+              <div className="relative group/carousel max-w-6xl mx-auto">
+                {/* Scroll Navigation Buttons */}
+                {assistants.length > 1 && (
+                  <>
+                    <button 
+                      onClick={() => scroll('assistants', 'left')}
+                      className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Previous"
+                    >
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button 
+                      onClick={() => scroll('assistants', 'right')}
+                      className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Next"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
+                )}
+
+                <div 
+                  ref={el => { scrollRefs.current['assistants'] = el; }}
+                  onScroll={() => handleScroll('assistants')}
+                  className="flex overflow-x-auto gap-6 sm:gap-8 pb-6 snap-x snap-mandatory no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+                >
+                  {assistants.map((assistant) => {
+                    const isUser = assistant.name.includes("Ade Iriani");
+                    return (
+                      <div 
+                        key={assistant.id}
+                        className={`w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] shrink-0 snap-start glass-card p-6 flex flex-col justify-between items-center text-center rounded-3xl border transition-all duration-500 hover:shadow-2xl hover:scale-[1.01] group ${
+                          isUser 
+                            ? 'bg-gradient-to-br from-teal-500/[0.03] to-sky-500/[0.03] border-teal-500/30 dark:border-teal-400/30 shadow-md ring-2 ring-teal-500/10' 
+                            : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-slate-800 hover:border-teal-500/20'
+                        }`}
+                      >
+                        <div className="space-y-5 flex flex-col items-center w-full">
+                          {assistant.image && (
+                            <div className={`relative overflow-hidden rounded-3xl w-40 h-40 sm:w-44 sm:h-44 shadow-lg border-4 transition-all duration-500 ${
+                              isUser 
+                                ? 'border-teal-500/20 group-hover:border-teal-500/40' 
+                                : 'border-slate-100 dark:border-slate-800/80 group-hover:border-teal-500/20'
+                            }`}>
+                              <img 
+                                src={assistant.image} 
+                                alt={assistant.name} 
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                              />
+                              {isUser && (
+                                <div className="absolute top-2 right-2 p-1.5 bg-teal-500 text-white rounded-xl shadow-md">
+                                  <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          <div className="space-y-2">
+                            <span className={`inline-block px-2.5 py-0.5 text-[9px] font-extrabold tracking-wider rounded-lg uppercase ${
+                              isUser 
+                                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
+                                : 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+                            }`}>
+                              {lang === 'en' ? assistant.role.en : assistant.role.id}
+                            </span>
+                            <h4 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight leading-snug">
+                              {assistant.name}
+                            </h4>
+                          </div>
+
+                          {/* Scholar links */}
+                          <div className="flex flex-wrap justify-center gap-1.5">
+                            {assistant.scholar && (
+                              <a 
+                                href={assistant.scholar} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                              >
+                                <span>Google Scholar</span>
+                              </a>
+                            )}
+                            {assistant.scopus && (
+                              <a 
+                                href={assistant.scopus} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                              >
+                                <span>Scopus ID</span>
+                              </a>
+                            )}
+                            {assistant.orcid && (
+                              <a 
+                                href={assistant.orcid} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                              >
+                                <span>ORCID</span>
+                              </a>
+                            )}
+                          </div>
+
+                          {assistant.topic && (
+                            <div className="bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50 w-full mt-3 text-left">
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                                {lang === 'en' ? 'Research Portfolio' : 'Portofolio Riset'}
+                              </span>
+                              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-semibold">
+                                {lang === 'en' ? assistant.topic.en : assistant.topic.id}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                      </div>
 
-                      {/* Academic index handles row */}
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {assistant.scholar && (
-                          <a 
-                            href={assistant.scholar} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-2 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[9px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Google Scholar"
-                          >
-                            <span>Scholar</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        )}
-                        {assistant.scopus && (
-                          <a 
-                            href={assistant.scopus} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-2 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[9px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Scopus ID"
-                          >
-                            <span>Scopus</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        )}
-                        {assistant.orcid && (
-                          <a 
-                            href={assistant.orcid} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-2 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[9px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="ORCID"
-                          >
-                            <span>ORCID</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
+                        {assistant.email && (
+                          <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-5 w-full flex justify-center">
+                            <a 
+                              href={`mailto:${assistant.email}`}
+                              className="text-xs font-bold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 hover:underline"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              <span>{assistant.email}</span>
+                            </a>
+                          </div>
                         )}
                       </div>
+                    );
+                  })}
+                </div>
 
-                      {assistant.topic && (
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                            {lang === 'en' ? 'Research Focus' : 'Fokus Riset'}
-                          </span>
-                          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                            {lang === 'en' ? assistant.topic.en : assistant.topic.id}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {assistant.email && (
-                      <div className="pt-4 border-t border-black/5 dark:border-white/5 mt-4 flex items-center">
-                        <a 
-                          href={`mailto:${assistant.email}`}
-                          className="text-xs font-semibold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 hover:underline"
-                        >
-                          <Mail className="w-3.5 h-3.5" />
-                          <span>Contact ({assistant.email})</span>
-                        </a>
-                      </div>
-                    )}
+                {/* Carousel Indicators */}
+                {assistants.length > 1 && (
+                  <div className="flex justify-center space-x-1.5 mt-4">
+                    {assistants.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollToItem('assistants', idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          (activeIndices['assistants'] || 0) === idx
+                            ? 'w-5 bg-teal-500'
+                            : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
 
           {/* CATEGORY: Members */}
           {(activeTab === 'all' || activeTab === 'members') && (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                <div className="flex items-center space-x-3">
-                  <Users className="w-5 h-5 text-teal-500" />
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'en' ? 'Core Members' : 'Anggota Inti'}
-                  </h3>
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="p-2 bg-teal-500/10 rounded-xl">
+                  <Users className="w-6 h-6 text-teal-500" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => scroll('members', 'left')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scroll('members', 'right')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'Core Members' : 'Anggota Inti'}
+                </h3>
               </div>
               
-              <div 
-                ref={(el) => { scrollRefs.current['members'] = el; }}
-                className="flex overflow-x-auto gap-6 scroll-smooth pb-4 snap-x snap-mandatory no-scrollbar"
-              >
-                {members.map((member) => (
-                  <div 
-                    key={member.id}
-                    className="w-full sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start glass-card rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300 border border-black/5 dark:border-white/5 hover:border-teal-500/20"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-4">
+              <div className="relative group/carousel max-w-6xl mx-auto">
+                {/* Scroll Navigation Buttons */}
+                {members.length > 1 && (
+                  <>
+                    <button 
+                      onClick={() => scroll('members', 'left')}
+                      className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Previous"
+                    >
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button 
+                      onClick={() => scroll('members', 'right')}
+                      className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Next"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
+                )}
+
+                <div 
+                  ref={el => { scrollRefs.current['members'] = el; }}
+                  onScroll={() => handleScroll('members')}
+                  className="flex overflow-x-auto gap-6 sm:gap-8 pb-6 snap-x snap-mandatory no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+                >
+                  {members.map((member) => (
+                    <div 
+                      key={member.id}
+                      className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] shrink-0 snap-start glass-card p-6 flex flex-col justify-between items-center text-center rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-teal-500/20 hover:shadow-2xl transition-all duration-500 group"
+                    >
+                      <div className="space-y-5 flex flex-col items-center w-full">
                         {member.image && (
-                          <img 
-                            src={member.image} 
-                            alt={member.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-14 h-14 rounded-full border-2 border-teal-500/20 object-cover shadow-sm bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
-                          />
+                          <div className="relative overflow-hidden rounded-3xl w-40 h-40 sm:w-44 sm:h-44 shadow-lg border-4 border-slate-100 dark:border-slate-800/80 group-hover:border-teal-500/20">
+                            <img 
+                              src={member.image} 
+                              alt={member.name} 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                            />
+                          </div>
                         )}
-                        <div>
-                          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight">
+                        
+                        <div className="space-y-2">
+                          <span className="inline-block px-2.5 py-0.5 text-[9px] font-extrabold tracking-wider bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-lg uppercase">
+                            {lang === 'en' ? 'Member' : 'Anggota'}
+                          </span>
+                          <h4 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight leading-snug">
                             {member.name}
                           </h4>
-                          <span className="px-2 py-0.5 text-[9px] font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-md inline-block mt-1">
-                            {lang === 'en' ? 'Faculty Researcher' : 'Peneliti Fakultas'}
-                          </span>
                         </div>
+
+                        {/* Scholar links */}
+                        <div className="flex flex-wrap justify-center gap-1.5">
+                          {member.scholar && (
+                            <a 
+                              href={member.scholar} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                            >
+                              <span>Google Scholar</span>
+                            </a>
+                          )}
+                          {member.scopus && (
+                            <a 
+                              href={member.scopus} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                            >
+                              <span>Scopus ID</span>
+                            </a>
+                          )}
+                          {member.orcid && (
+                            <a 
+                              href={member.orcid} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 hover:bg-teal-500/5 hover:border-teal-500/20 dark:hover:bg-teal-400/5 border border-slate-100 dark:border-slate-800/80 text-[10px] font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 rounded-xl transition-all"
+                            >
+                              <span>ORCID</span>
+                            </a>
+                          )}
+                        </div>
+
+                        {(member.researchFocus || member.topic || member.interests) && (
+                          <div className="bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50 w-full mt-3 text-left">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              {lang === 'en' ? 'Research Focus' : 'Fokus Riset'}
+                            </span>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-semibold">
+                              {member.researchFocus 
+                                ? (lang === 'en' ? member.researchFocus.en : member.researchFocus.id)
+                                : member.topic 
+                                  ? (lang === 'en' ? member.topic.en : member.topic.id)
+                                  : (lang === 'en' ? member.interests.en.join(', ') : member.interests.id.join(', '))
+                              }
+                            </p>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Academic index handles row */}
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {member.scholar && (
+                      {member.email && (
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-5 w-full flex justify-center">
                           <a 
-                            href={member.scholar} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-2 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[9px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Google Scholar"
+                            href={`mailto:${member.email}`}
+                            className="text-xs font-bold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 hover:underline"
                           >
-                            <span>Scholar</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>{member.email}</span>
                           </a>
-                        )}
-                        {member.scopus && (
-                          <a 
-                            href={member.scopus} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-2 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[9px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Scopus ID"
-                          >
-                            <span>Scopus</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        )}
-                        {member.orcid && (
-                          <a 
-                            href={member.orcid} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="px-2 py-1 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 text-[9px] font-bold text-slate-600 dark:text-slate-400 rounded-lg flex items-center space-x-1 hover:text-slate-900 dark:hover:text-white transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="ORCID"
-                          >
-                            <span>ORCID</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        )}
-                      </div>
-
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        {lang === 'en' ? member.role.en : member.role.id}
-                      </p>
-
-                      {(member.researchFocus || member.topic || member.interests) && (
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
-                            {lang === 'en' ? 'Research Focus' : 'Fokus Riset'}
-                          </span>
-                          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                            {member.researchFocus 
-                              ? (lang === 'en' ? member.researchFocus.en : member.researchFocus.id)
-                              : member.topic 
-                                ? (lang === 'en' ? member.topic.en : member.topic.id)
-                                : (lang === 'en' ? member.interests.en.join(', ') : member.interests.id.join(', '))
-                            }
-                          </p>
                         </div>
                       )}
                     </div>
+                  ))}
+                </div>
 
-                    {member.email && (
-                      <div className="pt-4 border-t border-black/5 dark:border-white/5 mt-4 flex items-center">
-                        <a 
-                          href={`mailto:${member.email}`}
-                          className="text-xs font-semibold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 hover:underline"
-                        >
-                          <Mail className="w-3.5 h-3.5" />
-                          <span>Contact ({member.email})</span>
-                        </a>
-                      </div>
-                    )}
+                {/* Carousel Indicators */}
+                {members.length > 1 && (
+                  <div className="flex justify-center space-x-1.5 mt-4">
+                    {members.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollToItem('members', idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          (activeIndices['members'] || 0) === idx
+                            ? 'w-5 bg-teal-500'
+                            : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
 
           {/* CATEGORY: External Collaborators */}
           {(activeTab === 'all' || activeTab === 'collaborators') && (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                <div className="flex items-center space-x-3">
-                  <Globe className="w-5 h-5 text-indigo-500" />
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'en' ? 'External Collaborators' : 'Kolaborator Eksternal'}
-                  </h3>
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="p-2 bg-indigo-500/10 rounded-xl">
+                  <Globe className="w-6 h-6 text-indigo-500" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => scroll('collaborators', 'left')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scroll('collaborators', 'right')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'External Collaborators' : 'Kolaborator Eksternal'}
+                </h3>
               </div>
               
-              <div 
-                ref={(el) => { scrollRefs.current['collaborators'] = el; }}
-                className="flex overflow-x-auto gap-6 scroll-smooth pb-4 snap-x snap-mandatory no-scrollbar"
-              >
-                {collaborators.map((col) => (
-                  <div 
-                    key={col.id}
-                    className="w-full sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start glass-card rounded-2xl p-6 flex flex-col justify-between items-center text-center hover:shadow-lg transition-all duration-300 border border-black/5 dark:border-white/5 hover:border-indigo-500/20"
-                  >
-                    <div className="space-y-4 flex flex-col items-center w-full">
-                      {col.image && (
-                        <img 
-                          src={col.image} 
-                          alt={col.name} 
-                          referrerPolicy="no-referrer"
-                          className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-indigo-500/20 object-cover shadow-md bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
-                        />
-                      )}
-                      <div>
-                        <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight leading-snug">
-                          {col.name}
-                        </h4>
-                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-1.5 uppercase tracking-wider">
-                          {lang === 'en' ? col.role.en : col.role.id}
-                        </p>
-                      </div>
+              <div className="relative group/carousel max-w-6xl mx-auto">
+                {/* Scroll Navigation Buttons */}
+                {collaborators.length > 1 && (
+                  <>
+                    <button 
+                      onClick={() => scroll('collaborators', 'left')}
+                      className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Previous"
+                    >
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button 
+                      onClick={() => scroll('collaborators', 'right')}
+                      className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Next"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
+                )}
 
-                      {col.institution && (
-                        <div className="px-3 py-1.5 bg-indigo-500/5 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-lg border border-indigo-500/10 inline-block">
-                          {lang === 'en' ? col.institution.en : col.institution.id}
+                <div 
+                  ref={el => { scrollRefs.current['collaborators'] = el; }}
+                  onScroll={() => handleScroll('collaborators')}
+                  className="flex overflow-x-auto gap-6 sm:gap-8 pb-6 snap-x snap-mandatory no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+                >
+                  {collaborators.map((col) => (
+                    <div 
+                      key={col.id}
+                      className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] shrink-0 snap-start glass-card p-6 flex flex-col justify-between items-center text-center rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-indigo-500/20 hover:shadow-2xl transition-all duration-500 group"
+                    >
+                      <div className="space-y-5 flex flex-col items-center w-full">
+                        {col.image && (
+                          <div className="relative overflow-hidden rounded-3xl w-40 h-40 sm:w-44 sm:h-44 shadow-lg border-4 border-slate-100 dark:border-slate-800/80 group-hover:border-indigo-500/20">
+                            <img 
+                              src={col.image} 
+                              alt={col.name} 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="space-y-2">
+                          <h4 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight leading-snug">
+                            {col.name}
+                          </h4>
+                          <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                            {lang === 'en' ? col.role.en : col.role.id}
+                          </p>
                         </div>
-                      )}
+
+                        {col.institution && (
+                          <div className="px-3.5 py-2 bg-indigo-500/5 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-xl border border-indigo-500/10 inline-block">
+                            {lang === 'en' ? col.institution.en : col.institution.id}
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+
+                {/* Carousel Indicators */}
+                {collaborators.length > 1 && (
+                  <div className="flex justify-center space-x-1.5 mt-4">
+                    {collaborators.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollToItem('collaborators', idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          (activeIndices['collaborators'] || 0) === idx
+                            ? 'w-5 bg-indigo-500'
+                            : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -584,224 +686,324 @@ export default function Researchers({ lang }: ResearchersProps) {
           
           {/* CATEGORY: Postgraduate Students */}
           {(activeTab === 'all' || activeTab === 'postgraduate') && (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                <div className="flex items-center space-x-3">
-                  <GraduationCap className="w-5 h-5 text-indigo-500" />
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'en' ? 'Postgraduate Students (S3 / Doctoral)' : 'Mahasiswa Pascasarjana (S3 / Doktor)'}
-                  </h3>
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="p-2 bg-teal-500/10 rounded-xl">
+                  <GraduationCap className="w-6 h-6 text-teal-500" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => scroll('postgraduate', 'left')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scroll('postgraduate', 'right')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'Postgraduate Students (S3 / Doctoral)' : 'Mahasiswa Pascasarjana (S3 / Doktor)'}
+                </h3>
               </div>
               
-              <div 
-                ref={(el) => { scrollRefs.current['postgraduate'] = el; }}
-                className="flex overflow-x-auto gap-6 scroll-smooth pb-4 snap-x snap-mandatory no-scrollbar"
-              >
-                {postgraduate.map((student) => (
-                  <div 
-                    key={student.id}
-                    className="w-full sm:w-[350px] md:w-[380px] flex-shrink-0 snap-start p-6 bg-white dark:bg-slate-950 border border-black/5 dark:border-white/5 rounded-2xl hover:border-indigo-500/20 transition-all duration-300 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center space-x-4">
+              <div className="relative group/carousel max-w-6xl mx-auto">
+                {/* Scroll Navigation Buttons */}
+                {postgraduate.length > 1 && (
+                  <>
+                    <button 
+                      onClick={() => scroll('postgraduate', 'left')}
+                      className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Previous"
+                    >
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button 
+                      onClick={() => scroll('postgraduate', 'right')}
+                      className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Next"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
+                )}
+
+                <div 
+                  ref={el => { scrollRefs.current['postgraduate'] = el; }}
+                  onScroll={() => handleScroll('postgraduate')}
+                  className="flex overflow-x-auto gap-6 sm:gap-8 pb-6 snap-x snap-mandatory no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+                >
+                  {postgraduate.map((student) => (
+                    <div 
+                      key={student.id}
+                      className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] shrink-0 snap-start glass-card p-6 rounded-3xl border border-slate-100 dark:border-slate-800/80 hover:border-teal-500/20 hover:shadow-2xl transition-all duration-500 flex flex-col justify-between group"
+                    >
+                      <div className="space-y-5 flex flex-col items-center">
                         {student.image && (
-                          <img 
-                            src={student.image} 
-                            alt={student.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-14 h-14 rounded-full border-2 border-indigo-500/20 object-cover shadow-sm bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
-                          />
+                          <div className="relative overflow-hidden rounded-3xl w-36 h-36 sm:w-40 sm:h-40 shadow-lg border-4 border-slate-100 dark:border-slate-800/80 group-hover:border-teal-500/20">
+                            <img 
+                              src={student.image} 
+                              alt={student.name} 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                            />
+                          </div>
                         )}
-                        <div>
-                          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight">
+                        
+                        <div className="text-center space-y-1">
+                          <h4 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">
                             {student.name}
                           </h4>
-                          <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-md inline-block mt-1">
+                          <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-lg inline-block uppercase tracking-wider">
                             {lang === 'en' ? student.role.en : student.role.id}
                           </span>
                         </div>
-                      </div>
-                      
-                      <div className="mt-4 space-y-2 text-xs">
-                        <p className="text-slate-600 dark:text-slate-300 font-medium">
-                          <strong>{lang === 'en' ? 'Dissertation Focus:' : 'Fokus Disertasi:'}</strong> {lang === 'en' ? student.topic?.en : student.topic?.id}
-                        </p>
-                        <p className="text-slate-400 dark:text-slate-500">
-                          <strong>{lang === 'en' ? 'Primary Advisor:' : 'Pembimbing Utama:'}</strong> {student.supervisor}
-                        </p>
+                        
+                        <div className="mt-4 space-y-3 text-xs w-full bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+                          <p className="text-slate-600 dark:text-slate-300 font-medium">
+                            <strong className="text-slate-400 dark:text-slate-500 uppercase text-[9px] tracking-wider block mb-1">
+                              {lang === 'en' ? 'Dissertation Focus:' : 'Fokus Disertasi:'}
+                            </strong> 
+                            <span className="font-semibold">{lang === 'en' ? student.topic?.en : student.topic?.id}</span>
+                          </p>
+                          <p className="text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-900">
+                            <strong>{lang === 'en' ? 'Primary Advisor:' : 'Pembimbing Utama:'}</strong> <span className="font-semibold">{student.supervisor}</span>
+                          </p>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+
+                {/* Carousel Indicators */}
+                {postgraduate.length > 1 && (
+                  <div className="flex justify-center space-x-1.5 mt-4">
+                    {postgraduate.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollToItem('postgraduate', idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          (activeIndices['postgraduate'] || 0) === idx
+                            ? 'w-5 bg-teal-500'
+                            : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
 
           {/* CATEGORY: Graduate Students */}
           {(activeTab === 'all' || activeTab === 'graduate') && (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                <div className="flex items-center space-x-3">
-                  <GraduationCap className="w-5 h-5 text-teal-500" />
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'en' ? 'Graduate Students (S2 / Masters)' : 'Mahasiswa Magister (S2)'}
-                  </h3>
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="p-2 bg-teal-500/10 rounded-xl">
+                  <GraduationCap className="w-6 h-6 text-teal-500" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => scroll('graduate', 'left')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scroll('graduate', 'right')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'Graduate Students (S2 / Masters)' : 'Mahasiswa Magister (S2)'}
+                </h3>
               </div>
               
-              <div 
-                ref={(el) => { scrollRefs.current['graduate'] = el; }}
-                className="flex overflow-x-auto gap-6 scroll-smooth pb-4 snap-x snap-mandatory no-scrollbar"
-              >
-                {graduate.map((student) => {
-                  const isSpecial = student.name.includes("Ade Iriani");
-                  return (
-                    <div 
-                      key={student.id}
-                      className={`w-full sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start p-6 border rounded-2xl transition-all duration-300 flex flex-col justify-between ${
-                        isSpecial
-                          ? 'bg-teal-500/[0.03] border-teal-500/20 dark:border-teal-400/20 shadow-sm'
-                          : 'bg-white dark:bg-slate-950 border-black/5 dark:border-white/5 hover:border-teal-500/20'
-                      }`}
+              <div className="relative group/carousel max-w-6xl mx-auto">
+                {/* Scroll Navigation Buttons */}
+                {graduate.length > 1 && (
+                  <>
+                    <button 
+                      onClick={() => scroll('graduate', 'left')}
+                      className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Previous"
                     >
-                      <div>
-                        <div className="flex items-center space-x-4">
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button 
+                      onClick={() => scroll('graduate', 'right')}
+                      className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Next"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
+                )}
+
+                <div 
+                  ref={el => { scrollRefs.current['graduate'] = el; }}
+                  onScroll={() => handleScroll('graduate')}
+                  className="flex overflow-x-auto gap-6 sm:gap-8 pb-6 snap-x snap-mandatory no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+                >
+                  {graduate.map((student) => {
+                    const isUser = student.name.includes("Ade Iriani");
+                    return (
+                      <div 
+                        key={student.id}
+                        className={`w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] shrink-0 snap-start glass-card p-6 rounded-3xl border transition-all duration-500 flex flex-col justify-between group ${
+                          isUser
+                            ? 'bg-gradient-to-br from-teal-500/[0.03] to-sky-500/[0.03] border-teal-500/30 dark:border-teal-400/30 shadow-md hover:shadow-2xl ring-2 ring-teal-500/10 scale-[1.01]'
+                            : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-slate-800 hover:border-teal-500/20 hover:shadow-2xl'
+                        }`}
+                      >
+                        <div className="space-y-5 flex flex-col items-center">
                           {student.image && (
-                            <img 
-                              src={student.image} 
-                              alt={student.name} 
-                              referrerPolicy="no-referrer"
-                              className="w-14 h-14 rounded-full border-2 border-teal-500/20 object-cover shadow-sm bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
-                            />
+                            <div className={`relative overflow-hidden rounded-3xl w-36 h-36 sm:w-40 sm:h-40 shadow-lg border-4 transition-all duration-500 ${
+                              isUser 
+                                ? 'border-teal-500/20 group-hover:border-teal-500/45' 
+                                : 'border-slate-100 dark:border-slate-800/80 group-hover:border-teal-500/20'
+                            }`}>
+                              <img 
+                                src={student.image} 
+                                alt={student.name} 
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                              />
+                              {isUser && (
+                                <div className="absolute top-2 right-2 p-1.5 bg-teal-500 text-white rounded-xl shadow-md">
+                                  <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                                </div>
+                              )}
+                            </div>
                           )}
-                          <div>
-                            <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight flex items-center">
+                          
+                          <div className="text-center space-y-1">
+                            <h4 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight flex items-center justify-center">
                               {student.name}
-                              {isSpecial && <span className="w-1.5 h-1.5 bg-teal-500 rounded-full ml-1.5 animate-ping" />}
+                              {isUser && <span className="w-2 h-2 bg-teal-500 rounded-full ml-2 animate-ping" />}
                             </h4>
-                            <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-md inline-block mt-1">
+                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-lg inline-block uppercase tracking-wider ${
+                              isUser 
+                                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' 
+                                : 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
+                            }`}>
                               {lang === 'en' ? student.role.en : student.role.id}
                             </span>
                           </div>
-                        </div>
-                        
-                        <div className="mt-4 space-y-2 text-xs">
-                          <p className="text-slate-600 dark:text-slate-300 font-medium">
-                            <strong>{lang === 'en' ? 'Thesis Focus:' : 'Fokus Tesis:'}</strong> {lang === 'en' ? student.topic?.en : student.topic?.id}
-                          </p>
-                          <p className="text-slate-400 dark:text-slate-500">
-                            <strong>{lang === 'en' ? 'Supervisor:' : 'Pembimbing:'}</strong> {student.supervisor}
-                          </p>
+                          
+                          <div className="mt-4 space-y-3 text-xs w-full bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+                            <p className="text-slate-600 dark:text-slate-300 font-medium">
+                              <strong className="text-slate-400 dark:text-slate-500 uppercase text-[9px] tracking-wider block mb-1">
+                                {lang === 'en' ? 'Thesis Focus:' : 'Fokus Tesis:'}
+                              </strong> 
+                              <span className="font-semibold">{lang === 'en' ? student.topic?.en : student.topic?.id}</span>
+                            </p>
+                            <p className="text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-900">
+                              <strong>{lang === 'en' ? 'Supervisor:' : 'Pembimbing:'}</strong> <span className="font-semibold">{student.supervisor}</span>
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
+                {/* Carousel Indicators */}
+                {graduate.length > 1 && (
+                  <div className="flex justify-center space-x-1.5 mt-4">
+                    {graduate.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollToItem('graduate', idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          (activeIndices['graduate'] || 0) === idx
+                            ? 'w-5 bg-teal-500'
+                            : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* CATEGORY: Undergraduate Students */}
           {(activeTab === 'all' || activeTab === 'undergraduate') && (
-            <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
-                <div className="flex items-center space-x-3">
-                  <GraduationCap className="w-5 h-5 text-sky-500" />
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                    {lang === 'en' ? 'Undergraduate Students (S1 / Bachelors)' : 'Mahasiswa Sarjana (S1)'}
-                  </h3>
+            <div className="space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="p-2 bg-sky-500/10 rounded-xl">
+                  <GraduationCap className="w-6 h-6 text-sky-500" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => scroll('undergraduate', 'left')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => scroll('undergraduate', 'right')}
-                    className="p-1.5 bg-white dark:bg-slate-900 border border-black/5 dark:border-white/5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-400 transition-colors cursor-pointer"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'Undergraduate Students (S1 / Bachelors)' : 'Mahasiswa Sarjana (S1)'}
+                </h3>
               </div>
               
-              <div 
-                ref={(el) => { scrollRefs.current['undergraduate'] = el; }}
-                className="flex overflow-x-auto gap-6 scroll-smooth pb-4 snap-x snap-mandatory no-scrollbar"
-              >
-                {undergraduate.map((student) => (
-                  <div 
-                    key={student.id}
-                    className="w-full sm:w-[320px] md:w-[340px] flex-shrink-0 snap-start p-6 bg-white dark:bg-slate-950 border border-black/5 dark:border-white/5 rounded-2xl hover:border-sky-500/20 transition-all duration-300 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center space-x-4">
+              <div className="relative group/carousel max-w-6xl mx-auto">
+                {/* Scroll Navigation Buttons */}
+                {undergraduate.length > 1 && (
+                  <>
+                    <button 
+                      onClick={() => scroll('undergraduate', 'left')}
+                      className="absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Previous"
+                    >
+                      <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button 
+                      onClick={() => scroll('undergraduate', 'right')}
+                      className="absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-100 dark:border-slate-800 shadow-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 opacity-0 group-hover/carousel:opacity-100 hover:scale-105 transition-all duration-300 focus:outline-none"
+                      aria-label="Next"
+                    >
+                      <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                  </>
+                )}
+
+                <div 
+                  ref={el => { scrollRefs.current['undergraduate'] = el; }}
+                  onScroll={() => handleScroll('undergraduate')}
+                  className="flex overflow-x-auto gap-6 sm:gap-8 pb-6 snap-x snap-mandatory no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0"
+                >
+                  {undergraduate.map((student) => (
+                    <div 
+                      key={student.id}
+                      className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] shrink-0 snap-start glass-card p-6 rounded-3xl border border-slate-100 dark:border-slate-800/80 hover:border-sky-500/20 hover:shadow-2xl transition-all duration-500 flex flex-col justify-between group"
+                    >
+                      <div className="space-y-5 flex flex-col items-center">
                         {student.image && (
-                          <img 
-                            src={student.image} 
-                            alt={student.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-14 h-14 rounded-full border-2 border-sky-500/20 object-cover shadow-sm bg-slate-50 hover:scale-105 transition-all duration-300 flex-shrink-0"
-                          />
+                          <div className="relative overflow-hidden rounded-3xl w-36 h-36 sm:w-40 sm:h-40 shadow-lg border-4 border-slate-100 dark:border-slate-800/80 group-hover:border-sky-500/20">
+                            <img 
+                              src={student.image} 
+                              alt={student.name} 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                            />
+                          </div>
                         )}
-                        <div>
-                          <h4 className="font-extrabold text-sm text-slate-900 dark:text-white tracking-tight">
+                        
+                        <div className="text-center space-y-1">
+                          <h4 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">
                             {student.name}
                           </h4>
-                          <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-md inline-block mt-1">
+                          <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-lg inline-block uppercase tracking-wider">
                             {lang === 'en' ? student.role.en : student.role.id}
                           </span>
                         </div>
-                      </div>
-                      
-                      <div className="mt-4 space-y-2 text-xs">
-                        <p className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                          <strong>{lang === 'en' ? 'Project Focus:' : 'Fokus Proyek:'}</strong> {lang === 'en' ? student.topic?.en : student.topic?.id}
-                        </p>
-                        <p className="text-slate-400 dark:text-slate-500">
-                          <strong>{lang === 'en' ? 'Advisor:' : 'Pembimbing:'}</strong> {student.supervisor}
-                        </p>
+                        
+                        <div className="mt-4 space-y-3 text-xs w-full bg-slate-50/80 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+                          <p className="text-slate-600 dark:text-slate-300 font-medium">
+                            <strong className="text-slate-400 dark:text-slate-500 uppercase text-[9px] tracking-wider block mb-1">
+                              {lang === 'en' ? 'Project Focus:' : 'Fokus Proyek:'}
+                            </strong> 
+                            <span className="font-semibold">{lang === 'en' ? student.topic?.en : student.topic?.id}</span>
+                          </p>
+                          <p className="text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-900">
+                            <strong>{lang === 'en' ? 'Advisor:' : 'Pembimbing:'}</strong> <span className="font-semibold">{student.supervisor}</span>
+                          </p>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+
+                {/* Carousel Indicators */}
+                {undergraduate.length > 1 && (
+                  <div className="flex justify-center space-x-1.5 mt-4">
+                    {undergraduate.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollToItem('undergraduate', idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          (activeIndices['undergraduate'] || 0) === idx
+                            ? 'w-5 bg-sky-500'
+                            : 'bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                        }`}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
