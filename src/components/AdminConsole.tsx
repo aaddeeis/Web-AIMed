@@ -36,7 +36,7 @@ import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Helper to compress an uploaded Image file to lightweight base64 JPEG
-const compressImage = (file: File, maxDimension = 1000, quality = 0.75): Promise<string> => {
+const compressImage = (file: File, maxDimension = 400, quality = 0.55): Promise<string> => {
   return new Promise((resolve) => {
     if (!file || !file.type.startsWith('image/')) {
       resolve('');
@@ -46,37 +46,64 @@ const compressImage = (file: File, maxDimension = 1000, quality = 0.75): Promise
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+        let currentDim = maxDimension;
+        let currentQuality = quality;
+        let base64Result = "";
+        
+        // Iteratively downscale / compress to ensure resulting base64 is under safe threshold (~80KB base64 length)
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
 
-        if (width > height) {
-          if (width > maxDimension) {
-            height = Math.round((height * maxDimension) / width);
-            width = maxDimension;
+          if (width > height) {
+            if (width > currentDim) {
+              height = Math.round((height * currentDim) / width);
+              width = currentDim;
+            }
+          } else {
+            if (height > currentDim) {
+              width = Math.round((width * currentDim) / height);
+              height = currentDim;
+            }
           }
-        } else {
-          if (height > maxDimension) {
-            width = Math.round((width * maxDimension) / height);
-            height = maxDimension;
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            base64Result = e.target?.result as string || "";
+            break;
           }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          base64Result = canvas.toDataURL('image/jpeg', currentQuality);
+
+          // If under ~80KB base64 string length, we are extremely safe
+          if (base64Result.length < 110000) {
+            break;
+          }
+          
+          // Otherwise, compress harder
+          currentDim = Math.round(currentDim * 0.75);
+          currentQuality = Math.max(0.15, currentQuality - 0.15);
         }
 
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(e.target?.result as string);
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        resolve(base64Result);
       };
+      
       img.onerror = () => {
-        resolve(e.target?.result as string);
+        const raw = e.target?.result as string || '';
+        // Truncate or empty if raw string is too huge to prevent HTTP 413
+        if (raw.length > 150000) {
+          console.warn("Raw image is too large and compression failed. Rejecting raw image to protect server payload size limits.");
+          resolve('');
+        } else {
+          resolve(raw);
+        }
       };
+      
       img.src = e.target?.result as string;
     };
     reader.onerror = () => {
@@ -182,8 +209,8 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   value, 
   onChange, 
   placeholder,
-  maxDimension = 1000,
-  quality = 0.75
+  maxDimension = 400,
+  quality = 0.55
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -2564,6 +2591,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           ...data.sdgContent,
                           sdg3Image: val
                         })}
+                        maxDimension={150}
+                        quality={0.45}
                       />
                     </div>
 
@@ -2634,6 +2663,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           ...data.sdgContent,
                           sdg9Image: val
                         })}
+                        maxDimension={150}
+                        quality={0.45}
                       />
                     </div>
 
@@ -2910,6 +2941,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                       label="Project Image" 
                       value={editingItem.image || ''} 
                       onChange={(val) => setEditingItem({ ...editingItem, image: val })}
+                      maxDimension={400}
+                      quality={0.50}
                     />
 
                     <div className="grid grid-cols-2 gap-4">
@@ -3141,6 +3174,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         label="Preview Image" 
                         value={editingItem.image || ''} 
                         onChange={(val) => setEditingItem({ ...editingItem, image: val })}
+                        maxDimension={400}
+                        quality={0.50}
                       />
                     </div>
                   </>
@@ -3479,6 +3514,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                                   });
                                 }
                               }}
+                              maxDimension={500}
+                              quality={0.50}
                             />
                           </div>
                         </div>
@@ -3598,6 +3635,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         label="Event Image" 
                         value={editingItem.image || ''} 
                         onChange={(val) => setEditingItem({ ...editingItem, image: val })}
+                        maxDimension={400}
+                        quality={0.50}
                       />
                       <div className="flex flex-col gap-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Register / RSVP URL</label>
@@ -3748,6 +3787,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           label="Thumbnail Image" 
                           value={editingItem.thumbnail || ''} 
                           onChange={(val) => setEditingItem({ ...editingItem, thumbnail: val })}
+                          maxDimension={180}
+                          quality={0.45}
                         />
                       </div>
                     </details>
@@ -3933,6 +3974,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           label="Publisher Logo Image" 
                           value={editingItem.logo || ''} 
                           onChange={(val) => setEditingItem({ ...editingItem, logo: val })}
+                          maxDimension={120}
+                          quality={0.45}
                         />
                       </div>
                     </details>
@@ -3971,6 +4014,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         label="Partner Logo"
                         value={editingItem.logo || ''}
                         onChange={(val) => setEditingItem({ ...editingItem, logo: val })}
+                        maxDimension={150}
+                        quality={0.45}
                       />
                     </div>
                   </div>
@@ -4251,6 +4296,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                       label="Promotion / Event Poster Image" 
                       value={editingItem.image || ''} 
                       onChange={(val) => setEditingItem({ ...editingItem, image: val })}
+                      maxDimension={500}
+                      quality={0.50}
                     />
                   </div>
                 )}
@@ -4306,8 +4353,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                         label="Avatar / Photo" 
                         value={editingItem.image || ''} 
                         onChange={(val) => setEditingItem({ ...editingItem, image: val })}
-                        maxDimension={350}
-                        quality={0.65}
+                        maxDimension={180}
+                        quality={0.45}
                       />
                     </div>
 
