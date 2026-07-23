@@ -153,11 +153,11 @@ export default function ImpactDashboard({ lang }: ImpactDashboardProps) {
   const activeConfig = categoriesConfig[activeCategory];
 
   return (
-    <section id="impact" className="py-24 bg-transparent relative z-10 transition-colors duration-300">
+    <section id="impact" className="py-12 sm:py-16 bg-transparent relative z-10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-8">
           <span className="text-xs font-extrabold tracking-widest text-teal-600 dark:text-teal-400 uppercase bg-teal-500/10 px-3.5 py-1.5 rounded-full">
             {lang === 'en' ? 'SCIENTIFIC INFLUENCE' : 'PENGARUH ILMIAH'}
           </span>
