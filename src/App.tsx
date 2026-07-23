@@ -13,11 +13,7 @@ import Partners from './components/Partners';
 import AdminConsole from './components/AdminConsole';
 import { Language } from './types';
 import { 
-  ShieldCheck, 
-  Activity, 
-  Sparkles, 
-  Award, 
-  FileCheck 
+  ArrowLeft 
 } from 'lucide-react';
 
 export default function App() {
@@ -37,40 +33,15 @@ export default function App() {
     }
   }, [theme]);
 
-  // Dynamic Scroll spy active segment highlight
+  // Scroll to top whenever active view section changes
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = [
-        'hero', 'showcase', 'communication', 'performance', 'datasets', 
-        'people', 'laboratory', 'impact', 'contact'
-      ];
-
-      const scrollPos = window.scrollY + 120;
-
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeSection]);
 
   const handleGlobalSearch = (query: string) => {
     setSearchQuery(query);
     if (query) {
-      const pubSection = document.getElementById('performance');
-      if (pubSection) {
-        pubSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      setActiveSection('performance');
     }
   };
 
@@ -101,56 +72,110 @@ export default function App() {
       {/* Main Content Layout sections */}
       <main className="relative">
         
-        {/* 2. Fullscreen Hero Segment */}
-        <Hero 
-          lang={lang} 
-          setActiveSection={setActiveSection} 
-        />
+        {/* Subpage Breadcrumb Navigation Bar for Standalone Views */}
+        {activeSection !== 'hero' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 animate-fade-in">
+            <button
+              onClick={() => setActiveSection('hero')}
+              className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-teal-500/10 hover:text-teal-600 dark:hover:text-teal-400 transition-all cursor-pointer shadow-xs"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>{lang === 'en' ? 'Back to Main Page' : 'Kembali ke Halaman Utama'}</span>
+            </button>
+            <div className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider bg-teal-500/10 px-3 py-1 rounded-lg">
+              {activeSection === 'showcase' && (lang === 'en' ? 'Products & Innovations' : 'Produk & Inovasi')}
+              {activeSection === 'communication' && (lang === 'en' ? 'CoE Communication Hub' : 'Hub Komunikasi CoE')}
+              {activeSection === 'performance' && (lang === 'en' ? 'Academic & Operational Performance' : 'Kinerja Akademik & Operasional')}
+              {activeSection === 'datasets' && (lang === 'en' ? 'Clinical Reference Datasets' : 'Dataset Referensi Klinis')}
+              {(activeSection === 'people' || activeSection === 'students') && (lang === 'en' ? 'Expert Researchers & Scholars' : 'Peneliti Ahli & Akademisi')}
+            </div>
+          </div>
+        )}
 
-        {/* 4. Innovation Showcase (Flagships) */}
-        <InnovationShowcase 
-          lang={lang}
-        />
-
-        {/* 7. Clinical Reference Datasets */}
-        <DatasetsGallery 
-          lang={lang} 
-        />
-
-        {/* 12. Announcements Newsroom and Event Scheduler */}
-        <Communication 
-          lang={lang} 
-        />
-
-        {/* Center Performance Section */}
-        <PerformanceSection 
-          lang={lang}
-        />
-
-        {/* Researchers & Team */}
-        <Researchers 
-          lang={lang} 
-        />
-
-        {/* 8. GPU Computation Lab Monitor */}
-        <Laboratory 
-          lang={lang} 
-        />
-
-        {/* 11. Impact and Citations Dashboard */}
-        <ImpactDashboard 
-          lang={lang} 
-        />
-
-        {/* Our Partners Scrolling Logo Marquee */}
-        <Partners 
-          lang={lang}
-        />
-
-        {/* 15. Physical Map Contact Section */}
-        <ContactSection 
-          lang={lang} 
-        />
+        {/* VIEW-BASED RENDERING */}
+        {activeSection === 'hero' ? (
+          /* Halaman Utama (Main Page) */
+          <>
+            <Hero 
+              lang={lang} 
+              setActiveSection={setActiveSection} 
+            />
+            <InnovationShowcase 
+              lang={lang}
+            />
+            <Communication 
+              lang={lang} 
+            />
+            <Laboratory 
+              lang={lang} 
+            />
+            <ImpactDashboard 
+              lang={lang} 
+            />
+            <Partners 
+              lang={lang}
+            />
+            <ContactSection 
+              lang={lang} 
+            />
+          </>
+        ) : activeSection === 'showcase' ? (
+          /* Tampilan Produk (Products View) */
+          <>
+            <InnovationShowcase lang={lang} />
+            <ContactSection lang={lang} />
+          </>
+        ) : activeSection === 'communication' ? (
+          /* Tampilan Komunikasi (Communication View) */
+          <>
+            <Communication lang={lang} />
+            <ContactSection lang={lang} />
+          </>
+        ) : activeSection === 'performance' ? (
+          /* Tampilan Performance / Kinerja (Performance View) */
+          <>
+            <PerformanceSection lang={lang} />
+            <ContactSection lang={lang} />
+          </>
+        ) : activeSection === 'datasets' ? (
+          /* Tampilan Dataset (Datasets View) */
+          <>
+            <DatasetsGallery lang={lang} />
+            <ContactSection lang={lang} />
+          </>
+        ) : (activeSection === 'people' || activeSection === 'students') ? (
+          /* Tampilan Peneliti (Researchers View) */
+          <>
+            <Researchers lang={lang} />
+            <ContactSection lang={lang} />
+          </>
+        ) : (
+          /* Default Fallback ke Halaman Utama */
+          <>
+            <Hero 
+              lang={lang} 
+              setActiveSection={setActiveSection} 
+            />
+            <InnovationShowcase 
+              lang={lang}
+            />
+            <Communication 
+              lang={lang} 
+            />
+            <Laboratory 
+              lang={lang} 
+            />
+            <ImpactDashboard 
+              lang={lang} 
+            />
+            <Partners 
+              lang={lang}
+            />
+            <ContactSection 
+              lang={lang} 
+            />
+          </>
+        )}
 
       </main>
 

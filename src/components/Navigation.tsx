@@ -59,15 +59,28 @@ export default function Navigation({
   const handleNavClick = (sectionId: string) => {
     setActiveSection(sectionId);
     setMobileMenuOpen(false);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/40 dark:bg-slate-950/40 border-b border-black/5 dark:border-white/5 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        
+        {/* Brand Logo & Name */}
+        <button 
+          onClick={() => handleNavClick('hero')}
+          className="flex items-center space-x-2.5 text-left cursor-pointer pr-2 hover:opacity-80 transition-opacity"
+          title={lang === 'en' ? 'Go to Main Page' : 'Ke Halaman Utama'}
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 to-sky-500 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
+            <Brain className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-sm font-black tracking-tight text-slate-900 dark:text-white leading-none">AIMed CoE</div>
+            <div className="text-[9px] font-bold text-teal-600 dark:text-teal-400 tracking-wider uppercase">Fasilkom Unsri</div>
+          </div>
+        </button>
+
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center space-x-1" id="nav-desktop-menu">
           {menuItems.map((item) => {
