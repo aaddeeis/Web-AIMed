@@ -253,6 +253,19 @@ export default function Communication({ lang }: CommunicationProps) {
               </span>
             </button>
             <button
+              onClick={() => setActiveTab('activities')}
+              className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer flex items-center justify-center space-x-1.5 ${
+                activeTab === 'activities' 
+                  ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm font-extrabold' 
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+            >
+              <span>{lang === 'en' ? 'Activities' : 'Aktivitas & Berita'}</span>
+              <span className="text-[10px] bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-mono font-bold">
+                {filteredNews.length + filteredEvents.length}
+              </span>
+            </button>
+            <button
               onClick={() => setActiveTab('social')}
               className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer flex items-center justify-center space-x-1.5 ${
                 activeTab === 'social' 
@@ -276,19 +289,6 @@ export default function Communication({ lang }: CommunicationProps) {
               <span>{lang === 'en' ? 'Mass Media' : 'Media Massa'}</span>
               <span className="text-[10px] bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-mono font-bold">
                 {filteredMassMedia.length}
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveTab('activities')}
-              className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer flex items-center justify-center space-x-1.5 ${
-                activeTab === 'activities' 
-                  ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm font-extrabold' 
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-            >
-              <span>{lang === 'en' ? 'Activities' : 'Kegiatan'}</span>
-              <span className="text-[10px] bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-mono font-bold">
-                {filteredNews.length + filteredEvents.length}
               </span>
             </button>
           </div>
@@ -322,7 +322,222 @@ export default function Communication({ lang }: CommunicationProps) {
           </div>
         </div>
 
-        {/* 1. SOCIAL MEDIA SECTION */}
+        {/* 1. ACTIVITIES (NEWS & SCIENTIFIC EVENTS) - PLACED FIRST */}
+        {(activeTab === 'all' || activeTab === 'activities') && (
+          <div className="space-y-12 mb-20 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-black/5 dark:border-white/10 pb-4 space-y-2 sm:space-y-0">
+              <div className="flex items-center space-x-3">
+                <Calendar className="w-5 h-5 text-sky-500" />
+                <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
+                  {lang === 'en' ? 'Activities, News & Events' : 'Aktivitas, Berita & Acara'}
+                </h3>
+              </div>
+              <div className="text-[11px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-md">
+                {lang === 'en' ? `Showing ${paginatedNews.length + paginatedEvents.length} items` : `Menampilkan ${paginatedNews.length + paginatedEvents.length} item`}
+              </div>
+            </div>
+
+            {/* Split Grid: News on Left, Events Calendar on Right */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+              
+              {/* LEFT: News Magazine (8 cols) */}
+              <div className="lg:col-span-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-black/5 dark:border-white/10 pb-3">
+                  <h4 className="font-extrabold text-lg text-slate-900 dark:text-white tracking-tight flex items-center">
+                    <Newspaper className="w-5 h-5 text-teal-500 mr-2" />
+                    <span>{lang === 'en' ? 'Center Announcements & Activities' : 'Kabar & Aktivitas Pusat'}</span>
+                  </h4>
+                </div>
+
+                {paginatedNews.length === 0 ? (
+                  <div className="glass-card rounded-2xl p-12 text-center border border-black/5 dark:border-white/5">
+                    <Newspaper className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
+                    <p className="text-xs text-slate-400">{lang === 'en' ? 'No announcements matches criteria.' : 'Tidak ada kabar/pengumuman yang cocok.'}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="news-grid">
+                      {paginatedNews.map((art) => (
+                        <div 
+                          key={art.id}
+                          className="group glass-card rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+                        >
+                          <div className="relative h-48 overflow-hidden bg-slate-950">
+                            <img 
+                              src={art.image} 
+                              alt={typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '')} 
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                            
+                            {art.images && art.images.length > 1 && (
+                              <div className="absolute top-4 right-4 px-2 py-1 bg-slate-950/85 backdrop-blur-md text-teal-400 font-extrabold text-[10px] rounded-md flex items-center gap-1.5 border border-white/10 shadow-sm z-10">
+                                <Images className="w-3.5 h-3.5" />
+                                <span>{art.images.length}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
+                            <div className="space-y-2">
+                              <span className="text-[10px] font-bold text-slate-400 font-mono">
+                                {art.date}
+                              </span>
+                              <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                                {typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '')}
+                              </h4>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-medium text-justify">
+                                {typeof art.content === 'object' ? (lang === 'en' ? (art.content.en || art.content.id) : (art.content.id || art.content.en)) : (art.content || '')}
+                              </p>
+                            </div>
+
+                            <button
+                              onClick={() => { setSelectedArticle(art); setActiveImageIndex(0); }}
+                              className="text-xs font-extrabold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 cursor-pointer hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+                            >
+                              <span>{lang === 'en' ? 'Read Announcement' : 'Baca Pengumuman'}</span>
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* News Announcements Load All Activities in One View */}
+                    {filteredNews.length > visibleNewsCount ? (
+                      <div className="text-center pt-2">
+                        <button
+                          onClick={() => setVisibleNewsCount(filteredNews.length)}
+                          className="px-5 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-extrabold text-xs rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5 shadow-xs border border-teal-500/20"
+                        >
+                          <span>{lang === 'en' ? `Show All ${filteredNews.length} Activities` : `Tampilkan Semua ${filteredNews.length} Aktivitas`}</span>
+                          <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+                        </button>
+                      </div>
+                    ) : filteredNews.length > 4 ? (
+                      <div className="text-center pt-2">
+                        <button
+                          onClick={() => setVisibleNewsCount(4)}
+                          className="px-4 py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-xs rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
+                        >
+                          <span>{lang === 'en' ? 'Show Fewer Activities' : 'Tampilkan Lebih Sedikit'}</span>
+                          <ChevronRight className="w-3.5 h-3.5 -rotate-90" />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT: Upcoming Events (4 cols) */}
+              <div className="lg:col-span-4 space-y-6">
+                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
+                  <h4 className="font-extrabold text-lg text-slate-900 dark:text-white tracking-tight flex items-center">
+                    <Calendar className="w-5 h-5 text-sky-500 mr-2" />
+                    <span>{lang === 'en' ? 'Upcoming Calendar' : 'Kalender Acara'}</span>
+                  </h4>
+                  <span className="text-[10px] font-bold text-slate-400 bg-sky-500/10 text-sky-600 dark:text-sky-400 px-2.5 py-0.5 rounded-full">
+                    {filteredEvents.length} {lang === 'en' ? 'Events' : 'Acara'}
+                  </span>
+                </div>
+
+                {paginatedEvents.length === 0 ? (
+                  <div className="glass-card rounded-2xl p-8 text-center border border-black/5 dark:border-white/5">
+                    <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
+                    <p className="text-xs text-slate-400">{lang === 'en' ? 'No upcoming events found.' : 'Tidak ada acara mendatang.'}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4" id="events-stack">
+                    {paginatedEvents.map((evt) => {
+                      const isReg = registeredEventId === evt.id;
+
+                      // Parse date (like "July 28, 2026") into calendar sheet UI
+                      const dateParts = evt.date.split(' ');
+                      const monthStr = dateParts[0] ? dateParts[0].substring(0, 3).toUpperCase() : 'JUL';
+                      const dayStr = dateParts[1] ? dateParts[1].replace(',', '') : '28';
+                      const yearStr = dateParts[2] || '2026';
+
+                      return (
+                        <div 
+                          key={evt.id}
+                          className="glass-card p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-2xs hover:-translate-y-0.5 transition-all flex items-start space-x-4"
+                        >
+                          {/* Calendar Sheet Icon */}
+                          <div className="w-14 h-15 flex-shrink-0 bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden border border-black/10 dark:border-white/10 text-center flex flex-col shadow-2xs">
+                            <div className="bg-sky-500 dark:bg-sky-600 text-white text-[9px] font-extrabold uppercase py-0.5 tracking-wider">
+                              {monthStr}
+                            </div>
+                            <div className="flex-1 flex flex-col justify-center bg-white dark:bg-slate-950 p-1">
+                              <span className="text-base font-extrabold text-slate-900 dark:text-white leading-none tracking-tighter">
+                                {dayStr}
+                              </span>
+                              <span className="text-[7px] font-mono font-bold text-slate-400 leading-none mt-0.5">
+                                {yearStr}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Event Details */}
+                          <div className="flex-1 space-y-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center space-x-1.5 text-[9px] font-extrabold text-sky-600 dark:text-sky-400 uppercase tracking-widest font-mono">
+                                <Clock className="w-3 h-3" />
+                                <span>{evt.time}</span>
+                              </div>
+
+                              <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight">
+                                {lang === 'en' ? evt.title.en : evt.title.id}
+                              </h4>
+                            </div>
+
+                            <div className="flex items-center space-x-1.5 text-[10px] text-slate-400 font-semibold leading-relaxed">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                              <span className="line-clamp-2">{lang === 'en' ? evt.location.en : evt.location.id}</span>
+                            </div>
+
+                            <button
+                              onClick={() => handleRegisterEvent(evt.id)}
+                              className="w-full py-2 bg-slate-950 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-bold text-[10px] rounded-xl transition-all cursor-pointer shadow-2xs"
+                            >
+                              {lang === 'en' ? 'Reserve A Seat' : 'Ambil Tempat Duduk'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Events Load More */}
+                    {filteredEvents.length > visibleEventsCount ? (
+                      <div className="text-center pt-2">
+                        <button
+                          onClick={() => setVisibleEventsCount(filteredEvents.length)}
+                          className="px-4 py-2.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800/80 text-teal-600 dark:text-teal-400 font-extrabold text-[11px] rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
+                        >
+                          <span>{lang === 'en' ? `Show All ${filteredEvents.length} Events` : `Tampilkan Semua ${filteredEvents.length} Acara`}</span>
+                          <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+                        </button>
+                      </div>
+                    ) : filteredEvents.length > 3 ? (
+                      <div className="text-center pt-2">
+                        <button
+                          onClick={() => setVisibleEventsCount(3)}
+                          className="px-4 py-2 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-xs rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
+                        >
+                          <span>{lang === 'en' ? 'Show Fewer Events' : 'Tampilkan Lebih Sedikit'}</span>
+                          <ChevronRight className="w-3.5 h-3.5 -rotate-90" />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* 2. SOCIAL MEDIA SECTION */}
         {(activeTab === 'all' || activeTab === 'social') && (
           <div className="space-y-12 mb-20 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-black/5 dark:border-white/10 pb-4 space-y-2 sm:space-y-0">
@@ -522,7 +737,7 @@ export default function Communication({ lang }: CommunicationProps) {
           </div>
         )}
 
-        {/* 2. MASS MEDIA SECTION */}
+        {/* 3. MASS MEDIA SECTION */}
         {(activeTab === 'all' || activeTab === 'mass') && (
           <div className="space-y-8 mb-20 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-black/5 dark:border-white/10 pb-4 space-y-2 sm:space-y-0">
@@ -599,201 +814,6 @@ export default function Communication({ lang }: CommunicationProps) {
                 )}
               </div>
             )}
-          </div>
-        )}
-
-        {/* 3. ACTIVITIES (NEWS & SCIENTIFIC EVENTS) */}
-        {(activeTab === 'all' || activeTab === 'activities') && (
-          <div className="space-y-12 animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-black/5 dark:border-white/10 pb-4 space-y-2 sm:space-y-0">
-              <div className="flex items-center space-x-3">
-                <Calendar className="w-5 h-5 text-sky-500" />
-                <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-                  {lang === 'en' ? 'News & Scientific Events' : 'Berita & Acara Ilmiah'}
-                </h3>
-              </div>
-              <div className="text-[11px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-md">
-                {lang === 'en' ? `Showing ${paginatedNews.length + paginatedEvents.length} items` : `Menampilkan ${paginatedNews.length + paginatedEvents.length} item`}
-              </div>
-            </div>
-
-            {/* Split Grid: News on Left, Events Calendar on Right */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-              
-              {/* LEFT: News Magazine (8 cols) */}
-              <div className="lg:col-span-8 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-black/5 dark:border-white/10 pb-3">
-                  <h4 className="font-extrabold text-lg text-slate-900 dark:text-white tracking-tight flex items-center">
-                    <Newspaper className="w-5 h-5 text-teal-500 mr-2" />
-                    <span>{lang === 'en' ? 'Center Announcements' : 'Kabar & Pengumuman Pusat'}</span>
-                  </h4>
-                </div>
-
-                {paginatedNews.length === 0 ? (
-                  <div className="glass-card rounded-2xl p-12 text-center border border-black/5 dark:border-white/5">
-                    <Newspaper className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-                    <p className="text-xs text-slate-400">{lang === 'en' ? 'No announcements matches criteria.' : 'Tidak ada kabar/pengumuman yang cocok.'}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="news-grid">
-                      {paginatedNews.map((art) => (
-                        <div 
-                          key={art.id}
-                          className="group glass-card rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
-                        >
-                          <div className="relative h-48 overflow-hidden bg-slate-950">
-                            <img 
-                              src={art.image} 
-                              alt={typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '')} 
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                            
-                            {art.images && art.images.length > 1 && (
-                              <div className="absolute top-4 right-4 px-2 py-1 bg-slate-950/85 backdrop-blur-md text-teal-400 font-extrabold text-[10px] rounded-md flex items-center gap-1.5 border border-white/10 shadow-sm z-10">
-                                <Images className="w-3.5 h-3.5" />
-                                <span>{art.images.length}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                            <div className="space-y-2">
-                              <span className="text-[10px] font-bold text-slate-400 font-mono">
-                                {art.date}
-                              </span>
-                              <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                                {typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '')}
-                              </h4>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-medium text-justify">
-                                {typeof art.content === 'object' ? (lang === 'en' ? (art.content.en || art.content.id) : (art.content.id || art.content.en)) : (art.content || '')}
-                              </p>
-                            </div>
-
-                            <button
-                              onClick={() => { setSelectedArticle(art); setActiveImageIndex(0); }}
-                              className="text-xs font-extrabold text-teal-600 dark:text-teal-400 flex items-center space-x-1.5 cursor-pointer hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
-                            >
-                              <span>{lang === 'en' ? 'Read Announcement' : 'Baca Pengumuman'}</span>
-                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* News Announcements Load More */}
-                    {filteredNews.length > visibleNewsCount && (
-                      <div className="text-center pt-2">
-                        <button
-                          onClick={() => setVisibleNewsCount(prev => prev + 4)}
-                          className="px-4 py-2.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800/80 text-teal-600 dark:text-teal-400 font-extrabold text-[11px] rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
-                        >
-                          <span>{lang === 'en' ? 'Load More News' : 'Muat Pengumuman Lainnya'}</span>
-                          <ChevronRight className="w-3.5 h-3.5 rotate-90" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* RIGHT: Upcoming Events (4 cols) */}
-              <div className="lg:col-span-4 space-y-6">
-                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-3">
-                  <h4 className="font-extrabold text-lg text-slate-900 dark:text-white tracking-tight flex items-center">
-                    <Calendar className="w-5 h-5 text-sky-500 mr-2" />
-                    <span>{lang === 'en' ? 'Upcoming Calendar' : 'Kalender Acara'}</span>
-                  </h4>
-                  <span className="text-[10px] font-bold text-slate-400 bg-sky-500/10 text-sky-600 dark:text-sky-400 px-2.5 py-0.5 rounded-full">
-                    {filteredEvents.length} {lang === 'en' ? 'Events' : 'Acara'}
-                  </span>
-                </div>
-
-                {paginatedEvents.length === 0 ? (
-                  <div className="glass-card rounded-2xl p-8 text-center border border-black/5 dark:border-white/5">
-                    <Calendar className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-                    <p className="text-xs text-slate-400">{lang === 'en' ? 'No upcoming events found.' : 'Tidak ada acara mendatang.'}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4" id="events-stack">
-                    {paginatedEvents.map((evt) => {
-                      const isReg = registeredEventId === evt.id;
-
-                      // Parse date (like "July 28, 2026") into calendar sheet UI
-                      const dateParts = evt.date.split(' ');
-                      const monthStr = dateParts[0] ? dateParts[0].substring(0, 3).toUpperCase() : 'JUL';
-                      const dayStr = dateParts[1] ? dateParts[1].replace(',', '') : '28';
-                      const yearStr = dateParts[2] || '2026';
-
-                      return (
-                        <div 
-                          key={evt.id}
-                          className="glass-card p-5 rounded-2xl border border-black/5 dark:border-white/5 shadow-2xs hover:-translate-y-0.5 transition-all flex items-start space-x-4"
-                        >
-                          {/* Calendar Sheet Icon */}
-                          <div className="w-14 h-15 flex-shrink-0 bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden border border-black/10 dark:border-white/10 text-center flex flex-col shadow-2xs">
-                            <div className="bg-sky-500 dark:bg-sky-600 text-white text-[9px] font-extrabold uppercase py-0.5 tracking-wider">
-                              {monthStr}
-                            </div>
-                            <div className="flex-1 flex flex-col justify-center bg-white dark:bg-slate-950 p-1">
-                              <span className="text-base font-extrabold text-slate-900 dark:text-white leading-none tracking-tighter">
-                                {dayStr}
-                              </span>
-                              <span className="text-[7px] font-mono font-bold text-slate-400 leading-none mt-0.5">
-                                {yearStr}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Event Details */}
-                          <div className="flex-1 space-y-3">
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-1.5 text-[9px] font-extrabold text-sky-600 dark:text-sky-400 uppercase tracking-widest font-mono">
-                                <Clock className="w-3 h-3" />
-                                <span>{evt.time}</span>
-                              </div>
-
-                              <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight">
-                                {lang === 'en' ? evt.title.en : evt.title.id}
-                              </h4>
-                            </div>
-
-                            <div className="flex items-center space-x-1.5 text-[10px] text-slate-400 font-semibold leading-relaxed">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                              <span className="line-clamp-2">{lang === 'en' ? evt.location.en : evt.location.id}</span>
-                            </div>
-
-                            <button
-                              onClick={() => handleRegisterEvent(evt.id)}
-                              className="w-full py-2 bg-slate-950 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-bold text-[10px] rounded-xl transition-all cursor-pointer shadow-2xs"
-                            >
-                              {lang === 'en' ? 'Reserve A Seat' : 'Ambil Tempat Duduk'}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {/* Events Load More */}
-                    {filteredEvents.length > visibleEventsCount && (
-                      <div className="text-center pt-2">
-                        <button
-                          onClick={() => setVisibleEventsCount(prev => prev + 3)}
-                          className="px-4 py-2.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800/80 text-teal-600 dark:text-teal-400 font-extrabold text-[11px] rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5"
-                        >
-                          <span>{lang === 'en' ? 'Load More Events' : 'Muat Acara Lainnya'}</span>
-                          <ChevronRight className="w-3.5 h-3.5 rotate-90" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-            </div>
           </div>
         )}
 
