@@ -667,7 +667,7 @@ export default function Communication({ lang }: CommunicationProps) {
                               <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                                 {typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '')}
                               </h4>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-medium">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-medium text-justify">
                                 {typeof art.content === 'object' ? (lang === 'en' ? (art.content.en || art.content.id) : (art.content.id || art.content.en)) : (art.content || '')}
                               </p>
                             </div>
@@ -935,9 +935,29 @@ export default function Communication({ lang }: CommunicationProps) {
                   <span className="ml-1.5 font-mono text-slate-800 dark:text-slate-200 font-extrabold">{selectedArticle.date}</span>
                 </div>
                 
-                <p className="text-base sm:text-lg text-slate-700 dark:text-slate-200 leading-relaxed font-normal font-sans whitespace-pre-wrap">
-                  {typeof selectedArticle.content === 'object' ? (lang === 'en' ? (selectedArticle.content.en || selectedArticle.content.id) : (selectedArticle.content.id || selectedArticle.content.en)) : (selectedArticle.content || '')}
-                </p>
+                <div className="space-y-4 text-justify leading-relaxed text-slate-700 dark:text-slate-200 font-normal font-sans text-base sm:text-lg">
+                  {(() => {
+                    const contentStr = typeof selectedArticle.content === 'object' 
+                      ? (lang === 'en' ? (selectedArticle.content.en || selectedArticle.content.id) : (selectedArticle.content.id || selectedArticle.content.en)) 
+                      : (selectedArticle.content || '');
+                    
+                    const paragraphs = contentStr.split(/\n\s*\n/).filter(Boolean);
+                    
+                    if (paragraphs.length > 1) {
+                      return paragraphs.map((paragraphText: string, pIdx: number) => (
+                        <p key={pIdx} className="whitespace-pre-line text-justify leading-relaxed">
+                          {paragraphText.trim()}
+                        </p>
+                      ));
+                    }
+
+                    return (
+                      <p className="whitespace-pre-line text-justify leading-relaxed">
+                        {contentStr}
+                      </p>
+                    );
+                  })()}
+                </div>
 
                 {/* Grid of several photos inside the narration */}
                 {articleImages.length > 1 && (

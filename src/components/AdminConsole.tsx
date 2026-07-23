@@ -3534,8 +3534,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                                   });
                                 }
                               }}
-                              maxDimension={600}
-                              quality={0.55}
+                              skipCompression={true}
                             />
                           </div>
                         </div>
