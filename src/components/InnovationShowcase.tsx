@@ -112,13 +112,13 @@ export default function InnovationShowcase({ lang, hideSdg = false, isVertical =
   const currentProject = extendedProjects[currentIndex] || extendedProjects[0];
 
   return (
-    <section id="showcase" className="py-12 sm:py-16 bg-transparent relative z-10 transition-colors duration-300">
+    <section id="showcase" className="py-6 sm:py-10 bg-transparent relative z-10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* SDGs Commitment Section */}
         {!hideSdg && (
-          <div className="mb-12 border-b border-slate-100 dark:border-slate-800 pb-10">
-            <div className="text-center max-w-3xl mx-auto mb-8">
+          <div className="mb-8 border-b border-slate-100 dark:border-slate-800 pb-6">
+            <div className="text-center max-w-3xl mx-auto mb-4">
               <span className="text-xs font-extrabold tracking-widest text-emerald-600 dark:text-emerald-400 uppercase bg-emerald-500/10 px-3.5 py-1.5 rounded-full">
                 {currentSdg.subtitle ? (currentSdg.subtitle[lang] || 'SDG ALIGNMENT') : 'SDG ALIGNMENT'}
               </span>

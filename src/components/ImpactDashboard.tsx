@@ -153,11 +153,11 @@ export default function ImpactDashboard({ lang }: ImpactDashboardProps) {
   const activeConfig = categoriesConfig[activeCategory];
 
   return (
-    <section id="impact" className="py-12 sm:py-16 bg-transparent relative z-10 transition-colors duration-300">
+    <section id="impact" className="py-6 sm:py-10 bg-transparent relative z-10 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8">
+        <div className="text-center max-w-3xl mx-auto mb-6">
           <span className="text-xs font-extrabold tracking-widest text-teal-600 dark:text-teal-400 uppercase bg-teal-500/10 px-3.5 py-1.5 rounded-full">
             {lang === 'en' ? 'SCIENTIFIC INFLUENCE' : 'PENGARUH ILMIAH'}
           </span>
@@ -173,7 +173,7 @@ export default function ImpactDashboard({ lang }: ImpactDashboardProps) {
         </div>
 
         {/* 4-Column Metric Cards (Total Counts) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {(Object.keys(categoriesConfig) as CategoryType[]).map((key) => {
             const config = categoriesConfig[key];
             const IconComponent = config.icon;
