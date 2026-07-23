@@ -177,15 +177,22 @@ export default function Communication({ lang }: CommunicationProps) {
     );
   });
 
-  const filteredNews = newsList.filter(art => {
-    const title = lang === 'en' ? art.title.en : art.title.id;
-    const content = lang === 'en' ? art.content.en : art.content.id;
-    const matchesSearch = (
-      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      content.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    return matchesSearch;
-  });
+  const filteredNews = newsList
+    .filter(art => {
+      const title = typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '');
+      const content = typeof art.content === 'object' ? (lang === 'en' ? (art.content.en || art.content.id) : (art.content.id || art.content.en)) : (art.content || '');
+      const matchesSearch = (
+        title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      const timeA = a.date ? new Date(a.date).getTime() : 0;
+      const timeB = b.date ? new Date(b.date).getTime() : 0;
+      if (isNaN(timeA) || isNaN(timeB)) return (b.date || '').localeCompare(a.date || '');
+      return timeB - timeA;
+    });
 
   const filteredEvents = events.filter(evt => {
     const title = lang === 'en' ? evt.title.en : evt.title.id;
@@ -638,7 +645,7 @@ export default function Communication({ lang }: CommunicationProps) {
                           <div className="relative h-48 overflow-hidden bg-slate-950">
                             <img 
                               src={art.image} 
-                              alt={lang === 'en' ? art.title.en : art.title.id} 
+                              alt={typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '')} 
                               referrerPolicy="no-referrer"
                               className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                             />
@@ -658,10 +665,10 @@ export default function Communication({ lang }: CommunicationProps) {
                                 {art.date}
                               </span>
                               <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                                {lang === 'en' ? art.title.en : art.title.id}
+                                {typeof art.title === 'object' ? (lang === 'en' ? (art.title.en || art.title.id) : (art.title.id || art.title.en)) : (art.title || '')}
                               </h4>
                               <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-medium">
-                                {lang === 'en' ? art.content.en : art.content.id}
+                                {typeof art.content === 'object' ? (lang === 'en' ? (art.content.en || art.content.id) : (art.content.id || art.content.en)) : (art.content || '')}
                               </p>
                             </div>
 
@@ -857,7 +864,7 @@ export default function Communication({ lang }: CommunicationProps) {
               <div className="relative h-72 sm:h-96 md:h-[480px] bg-slate-950 flex items-center justify-center overflow-hidden rounded-3xl shadow-lg">
                 <img 
                   src={currentImage} 
-                  alt={lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id} 
+                  alt={typeof selectedArticle.title === 'object' ? (lang === 'en' ? (selectedArticle.title.en || selectedArticle.title.id) : (selectedArticle.title.id || selectedArticle.title.en)) : (selectedArticle.title || '')} 
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover transition-all duration-300"
                 />
@@ -919,7 +926,7 @@ export default function Communication({ lang }: CommunicationProps) {
               <div className="space-y-6 mt-8">
                 <div className="space-y-3">
                   <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-                    {lang === 'en' ? selectedArticle.title.en : selectedArticle.title.id}
+                    {typeof selectedArticle.title === 'object' ? (lang === 'en' ? (selectedArticle.title.en || selectedArticle.title.id) : (selectedArticle.title.id || selectedArticle.title.en)) : (selectedArticle.title || '')}
                   </h3>
                 </div>
 
@@ -929,7 +936,7 @@ export default function Communication({ lang }: CommunicationProps) {
                 </div>
                 
                 <p className="text-base sm:text-lg text-slate-700 dark:text-slate-200 leading-relaxed font-normal font-sans whitespace-pre-wrap">
-                  {lang === 'en' ? selectedArticle.content.en : selectedArticle.content.id}
+                  {typeof selectedArticle.content === 'object' ? (lang === 'en' ? (selectedArticle.content.en || selectedArticle.content.id) : (selectedArticle.content.id || selectedArticle.content.en)) : (selectedArticle.content || '')}
                 </p>
 
                 {/* Grid of several photos inside the narration */}

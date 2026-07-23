@@ -1144,9 +1144,19 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
           return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
         });
       } else if (activeTab === 'news') {
+        const titleText = typeof finalized.title === 'object' ? (finalized.title.id || finalized.title.en || '') : (finalized.title || '');
+        const contentText = typeof finalized.content === 'object' ? (finalized.content.id || finalized.content.en || '') : (finalized.content || '');
+        finalized.title = { en: titleText, id: titleText };
+        finalized.content = { en: contentText, id: contentText };
         data.setNews(prev => {
           const exists = prev.some(x => x.id === finalized.id);
-          return exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
+          const updated = exists ? prev.map(x => x.id === finalized.id ? finalized : x) : [...prev, finalized];
+          return [...updated].sort((a, b) => {
+            const timeA = a.date ? new Date(a.date).getTime() : 0;
+            const timeB = b.date ? new Date(b.date).getTime() : 0;
+            if (isNaN(timeA) || isNaN(timeB)) return (b.date || '').localeCompare(a.date || '');
+            return timeB - timeA;
+          });
         });
       } else if (activeTab === 'events') {
         data.setEvents(prev => {
@@ -1243,7 +1253,12 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
       case 'publications_ipr': return data.publicationsData.ipr;
       case 'publications_books': return data.publicationsData.books;
       case 'datasets': return data.datasets;
-      case 'news': return data.news;
+      case 'news': return [...data.news].sort((a, b) => {
+        const timeA = a.date ? new Date(a.date).getTime() : 0;
+        const timeB = b.date ? new Date(b.date).getTime() : 0;
+        if (isNaN(timeA) || isNaN(timeB)) return (b.date || '').localeCompare(a.date || '');
+        return timeB - timeA;
+      });
       case 'events': return data.events;
       case 'team_leadership': return data.leadership;
       case 'team_assistants': return data.assistants;
@@ -3424,64 +3439,56 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                   </>
                 )}
 
-                {/* NEWS FIELDS */}
+                {/* NEWS FIELDS - Simplified Indonesian Only */}
                 {activeTab === 'news' && (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="md:col-span-2 flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                          Judul Activities / News (Bahasa Indonesia)
+                        </label>
                         <input 
                           type="text" 
-                          value={editingItem.title?.en || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, en: e.target.value } })}
+                          value={typeof editingItem.title === 'object' ? (editingItem.title.id || editingItem.title.en || '') : (editingItem.title || '')} 
+                          onChange={(e) => setEditingItem({ 
+                            ...editingItem, 
+                            title: { en: e.target.value, id: e.target.value } 
+                          })}
                           required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          placeholder="Masukkan judul berita/kegiatan dalam Bahasa Indonesia..."
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 font-medium"
                         />
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Title (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
-                        <input 
-                          type="text" 
-                          value={editingItem.title?.id || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, title: { ...editingItem.title, id: e.target.value } })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date / Tanggal</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Tanggal Kegiatan / Berita
+                        </label>
                         <input 
                           type="date" 
                           value={editingItem.date || ''} 
                           onChange={(e) => setEditingItem({ ...editingItem, date: e.target.value })}
                           required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 w-full"
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 w-full font-medium"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Content (EN) <Globe className="w-3 h-3 text-teal-500" /></label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                          Konten / Deskripsi (Bahasa Indonesia)
+                        </label>
                         <textarea 
-                          rows={4}
-                          value={editingItem.content?.en || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, content: { ...editingItem.content, en: e.target.value } })}
+                          rows={6}
+                          value={typeof editingItem.content === 'object' ? (editingItem.content.id || editingItem.content.en || '') : (editingItem.content || '')} 
+                          onChange={(e) => setEditingItem({ 
+                            ...editingItem, 
+                            content: { en: e.target.value, id: e.target.value } 
+                          })}
                           required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Content (ID) <Globe className="w-3 h-3 text-teal-500" /></label>
-                        <textarea 
-                          rows={4}
-                          value={editingItem.content?.id || ''} 
-                          onChange={(e) => setEditingItem({ ...editingItem, content: { ...editingItem.content, id: e.target.value } })}
-                          required
-                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500"
+                          placeholder="Tuliskan isi berita atau deskripsi kegiatan dalam Bahasa Indonesia..."
+                          className="px-4 py-2.5 text-xs rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-teal-500 font-medium"
                         />
                       </div>
                     </div>
@@ -3489,16 +3496,17 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                     <div className="grid grid-cols-1 gap-4 border-t border-black/10 dark:border-white/10 pt-4">
                       <div className="flex flex-col gap-2">
                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          {lang === 'en' ? 'Photos Gallery' : 'Galeri Foto Kegiatan (Beberapa Foto)'}
+                          Foto Utama & Galeri Kegiatan
                         </label>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          {(editingItem.images || []).map((img: string, idx: number) => (
+                          {(editingItem.images || (editingItem.image ? [editingItem.image] : [])).map((img: string, idx: number) => (
                             <div key={idx} className="relative group h-24 rounded-xl overflow-hidden border border-black/10 dark:border-white/10 bg-slate-900">
                               <img src={img} alt="Gallery item" className="w-full h-full object-cover" />
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const newImgs = (editingItem.images || []).filter((_: any, i: number) => i !== idx);
+                                  const currentImgs = editingItem.images || (editingItem.image ? [editingItem.image] : []);
+                                  const newImgs = currentImgs.filter((_: any, i: number) => i !== idx);
                                   setEditingItem({
                                     ...editingItem,
                                     images: newImgs,
@@ -3513,7 +3521,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                           ))}
                           <div className="relative h-24 flex items-center justify-center">
                             <ImageUploadField
-                              label={lang === 'en' ? '+ Add Photo' : '+ Tambah Foto'}
+                              label="+ Tambah Foto"
                               value=""
                               onChange={(val) => {
                                 if (val) {
@@ -3526,8 +3534,8 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
                                   });
                                 }
                               }}
-                              maxDimension={500}
-                              quality={0.50}
+                              maxDimension={600}
+                              quality={0.55}
                             />
                           </div>
                         </div>
