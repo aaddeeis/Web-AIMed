@@ -82,6 +82,7 @@ export default function App() {
             />
             <Communication 
               lang={lang} 
+              setActiveSection={setActiveSection}
             />
             <Laboratory 
               lang={lang} 
@@ -105,7 +106,7 @@ export default function App() {
         ) : activeSection === 'communication' ? (
           /* Tampilan Komunikasi (Communication View) */
           <>
-            <Communication lang={lang} />
+            <Communication lang={lang} setActiveSection={setActiveSection} />
             <ContactSection lang={lang} />
           </>
         ) : activeSection === 'performance' ? (
@@ -138,6 +139,7 @@ export default function App() {
             />
             <Communication 
               lang={lang} 
+              setActiveSection={setActiveSection}
             />
             <Laboratory 
               lang={lang} 

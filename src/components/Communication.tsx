@@ -45,11 +45,42 @@ export function getInstagramShortcode(url: string): string | null {
 
 interface CommunicationProps {
   lang: Language;
+  setActiveSection?: (section: string) => void;
+  initialTab?: 'activities' | 'social' | 'mass';
 }
 
-export default function Communication({ lang }: CommunicationProps) {
+export default function Communication({ lang, setActiveSection, initialTab = 'activities' }: CommunicationProps) {
   const { youtubeVideos, instagramPosts, massMedia, news, events } = useData();
-  const [activeTab, setActiveTab] = useState<'all' | 'social' | 'mass' | 'activities'>('all');
+  const [activeTab, setActiveTab] = useState<'activities' | 'social' | 'mass'>(initialTab || 'activities');
+
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  const handleShowAll = (tab: 'activities' | 'social' | 'mass') => {
+    setActiveTab(tab);
+    if (tab === 'activities') {
+      setVisibleNewsCount(news.length || 100);
+      setVisibleEventsCount(events.length || 100);
+    } else if (tab === 'social') {
+      setVisibleYoutubeCount(youtubeVideos.length || 100);
+      setVisibleInstagramCount(instagramPosts.length || 100);
+    } else if (tab === 'mass') {
+      setVisibleMassMediaCount(massMedia.length || 100);
+    }
+    if (setActiveSection) {
+      setActiveSection('communication');
+    }
+    const commElem = document.getElementById('communication');
+    if (commElem) {
+      commElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const [newsList, setNewsList] = useState(news);
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
@@ -240,19 +271,6 @@ export default function Communication({ lang }: CommunicationProps) {
         <div className="flex flex-col items-center justify-center space-y-4 mb-8">
           <div className="flex bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-black/5 dark:border-white/5 shadow-xs max-w-lg w-full overflow-x-auto no-scrollbar">
             <button
-              onClick={() => { setActiveTab('all'); setSearchQuery(''); }}
-              className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer flex items-center justify-center space-x-1.5 ${
-                activeTab === 'all' 
-                  ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm font-extrabold' 
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-            >
-              <span>{lang === 'en' ? 'All' : 'Semua'}</span>
-              <span className="text-[10px] bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-mono font-bold">
-                {totalMatchesCount}
-              </span>
-            </button>
-            <button
               onClick={() => setActiveTab('activities')}
               className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer flex items-center justify-center space-x-1.5 ${
                 activeTab === 'activities' 
@@ -302,9 +320,7 @@ export default function Communication({ lang }: CommunicationProps) {
                   ? (lang === 'en' ? 'Search videos and posts...' : 'Cari video dan postingan...')
                   : activeTab === 'mass'
                   ? (lang === 'en' ? 'Search mass media coverage...' : 'Cari berita media massa...')
-                  : activeTab === 'activities'
-                  ? (lang === 'en' ? 'Search news or events...' : 'Cari kabar atau acara...')
-                  : (lang === 'en' ? 'Search anything in our hub...' : 'Cari apa pun di pusat komunikasi...')
+                  : (lang === 'en' ? 'Search news or events...' : 'Cari kabar atau acara...')
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -323,7 +339,7 @@ export default function Communication({ lang }: CommunicationProps) {
         </div>
 
         {/* 1. ACTIVITIES (NEWS & SCIENTIFIC EVENTS) - PLACED FIRST */}
-        {(activeTab === 'all' || activeTab === 'activities') && (
+        {activeTab === 'activities' && (
           <div className="space-y-12 mb-20 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-black/5 dark:border-white/10 pb-4 space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-3">
@@ -408,7 +424,7 @@ export default function Communication({ lang }: CommunicationProps) {
                     {filteredNews.length > visibleNewsCount ? (
                       <div className="text-center pt-2">
                         <button
-                          onClick={() => setVisibleNewsCount(filteredNews.length)}
+                          onClick={() => handleShowAll('activities')}
                           className="px-5 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-extrabold text-xs rounded-xl transition-all cursor-pointer inline-flex items-center space-x-1.5 shadow-xs border border-teal-500/20"
                         >
                           <span>{lang === 'en' ? `Show All ${filteredNews.length} Activities` : `Tampilkan Semua ${filteredNews.length} Aktivitas`}</span>
@@ -538,7 +554,7 @@ export default function Communication({ lang }: CommunicationProps) {
         )}
 
         {/* 2. SOCIAL MEDIA SECTION */}
-        {(activeTab === 'all' || activeTab === 'social') && (
+        {activeTab === 'social' && (
           <div className="space-y-12 mb-20 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-black/5 dark:border-white/10 pb-4 space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-3">
@@ -738,7 +754,7 @@ export default function Communication({ lang }: CommunicationProps) {
         )}
 
         {/* 3. MASS MEDIA SECTION */}
-        {(activeTab === 'all' || activeTab === 'mass') && (
+        {activeTab === 'mass' && (
           <div className="space-y-8 mb-20 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-black/5 dark:border-white/10 pb-4 space-y-2 sm:space-y-0">
               <div className="flex items-center space-x-3">
