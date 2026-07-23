@@ -12,9 +12,6 @@ import Researchers from './components/Researchers';
 import Partners from './components/Partners';
 import AdminConsole from './components/AdminConsole';
 import { Language } from './types';
-import { 
-  ArrowLeft 
-} from 'lucide-react';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('en');
@@ -72,26 +69,6 @@ export default function App() {
       {/* Main Content Layout sections */}
       <main className="relative">
         
-        {/* Subpage Breadcrumb Navigation Bar for Standalone Views */}
-        {activeSection !== 'hero' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4 flex items-center justify-between border-b border-black/5 dark:border-white/5 animate-fade-in">
-            <button
-              onClick={() => setActiveSection('hero')}
-              className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-teal-500/10 hover:text-teal-600 dark:hover:text-teal-400 transition-all cursor-pointer shadow-xs"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>{lang === 'en' ? 'Back to Main Page' : 'Kembali ke Halaman Utama'}</span>
-            </button>
-            <div className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider bg-teal-500/10 px-3 py-1 rounded-lg">
-              {activeSection === 'showcase' && (lang === 'en' ? 'Products & Innovations' : 'Produk & Inovasi')}
-              {activeSection === 'communication' && (lang === 'en' ? 'CoE Communication Hub' : 'Hub Komunikasi CoE')}
-              {activeSection === 'performance' && (lang === 'en' ? 'Academic & Operational Performance' : 'Kinerja Akademik & Operasional')}
-              {activeSection === 'datasets' && (lang === 'en' ? 'Clinical Reference Datasets' : 'Dataset Referensi Klinis')}
-              {(activeSection === 'people' || activeSection === 'students') && (lang === 'en' ? 'Expert Researchers & Scholars' : 'Peneliti Ahli & Akademisi')}
-            </div>
-          </div>
-        )}
-
         {/* VIEW-BASED RENDERING */}
         {activeSection === 'hero' ? (
           /* Halaman Utama (Main Page) */
@@ -122,7 +99,7 @@ export default function App() {
         ) : activeSection === 'showcase' ? (
           /* Tampilan Produk (Products View) */
           <>
-            <InnovationShowcase lang={lang} />
+            <InnovationShowcase lang={lang} hideSdg={true} />
             <ContactSection lang={lang} />
           </>
         ) : activeSection === 'communication' ? (
