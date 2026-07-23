@@ -1,20 +1,11 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# AIMed Web
 
-# Run and deploy your AI Studio app
+Frontend publik untuk AIMed CoE. Semua konten dinamis dibaca dari Payload CMS.
 
-This contains everything you need to run your app locally.
+## Development
 
-View your app in AI Studio: https://ai.studio/apps/c637c20a-a67c-4631-b202-b3c68e83a2b4
+1. Salin `.env.example` menjadi `.env.local`.
+2. Tetapkan `VITE_PAYLOAD_URL` ke base URL CMS (tanpa `/api`).
+3. Jalankan `bun install` lalu `bun run dev`.
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Untuk deployment, CMS harus memiliki `WEB_URL` yang berisi origin frontend. Lebih dari satu origin dapat dipisahkan dengan koma.

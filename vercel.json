@@ -1,17 +1,8 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.ts": {
-      "includeFiles": "cms_data.json"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/((?!api/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
