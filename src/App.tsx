@@ -99,7 +99,7 @@ export default function App() {
         ) : activeSection === 'showcase' ? (
           /* Tampilan Produk (Products View) */
           <>
-            <InnovationShowcase lang={lang} hideSdg={true} />
+            <InnovationShowcase lang={lang} hideSdg={true} isVertical={true} />
             <ContactSection lang={lang} />
           </>
         ) : activeSection === 'communication' ? (

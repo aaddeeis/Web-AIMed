@@ -1,28 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Activity, 
   Github, 
   FileText, 
   Video, 
   Play, 
-  Layers, 
-  Search, 
   Eye, 
-  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
   X,
-  Globe
+  Globe,
+  Sparkles
 } from 'lucide-react';
-import { Language, ShowcaseProject } from '../types';
+import { Language } from '../types';
 import { useData } from '../context/DataContext';
 
 interface InnovationShowcaseProps {
   lang: Language;
   hideSdg?: boolean;
+  isVertical?: boolean;
 }
 
-export default function InnovationShowcase({ lang, hideSdg = false }: InnovationShowcaseProps) {
+export default function InnovationShowcase({ lang, hideSdg = false, isVertical = false }: InnovationShowcaseProps) {
   const { showcaseProjects, sdgContent } = useData();
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const currentSdg = sdgContent || {
     title: { en: 'Empowering Global Sustainable Development', id: 'Memberdayakan Pembangunan Berkelanjutan Global' },
@@ -80,6 +82,34 @@ export default function InnovationShowcase({ lang, hideSdg = false }: Innovation
     ...(chdxai ? [chdxai] : []),
     ...others
   ];
+
+  // Auto-advance slideshow continuously every 2 seconds without pause (only in home slideshow mode)
+  useEffect(() => {
+    if (isVertical || extendedProjects.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % extendedProjects.length);
+    }, 2000);
+
+    return () => clearInterval(timer);
+  }, [extendedProjects.length, isVertical]);
+
+  // Keep index within range if items change
+  useEffect(() => {
+    if (currentIndex >= extendedProjects.length && extendedProjects.length > 0) {
+      setCurrentIndex(0);
+    }
+  }, [extendedProjects.length, currentIndex]);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + extendedProjects.length) % extendedProjects.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % extendedProjects.length);
+  };
+
+  const currentProject = extendedProjects[currentIndex] || extendedProjects[0];
 
   return (
     <section id="showcase" className="py-24 bg-transparent relative z-10 transition-colors duration-300">
@@ -149,7 +179,7 @@ export default function InnovationShowcase({ lang, hideSdg = false }: Innovation
         )}
 
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <span className="text-xs font-extrabold tracking-widest text-teal-600 dark:text-teal-400 uppercase bg-teal-500/10 px-3.5 py-1.5 rounded-full">
             {lang === 'en' ? 'PRODUCTS' : 'PRODUK'}
           </span>
@@ -164,127 +194,315 @@ export default function InnovationShowcase({ lang, hideSdg = false }: Innovation
           </p>
         </div>
 
-        {/* Flagship Systems List */}
-        <div className="space-y-24" id="showcase-projects-list">
-          {extendedProjects.map((project, idx) => {
-            const isEven = idx % 2 === 0;
-            return (
-              <div 
-                key={project.id}
-                className={`flex flex-col lg:flex-row items-center gap-12 ${
-                  isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'
-                }`}
-              >
-                {/* Large Project Image with Hover effects */}
-                <div className="w-full lg:w-1/2 relative group rounded-3xl overflow-hidden border border-black/5 dark:border-white/10 shadow-2xl">
-                  <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition-colors duration-300 z-10" />
-                  
-                  <img 
-                    src={project.image} 
-                    alt={project.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-[320px] sm:h-[400px] object-cover group-hover:scale-[1.03] transition-transform duration-700" 
-                  />
+        {/* CONDITIONAL RENDERING: Vertical Downward Stack for Dedicated Products Page vs Slideshow for Home */}
+        {isVertical ? (
+          /* Vertical Stacked Products View (Tampilan ke Bawah) */
+          <div className="space-y-16 sm:space-y-20">
+            {extendedProjects.map((project, idx) => {
+              const isEven = idx % 2 === 0;
+              return (
+                <div 
+                  key={project.id}
+                  className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl p-6 sm:p-10 border border-slate-200/80 dark:border-slate-800/80 shadow-xl hover:shadow-2xl transition-all duration-300 group"
+                >
+                  <div className={`flex flex-col lg:flex-row items-center gap-8 lg:gap-12 ${
+                    isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'
+                  }`}>
+                    
+                    {/* Product Image */}
+                    <div className="w-full lg:w-1/2 relative rounded-2xl overflow-hidden border border-black/5 dark:border-white/10 shadow-md bg-slate-950 flex-shrink-0">
+                      <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition-colors duration-300 z-10" />
+                      
+                      <img 
+                        src={project.image} 
+                        alt={project.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-[300px] sm:h-[360px] object-cover group-hover:scale-[1.02] transition-transform duration-700" 
+                      />
 
-                  {/* Play video overlay if video is supported */}
-                  {project.videoUrl && (
-                    <button 
-                      onClick={() => setActiveVideoUrl(project.videoUrl || null)}
-                      className="absolute inset-0 m-auto w-16 h-16 bg-white/90 backdrop-blur-md text-[#0F766E] rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 z-20"
-                      title={lang === 'en' ? 'Play Video Demonstration' : 'Putar Demonstrasi Video'}
-                    >
-                      <Play className="w-6 h-6 fill-[#0F766E] translate-x-0.5" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Project Description Details */}
-                <div className="w-full lg:w-1/2 space-y-6">
-                  <div>
-                    <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest bg-teal-500/10 px-3 py-1 rounded">
-                      {lang === 'en' ? project.tagline.en : project.tagline.id}
-                    </span>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-3">
-                      {project.name}
-                    </h3>
-                  </div>
-
-                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                    {lang === 'en' ? project.description.en : project.description.id}
-                  </p>
-
-                  {/* Key Features Bullet Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-black/5 dark:bg-white/[0.02] p-5 rounded-2xl border border-black/5 dark:border-white/5 backdrop-blur-sm">
-                    {((lang === 'en' ? project.features.en : project.features.id) || []).map((feat, fIdx) => (
-                      <div key={fIdx} className="flex items-start text-xs text-slate-700 dark:text-slate-300">
-                        <Activity className="w-4 h-4 text-teal-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="font-semibold">{feat}</span>
+                      {/* Top Badge Overlay */}
+                      <div className="absolute top-4 left-4 z-20 flex items-center space-x-1.5 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-extrabold text-teal-400">
+                        <Sparkles className="w-3 h-3 text-teal-400" />
+                        <span>PRODUCT #{String(idx + 1).padStart(2, '0')}</span>
                       </div>
-                    ))}
-                  </div>
 
-                  {/* Project Action CTA Buttons */}
-                  <div className="flex flex-wrap gap-3.5 pt-3">
-                    {project.publicationUrl && (
-                      <a
-                        href={project.publicationUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-3 bg-white/5 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white flex items-center space-x-1.5 transition-all"
-                      >
-                        <FileText className="w-4 h-4 text-slate-400" />
-                        <span>{lang === 'en' ? 'Read Paper' : 'Baca Makalah'}</span>
-                      </a>
-                    )}
+                      {/* Play video overlay */}
+                      {project.videoUrl && (
+                        <button 
+                          onClick={() => setActiveVideoUrl(project.videoUrl || null)}
+                          className="absolute inset-0 m-auto w-16 h-16 bg-white/90 backdrop-blur-md text-[#0F766E] rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 z-20 cursor-pointer"
+                          title={lang === 'en' ? 'Play Video Demonstration' : 'Putar Demonstrasi Video'}
+                        >
+                          <Play className="w-6 h-6 fill-[#0F766E] translate-x-0.5" />
+                        </button>
+                      )}
+                    </div>
 
-                    {project.githubUrl && (
-                      <a
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-3 bg-white/5 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white flex items-center space-x-1.5 transition-all"
-                      >
-                        <Github className="w-4 h-4 text-slate-400" />
-                        <span>Source Code</span>
-                      </a>
-                    )}
+                    {/* Product Details */}
+                    <div className="w-full lg:w-1/2 space-y-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest bg-teal-500/10 px-3.5 py-1 rounded-full border border-teal-500/20">
+                          {lang === 'en' ? project.tagline.en : project.tagline.id}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-md">
+                          #{String(idx + 1).padStart(2, '0')}
+                        </span>
+                      </div>
 
-                    {project.websiteUrl && (
-                      <a
-                        href={project.websiteUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-3 bg-white/5 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white flex items-center space-x-1.5 transition-all"
-                      >
-                        <Globe className="w-4 h-4 text-slate-400" />
-                        <span>Website</span>
-                      </a>
-                    )}
+                      <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        {project.name}
+                      </h3>
 
-                    {project.videoUrl && (
-                      <button
-                        onClick={() => setActiveVideoUrl(project.videoUrl || null)}
-                        className="px-4 py-3 bg-black/5 dark:bg-white/[0.03] border border-black/5 dark:border-white/5 text-slate-600 dark:text-slate-400 text-xs font-semibold rounded-xl hover:bg-black/10 dark:hover:bg-white/5 flex items-center space-x-1.5 transition-all"
-                      >
-                        {isImageUrl(project.videoUrl) ? (
-                          <>
-                            <Eye className="w-4 h-4 text-slate-400" />
-                            <span>{lang === 'en' ? 'View Image' : 'Lihat Gambar'}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Video className="w-4 h-4 text-slate-400" />
-                            <span>{lang === 'en' ? 'Watch Demo' : 'Tonton Demo'}</span>
-                          </>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed text-justify font-normal">
+                        {lang === 'en' ? project.description.en : project.description.id}
+                      </p>
+
+                      {/* Key Features Bullet Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/60">
+                        {((lang === 'en' ? project.features.en : project.features.id) || []).map((feat, fIdx) => (
+                          <div key={fIdx} className="flex items-start text-xs text-slate-700 dark:text-slate-300">
+                            <Activity className="w-4 h-4 text-teal-500 mr-2 flex-shrink-0 mt-0.5" />
+                            <span className="font-semibold">{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Project Action CTA Buttons */}
+                      <div className="flex flex-wrap gap-3 pt-2">
+                        {project.publicationUrl && (
+                          <a
+                            href={project.publicationUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-all flex items-center space-x-1.5"
+                          >
+                            <FileText className="w-4 h-4 text-teal-500" />
+                            <span>{lang === 'en' ? 'Read Paper' : 'Baca Makalah'}</span>
+                          </a>
                         )}
+
+                        {project.githubUrl && (
+                          <a
+                            href={project.githubUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-all flex items-center space-x-1.5"
+                          >
+                            <Github className="w-4 h-4 text-teal-500" />
+                            <span>Source Code</span>
+                          </a>
+                        )}
+
+                        {project.websiteUrl && (
+                          <a
+                            href={project.websiteUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-all flex items-center space-x-1.5"
+                          >
+                            <Globe className="w-4 h-4 text-teal-500" />
+                            <span>Website</span>
+                          </a>
+                        )}
+
+                        {project.videoUrl && (
+                          <button
+                            onClick={() => setActiveVideoUrl(project.videoUrl || null)}
+                            className="px-4 py-2.5 bg-teal-500/10 border border-teal-500/20 text-teal-700 dark:text-teal-300 text-xs font-bold rounded-xl hover:bg-teal-500/20 transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                          >
+                            {isImageUrl(project.videoUrl) ? (
+                              <>
+                                <Eye className="w-4 h-4 text-teal-500" />
+                                <span>{lang === 'en' ? 'View Image' : 'Lihat Gambar'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Video className="w-4 h-4 text-teal-500" />
+                                <span>{lang === 'en' ? 'Watch Demo' : 'Tonton Demo'}</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* Single-Item Auto-Looping Slideshow Container for Home Page */
+          extendedProjects.length > 0 && currentProject && (
+            <div className="relative transition-all duration-300 py-4">
+              
+              {/* Navigation Arrow Controls */}
+              {extendedProjects.length > 1 && (
+                <>
+                  <button
+                    onClick={handlePrev}
+                    className="absolute left-0 sm:-left-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white shadow-lg hover:bg-teal-600 hover:text-white dark:hover:bg-teal-500 transition-all flex items-center justify-center border border-slate-200/80 dark:border-slate-700/80 cursor-pointer hover:scale-105 active:scale-95"
+                    title={lang === 'en' ? 'Previous Product' : 'Produk Sebelumnya'}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    className="absolute right-0 sm:-right-6 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white shadow-lg hover:bg-teal-600 hover:text-white dark:hover:bg-teal-500 transition-all flex items-center justify-center border border-slate-200/80 dark:border-slate-700/80 cursor-pointer hover:scale-105 active:scale-95"
+                    title={lang === 'en' ? 'Next Product' : 'Produk Selanjutnya'}
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+
+              {/* Slide Content Card - Open Clean Design */}
+              <div key={currentProject.id} className="animate-in fade-in zoom-in-98 duration-300 px-2 sm:px-6">
+                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-14">
+                  
+                  {/* Large Product Image with Clean Rounded Frame */}
+                  <div className="w-full lg:w-1/2 relative group rounded-2xl overflow-hidden border border-black/5 dark:border-white/10 shadow-lg bg-slate-950">
+                    <div className="absolute inset-0 bg-slate-950/20 group-hover:bg-slate-950/40 transition-colors duration-300 z-10" />
+                    
+                    <img 
+                      src={currentProject.image} 
+                      alt={currentProject.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-[320px] sm:h-[400px] object-cover group-hover:scale-[1.02] transition-transform duration-700" 
+                    />
+
+                    {/* Top Badge Overlay */}
+                    <div className="absolute top-4 left-4 z-20 flex items-center space-x-1.5 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-extrabold text-teal-400">
+                      <Sparkles className="w-3 h-3 text-teal-400" />
+                      <span>{lang === 'en' ? 'FLAGSHIP PRODUCT' : 'PRODUK UNGGULAN'}</span>
+                    </div>
+
+                    {/* Play video overlay if video is supported */}
+                    {currentProject.videoUrl && (
+                      <button 
+                        onClick={() => setActiveVideoUrl(currentProject.videoUrl || null)}
+                        className="absolute inset-0 m-auto w-16 h-16 bg-white/90 backdrop-blur-md text-[#0F766E] rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 z-20 cursor-pointer"
+                        title={lang === 'en' ? 'Play Video Demonstration' : 'Putar Demonstrasi Video'}
+                      >
+                        <Play className="w-6 h-6 fill-[#0F766E] translate-x-0.5" />
                       </button>
                     )}
                   </div>
+
+                  {/* Product Description Details - Unboxed Clean Layout */}
+                  <div className="w-full lg:w-1/2 space-y-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest bg-teal-500/10 px-3.5 py-1 rounded-full border border-teal-500/20">
+                        {lang === 'en' ? currentProject.tagline.en : currentProject.tagline.id}
+                      </span>
+                      <div className="flex items-center space-x-1 text-xs font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-md">
+                        <span className="text-teal-600 dark:text-teal-400">{String(currentIndex + 1).padStart(2, '0')}</span>
+                        <span>/</span>
+                        <span>{String(extendedProjects.length).padStart(2, '0')}</span>
+                      </div>
+                    </div>
+
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                      {currentProject.name}
+                    </h3>
+
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed text-justify font-normal">
+                      {lang === 'en' ? currentProject.description.en : currentProject.description.id}
+                    </p>
+
+                    {/* Key Features Bullet Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/60">
+                      {((lang === 'en' ? currentProject.features.en : currentProject.features.id) || []).map((feat, fIdx) => (
+                        <div key={fIdx} className="flex items-start text-xs text-slate-700 dark:text-slate-300">
+                          <Activity className="w-4 h-4 text-teal-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span className="font-semibold">{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Project Action CTA Buttons */}
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      {currentProject.publicationUrl && (
+                        <a
+                          href={currentProject.publicationUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-all flex items-center space-x-1.5"
+                        >
+                          <FileText className="w-4 h-4 text-teal-500" />
+                          <span>{lang === 'en' ? 'Read Paper' : 'Baca Makalah'}</span>
+                        </a>
+                      )}
+
+                      {currentProject.githubUrl && (
+                        <a
+                          href={currentProject.githubUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-all flex items-center space-x-1.5"
+                        >
+                          <Github className="w-4 h-4 text-teal-500" />
+                          <span>Source Code</span>
+                        </a>
+                      )}
+
+                      {currentProject.websiteUrl && (
+                        <a
+                          href={currentProject.websiteUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-all flex items-center space-x-1.5"
+                        >
+                          <Globe className="w-4 h-4 text-teal-500" />
+                          <span>Website</span>
+                        </a>
+                      )}
+
+                      {currentProject.videoUrl && (
+                        <button
+                          onClick={() => setActiveVideoUrl(currentProject.videoUrl || null)}
+                          className="px-4 py-2.5 bg-teal-500/10 border border-teal-500/20 text-teal-700 dark:text-teal-300 text-xs font-bold rounded-xl hover:bg-teal-500/20 transition-all flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                        >
+                          {isImageUrl(currentProject.videoUrl) ? (
+                            <>
+                              <Eye className="w-4 h-4 text-teal-500" />
+                              <span>{lang === 'en' ? 'View Image' : 'Lihat Gambar'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Video className="w-4 h-4 text-teal-500" />
+                              <span>{lang === 'en' ? 'Watch Demo' : 'Tonton Demo'}</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Slideshow Bottom Pagination Indicator Bars */}
+              {extendedProjects.length > 1 && (
+                <div className="flex items-center justify-center space-x-2 mt-10">
+                  {extendedProjects.map((proj, pIdx) => (
+                    <button
+                      key={proj.id}
+                      onClick={() => setCurrentIndex(pIdx)}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        pIdx === currentIndex 
+                          ? 'w-10 bg-teal-600 dark:bg-teal-400 shadow-xs' 
+                          : 'w-2.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-500'
+                      }`}
+                      title={proj.name}
+                    />
+                  ))}
+                </div>
+              )}
+
+            </div>
+          )
+        )}
 
       </div>
 
@@ -319,3 +537,4 @@ export default function InnovationShowcase({ lang, hideSdg = false }: Innovation
     </section>
   );
 }
+
