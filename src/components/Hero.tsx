@@ -8,7 +8,8 @@ import {
   Users, 
   Network, 
   FileText, 
-  Sparkles 
+  Sparkles,
+  Server
 } from 'lucide-react';
 import { Language } from '../types';
 import { motion } from 'motion/react';
@@ -358,10 +359,11 @@ export default function Hero({ lang, setActiveSection }: HeroProps) {
             </button>
 
             <button
-              onClick={() => handleCtaClick('students')}
-              className="w-full sm:w-auto px-8 py-4 bg-teal-500/10 dark:bg-teal-500/20 border border-teal-500/20 hover:bg-teal-500/25 text-teal-700 dark:text-teal-300 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+              onClick={() => handleCtaClick('infrastructure')}
+              className="w-full sm:w-auto px-8 py-4 bg-teal-500/10 dark:bg-teal-500/20 border border-teal-500/20 hover:bg-teal-500/25 text-teal-700 dark:text-teal-300 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <span>{lang === 'en' ? 'Join Our Team' : 'Gabung Bersama'}</span>
+              <Server className="w-5 h-5" />
+              <span>{lang === 'en' ? 'Our Infrastructure' : 'Infrastruktur Kami'}</span>
             </button>
           </div>
         </div>

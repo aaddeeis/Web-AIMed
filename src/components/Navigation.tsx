@@ -15,7 +15,8 @@ import {
   FileText,
   MessageSquare,
   Trophy,
-  Settings
+  Settings,
+  Server
 } from 'lucide-react';
 import { Language } from '../types';
 

@@ -84,9 +84,6 @@ export default function App() {
               lang={lang} 
               setActiveSection={setActiveSection}
             />
-            <Laboratory 
-              lang={lang} 
-            />
             <ImpactDashboard 
               lang={lang} 
             />
@@ -107,6 +104,12 @@ export default function App() {
           /* Tampilan Komunikasi (Communication View) */
           <>
             <Communication lang={lang} setActiveSection={setActiveSection} />
+            <ContactSection lang={lang} />
+          </>
+        ) : (activeSection === 'infrastructure' || activeSection === 'laboratory') ? (
+          /* Tampilan Infrastruktur (Our Infrastructure View) */
+          <>
+            <Laboratory lang={lang} />
             <ContactSection lang={lang} />
           </>
         ) : activeSection === 'performance' ? (
@@ -140,9 +143,6 @@ export default function App() {
             <Communication 
               lang={lang} 
               setActiveSection={setActiveSection}
-            />
-            <Laboratory 
-              lang={lang} 
             />
             <ImpactDashboard 
               lang={lang} 
