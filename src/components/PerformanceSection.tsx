@@ -117,7 +117,18 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
       url: '#'
     }));
 
-  const promotionsData = [...promotions, ...pastEventsMapped];
+  const filteredPromotions = (promotions || []).filter(item => {
+    const cat = (item.category || '').toLowerCase();
+    const id = (item.id || '').toLowerCase();
+    return !cat.includes('community') &&
+           !cat.includes('recognition') &&
+           !cat.includes('education') &&
+           !id.includes('promo-rural') &&
+           !id.includes('promo-flagship') &&
+           !id.includes('promo-ai-seminar');
+  });
+
+  const promotionsData = [...filteredPromotions, ...pastEventsMapped];
 
   return (
     <section id="performance" className="py-24 bg-transparent relative z-10 transition-colors duration-300">
@@ -634,50 +645,59 @@ export default function PerformanceSection({ lang }: PerformanceSectionProps) {
             {/* 4. PROMOTION TAB */}
             {activeTab === 'promotion' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 max-w-5xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {promotionsData.map((item, idx) => (
-                    <div key={idx} className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-1 transition-all">
-                      <div>
-                        {/* News/Promo banner image */}
-                        <div className="h-44 w-full relative overflow-hidden">
-                          <img 
-                            src={item.image} 
-                            alt={lang === 'en' ? item.title.en : item.title.id} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            referrerPolicy="no-referrer"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                          <div className="absolute bottom-3 left-4">
-                            <span className="px-2 py-0.5 bg-teal-500 text-white text-[9px] font-bold rounded-md uppercase">
-                              {item.category}
-                            </span>
+                {promotionsData.length === 0 ? (
+                  <div className="text-center py-16 text-slate-500 dark:text-slate-400 glass-card rounded-3xl p-8">
+                    <Megaphone className="w-10 h-10 mx-auto mb-3 opacity-40 text-teal-500" />
+                    <p className="text-sm font-medium">
+                      {lang === 'en' ? 'No promotion articles available at the moment.' : 'Belum ada artikel promosi saat ini.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {promotionsData.map((item, idx) => (
+                      <div key={idx} className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-1 transition-all">
+                        <div>
+                          {/* News/Promo banner image */}
+                          <div className="h-44 w-full relative overflow-hidden">
+                            <img 
+                              src={item.image} 
+                              alt={lang === 'en' ? item.title.en : item.title.id} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                            <div className="absolute bottom-3 left-4">
+                              <span className="px-2 py-0.5 bg-teal-500 text-white text-[9px] font-bold rounded-md uppercase">
+                                {item.category}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Text description */}
+                          <div className="p-5 space-y-2.5">
+                            <div className="text-[10px] font-semibold text-slate-400">
+                              {item.date}
+                            </div>
+                            <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-snug">
+                              {lang === 'en' ? item.title.en : item.title.id}
+                            </h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                              {lang === 'en' ? item.coverage.en : item.coverage.id}
+                            </p>
                           </div>
                         </div>
 
-                        {/* Text description */}
-                        <div className="p-5 space-y-2.5">
-                          <div className="text-[10px] font-semibold text-slate-400">
-                            {item.date}
-                          </div>
-                          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-snug">
-                            {lang === 'en' ? item.title.en : item.title.id}
-                          </h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                            {lang === 'en' ? item.coverage.en : item.coverage.id}
-                          </p>
+                        {/* Card Footer detail */}
+                        <div className="p-5 pt-0">
+                          <button className="w-full py-2.5 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[10px] font-bold text-slate-700 dark:text-slate-300 rounded-xl transition-all flex items-center justify-center space-x-1 uppercase">
+                            <span>View Outreach Article</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
-
-                      {/* Card Footer detail */}
-                      <div className="p-5 pt-0">
-                        <button className="w-full py-2.5 bg-black/5 dark:bg-white/[0.04] border border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[10px] font-bold text-slate-700 dark:text-slate-300 rounded-xl transition-all flex items-center justify-center space-x-1 uppercase">
-                          <span>View Outreach Article</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
