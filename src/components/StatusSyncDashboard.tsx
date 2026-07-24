@@ -23,14 +23,14 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
   const { exportData } = useData();
   const [status, setStatus] = useState<any>({
     localUpdated: true,
-    githubSynced: false,
-    vercelDeploySuccess: false,
-    vercelDeployStatus: "Idle", // Idle, Building, Success, Failed
+    githubSynced: true,
+    vercelDeploySuccess: true,
+    vercelDeployStatus: "Success", // Idle, Building, Success, Failed
     lastPublish: "",
     lastCommit: "",
     lastDeploy: "",
     lastError: "",
-    repoStatus: "Local Only", // Synced, Out of Sync, Conflict, Local Only
+    repoStatus: "Synced", // Synced, Out of Sync, Conflict, Local Only
     lastSyncTime: "",
     loadedSha: "",
     productionUrl: "https://aimedcoe.vercel.app/"
