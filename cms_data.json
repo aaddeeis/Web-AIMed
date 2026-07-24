@@ -172,16 +172,6 @@
         "year": 2026,
         "doi": "10.1038/s41598-026-39192-1",
         "link": "https://www.nature.com/articles/s41598-026-39192-1"
-      },
-      {
-        "id": "id-1784866754428",
-        "title": "Robust SegFormer-Based Cervical Neoplastic Lesion Segmentation Using Lesion-Specific Augmentation and Anatomical Label Optimization ",
-        "authors": "",
-        "journal": "IEEE Journal of Biomedical and Health Informatics",
-        "details": "Vol. 13, Hal. 205915–205931",
-        "year": 2026,
-        "doi": "10.1109/ACCESS.2025.3639572",
-        "link": "https://ieeexplore.ieee.org/document/11275672"
       }
     ],
     "conferences": [
