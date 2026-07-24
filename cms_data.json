@@ -352,6 +352,21 @@
   ],
   "news": [
     {
+      "id": "id-1784861603055",
+      "title": {
+        "en": "ini saya coba dulu ya",
+        "id": "ini saya coba dulu ya"
+      },
+      "category": "research",
+      "date": "2026-07-24",
+      "image": "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800",
+      "content": {
+        "en": "coba aja dlu\n",
+        "id": "coba aja dlu\n"
+      },
+      "tags": []
+    },
+    {
       "id": "news-1",
       "title": {
         "en": "AIMed CoE Mengamankan Hibah Penelitian BRIN Bergengsi untuk Pencitraan AI Janin",
@@ -370,24 +385,6 @@
       }
     },
     {
-      "id": "news-2",
-      "title": {
-        "en": "Prof. Ir. Siti Nurmaini, M.T, Ph.D Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam Bidang AI",
-        "id": "Prof. Ir. Siti Nurmaini, M.T, Ph.D Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam Bidang AI"
-      },
-      "date": "2025-11-10",
-      "image": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
-      "images": [
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
-        "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800",
-        "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800"
-      ],
-      "content": {
-        "en": "Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju.",
-        "id": "Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju."
-      }
-    },
-    {
       "id": "news-3",
       "title": {
         "en": "Seminar Hibrida Internasional tentang Model Deep Learning Terjelaskan untuk Keselamatan Pasien",
@@ -403,6 +400,24 @@
       "content": {
         "en": "AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti 'Kepercayaan Klinis dan Sistem XAI' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis.",
         "id": "AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti 'Kepercayaan Klinis dan Sistem XAI' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis."
+      }
+    },
+    {
+      "id": "news-2",
+      "title": {
+        "en": "Prof. Ir. Siti Nurmaini, M.T, Ph.D Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam Bidang AI",
+        "id": "Prof. Ir. Siti Nurmaini, M.T, Ph.D Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam Bidang AI"
+      },
+      "date": "2025-11-10",
+      "image": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+      "images": [
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800"
+      ],
+      "content": {
+        "en": "Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju.",
+        "id": "Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju."
       }
     }
   ],
