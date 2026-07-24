@@ -352,36 +352,6 @@
   ],
   "news": [
     {
-      "id": "id-1784867888260",
-      "title": {
-        "en": "percobaan",
-        "id": "percobaan"
-      },
-      "category": "research",
-      "date": "2026-07-24",
-      "image": "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800",
-      "content": {
-        "en": "coba",
-        "id": "coba"
-      },
-      "tags": []
-    },
-    {
-      "id": "id-1784863450178",
-      "title": {
-        "en": "coba lagi",
-        "id": "coba lagi"
-      },
-      "category": "research",
-      "date": "2026-07-24",
-      "image": "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800",
-      "content": {
-        "en": "ini coba",
-        "id": "ini coba"
-      },
-      "tags": []
-    },
-    {
       "id": "news-1",
       "title": {
         "en": "AIMed CoE Mengamankan Hibah Penelitian BRIN Bergengsi untuk Pencitraan AI Janin",
@@ -400,24 +370,6 @@
       }
     },
     {
-      "id": "news-3",
-      "title": {
-        "en": "Seminar Hibrida Internasional tentang Model Deep Learning Terjelaskan untuk Keselamatan Pasien",
-        "id": "Seminar Hibrida Internasional tentang Model Deep Learning Terjelaskan untuk Keselamatan Pasien"
-      },
-      "date": "2026-03-05",
-      "image": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800",
-      "images": [
-        "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800",
-        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800",
-        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800"
-      ],
-      "content": {
-        "en": "AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti 'Kepercayaan Klinis dan Sistem XAI' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis.",
-        "id": "AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti 'Kepercayaan Klinis dan Sistem XAI' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis."
-      }
-    },
-    {
       "id": "news-2",
       "title": {
         "en": "Prof. Ir. Siti Nurmaini, M.T, Ph.D Masuk dalam Daftar 2% Ilmuwan Teratas Dunia dalam Bidang AI",
@@ -433,6 +385,24 @@
       "content": {
         "en": "Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju.",
         "id": "Ketua AIMed CoE, Prof. Ir. Siti Nurmaini, M.T, Ph.D, telah diakui oleh pengindeksan tahunan Universitas Stanford sebagai bagian dari 2% ilmuwan paling banyak dikutip di seluruh dunia dalam subbidang Kecerdasan Buatan, Visi Komputer, dan Rekayasa Biomedis. Karyanya yang memelopori deep learning medis dan klasifikasi sinyal jantung terus mendorong komputasi medis Indonesia maju."
+      }
+    },
+    {
+      "id": "news-3",
+      "title": {
+        "en": "Seminar Hibrida Internasional tentang Model Deep Learning Terjelaskan untuk Keselamatan Pasien",
+        "id": "Seminar Hibrida Internasional tentang Model Deep Learning Terjelaskan untuk Keselamatan Pasien"
+      },
+      "date": "2026-03-05",
+      "image": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800",
+      "images": [
+        "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800"
+      ],
+      "content": {
+        "en": "AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti 'Kepercayaan Klinis dan Sistem XAI' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis.",
+        "id": "AIMed CoE menyelenggarakan seminar hibrida global yang menyoroti 'Kepercayaan Klinis dan Sistem XAI' yang menampilkan pembicara terhormat dari Universitas Tohoku dan Rumah Sakit Universitas Nasional Singapura. Lebih dari 500 peneliti online bergabung untuk menguji penggunaan Layer-wise Relevance Propagation pada pipa pencitraan klinis."
       }
     }
   ],
