@@ -936,7 +936,7 @@
     },
     {
       "id": "ig-3",
-      "link": "https://www.instagram.com/p/C8v_z9pS0X5/",
+      "link": "https://www.instagram.com/p/DZdgTdvk7Me/?img_index=1",
       "image": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800",
       "caption": {
         "en": "🔬 Collaborative coding session with international researchers from Tohoku University. Building next-generation speckle reduction GAN models.",
@@ -946,7 +946,7 @@
     },
     {
       "id": "ig-4",
-      "link": "https://www.instagram.com/p/C6t-YIuL3Wq/",
+      "link": "https://www.instagram.com/p/DYEvhlzifVH/?img_index=1",
       "image": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=800",
       "caption": {
         "en": "⚡ Running ultra-fast multi-node batch trainings on our newly installed NVIDIA H100 GPU cluster nodes inside the central laboratory room!",
@@ -955,28 +955,8 @@
       "date": "3 weeks ago"
     },
     {
-      "id": "ig-5",
-      "link": "https://www.instagram.com/p/C58011gPxjZ/",
-      "image": "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800",
-      "caption": {
-        "en": "📅 Wrapping up our monthly Research Seminar! Excellent ideas presented on multi-modal maternal databases and federated clinical networks.",
-        "id": "📅 Menyelesaikan Seminar Penelitian bulanan kami! Ide luar biasa dipresentasikan tentang database maternal multi-modal dan jaringan klinis terfederasi."
-      },
-      "date": "1 month ago"
-    },
-    {
-      "id": "ig-6",
-      "link": "https://www.instagram.com/p/C4A11Z5PuG7/",
-      "image": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800",
-      "caption": {
-        "en": "🏥 TeleOTIVA field testing in local community clinics. Bridging the gap between frontier AI algorithms and maternal health coverage.",
-        "id": "🏥 Uji coba lapangan TeleOTIVA di klinik komunitas lokal. Menjembatani kesenjangan antara algoritma AI mutakhir dan cakupan kesehatan ibu."
-      },
-      "date": "1 month ago"
-    },
-    {
       "id": "ig-7",
-      "link": "https://www.instagram.com/p/C3fI1Z5PuG7/",
+      "link": "https://www.instagram.com/p/DQtGNdSk5Pw/?img_index=1",
       "image": "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&q=80&w=800",
       "caption": {
         "en": "💻 Brainstorming with student interns. Encouraging computational innovation to address underserved regional healthcare needs!",
@@ -986,33 +966,13 @@
     },
     {
       "id": "ig-8",
-      "link": "https://www.instagram.com/p/C2_I1Z5P_u8/",
+      "link": "https://www.instagram.com/p/DN415w3EwkD/?img_index=1",
       "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800",
       "caption": {
         "en": "🏆 Celebrated the registration of our latest intellectual property (IP) for maternal fetal monitoring. Onwards and upwards!",
         "id": "🏆 Merayakan pendaftaran kekayaan intelektual (KI) terbaru kami untuk pemantauan janin ibu. Terus maju dan berkembang!"
       },
       "date": "2 months ago"
-    },
-    {
-      "id": "ig-9",
-      "link": "https://www.instagram.com/p/C1A11Z5PuG7/",
-      "image": "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800",
-      "caption": {
-        "en": "👥 Honored to host the regional healthcare delegation at AIMed CoE. Discussing the integration of AI modules into regional health policy.",
-        "id": "👥 Kehormatan bagi kami untuk menyambut delegasi layanan kesehatan regional di AIMed CoE. Membahas integrasi modul AI ke dalam kebijakan kesehatan wilayah."
-      },
-      "date": "2 months ago"
-    },
-    {
-      "id": "ig-10",
-      "link": "https://www.instagram.com/p/C0A11Z5PuG7/",
-      "image": "https://images.unsplash.com/photo-1504813184591-015578c77d5f?auto=format&fit=crop&q=80&w=800",
-      "caption": {
-        "en": "🌟 A sneak peek into our custom PCB prototypes built with real-time Edge-AI processors for mobile ultrasound streaming.",
-        "id": "🌟 Intipan prototipe PCB kustom kami yang dibuat dengan prosesor Edge-AI real-time untuk streaming ultrasound seluler."
-      },
-      "date": "3 months ago"
     }
   ],
   "massMedia": [
