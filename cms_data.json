@@ -367,6 +367,21 @@
       "tags": []
     },
     {
+      "id": "id-1784863450178",
+      "title": {
+        "en": "coba lagi",
+        "id": "coba lagi"
+      },
+      "category": "research",
+      "date": "2026-07-24",
+      "image": "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&q=80&w=800",
+      "content": {
+        "en": "ini coba",
+        "id": "ini coba"
+      },
+      "tags": []
+    },
+    {
       "id": "news-1",
       "title": {
         "en": "AIMed CoE Mengamankan Hibah Penelitian BRIN Bergengsi untuk Pencitraan AI Janin",
