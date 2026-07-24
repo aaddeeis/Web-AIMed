@@ -35,8 +35,8 @@ import { Language } from '../types';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-// Helper to compress an uploaded Image file to lightweight base64 JPEG
-const compressImage = (file: File, maxDimension = 400, quality = 0.55): Promise<string> => {
+// Helper to read an uploaded Image file into high-definition base64
+const compressImage = (file: File, maxDimension = 2048, quality = 0.95): Promise<string> => {
   return new Promise((resolve) => {
     if (!file || !file.type.startsWith('image/')) {
       resolve('');
@@ -44,67 +44,8 @@ const compressImage = (file: File, maxDimension = 400, quality = 0.55): Promise<
     }
     const reader = new FileReader();
     reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        let currentDim = maxDimension;
-        let currentQuality = quality;
-        let base64Result = "";
-        
-        // Iteratively downscale / compress to ensure resulting base64 is under safe threshold (~80KB base64 length)
-        for (let attempt = 0; attempt < 5; attempt++) {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > currentDim) {
-              height = Math.round((height * currentDim) / width);
-              width = currentDim;
-            }
-          } else {
-            if (height > currentDim) {
-              width = Math.round((width * currentDim) / height);
-              height = currentDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            base64Result = e.target?.result as string || "";
-            break;
-          }
-
-          ctx.drawImage(img, 0, 0, width, height);
-          base64Result = canvas.toDataURL('image/jpeg', currentQuality);
-
-          // If under ~80KB base64 string length, we are extremely safe
-          if (base64Result.length < 110000) {
-            break;
-          }
-          
-          // Otherwise, compress harder
-          currentDim = Math.round(currentDim * 0.75);
-          currentQuality = Math.max(0.15, currentQuality - 0.15);
-        }
-
-        resolve(base64Result);
-      };
-      
-      img.onerror = () => {
-        const raw = e.target?.result as string || '';
-        // Truncate or empty if raw string is too huge to prevent HTTP 413
-        if (raw.length > 150000) {
-          console.warn("Raw image is too large and compression failed. Rejecting raw image to protect server payload size limits.");
-          resolve('');
-        } else {
-          resolve(raw);
-        }
-      };
-      
-      img.src = e.target?.result as string;
+      const raw = e.target?.result as string || '';
+      resolve(raw);
     };
     reader.onerror = () => {
       resolve('');
@@ -113,53 +54,9 @@ const compressImage = (file: File, maxDimension = 400, quality = 0.55): Promise<
   });
 };
 
-// Helper to compress an existing base64 image string to lightweight JPEG
-const compressBase64Image = (base64Str: string, maxDimension = 1000, quality = 0.75): Promise<string> => {
-  return new Promise((resolve) => {
-    if (!base64Str || !base64Str.startsWith('data:image/')) {
-      resolve(base64Str);
-      return;
-    }
-    // If it's already small enough (e.g., under 135KB which is ~100KB binary), don't re-compress
-    if (base64Str.length < 135000) {
-      resolve(base64Str);
-      return;
-    }
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > maxDimension) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        }
-      } else {
-        if (height > maxDimension) {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        resolve(base64Str);
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    img.onerror = () => {
-      resolve(base64Str);
-    };
-    img.src = base64Str;
-  });
+// Helper to preserve HD base64 image strings without lossy re-compression
+const compressBase64Image = (base64Str: string, _maxDimension = 2048, _quality = 0.95): Promise<string> => {
+  return Promise.resolve(base64Str);
 };
 
 interface AdminConsoleProps {
@@ -210,9 +107,9 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   value, 
   onChange, 
   placeholder,
-  maxDimension = 400,
-  quality = 0.55,
-  skipCompression = false
+  maxDimension = 2048,
+  quality = 0.95,
+  skipCompression = true
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -488,7 +385,7 @@ export default function AdminConsole({ lang, isOpen, onClose }: AdminConsoleProp
   const handleSaveLabContent = async () => {
     setIsSavingLab(true);
     try {
-      showMsg(lang === 'en' ? 'Optimizing and compressing images...' : 'Mengoptimalkan dan mengompres gambar...');
+      showMsg(lang === 'en' ? 'Saving laboratory content...' : 'Menyimpan konten laboratorium...');
 
       // Compress labGeneral images
       const compressedGeneral = { ...labGeneral };
