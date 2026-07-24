@@ -43,6 +43,17 @@ export function getInstagramShortcode(url: string): string | null {
   return match ? match[1] : url.trim();
 }
 
+const dateParts = (value: string, lang: Language) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return { month: '', day: '', year: '' }
+  const locale = lang === 'id' ? 'id-ID' : 'en-US'
+  return {
+    month: new Intl.DateTimeFormat(locale, { month: 'short' }).format(date).toUpperCase(),
+    day: new Intl.DateTimeFormat(locale, { day: 'numeric' }).format(date),
+    year: new Intl.DateTimeFormat(locale, { year: 'numeric' }).format(date),
+  }
+}
+
 function UpcomingCalendarSlide({ 
   events, 
   lang, 
@@ -64,10 +75,7 @@ function UpcomingCalendarSlide({
   }
 
   const currentEvent = events[slideIndex % events.length];
-  const dateParts = (currentEvent.date || '').split(' ');
-  const monthStr = dateParts[0] ? dateParts[0].substring(0, 3).toUpperCase() : 'JUL';
-  const dayStr = dateParts[1] ? dateParts[1].replace(',', '') : '28';
-  const yearStr = dateParts[2] || '2026';
+  const eventDate = dateParts(currentEvent.date || '', lang);
 
   const handlePrev = () => {
     setSlideIndex((prev) => (prev - 1 + events.length) % events.length);
@@ -114,14 +122,14 @@ function UpcomingCalendarSlide({
           {/* Calendar Badge */}
           <div className="w-16 h-18 flex-shrink-0 bg-slate-100 dark:bg-slate-950 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 text-center flex flex-col shadow-sm">
             <div className="bg-sky-500 dark:bg-sky-600 text-white text-[10px] font-extrabold uppercase py-1 tracking-wider">
-              {monthStr}
+              {eventDate.month}
             </div>
             <div className="flex-1 flex flex-col justify-center bg-white dark:bg-slate-900 p-1">
               <span className="text-xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tighter">
-                {dayStr}
+                {eventDate.day}
               </span>
               <span className="text-[8px] font-mono font-bold text-slate-400 leading-none mt-1">
-                {yearStr}
+                {eventDate.year}
               </span>
             </div>
           </div>
@@ -939,10 +947,7 @@ export default function Communication({ lang, setActiveSection, initialTab = 'ac
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {filteredEvents.map((evt) => {
-                    const dateParts = evt.date.split(' ');
-                    const monthStr = dateParts[0] ? dateParts[0].substring(0, 3).toUpperCase() : 'JUL';
-                    const dayStr = dateParts[1] ? dateParts[1].replace(',', '') : '28';
-                    const yearStr = dateParts[2] || '2026';
+                    const eventDate = dateParts(evt.date, lang);
 
                     return (
                       <div 
@@ -954,14 +959,14 @@ export default function Communication({ lang, setActiveSection, initialTab = 'ac
                           <div className="flex items-start justify-between">
                             <div className="w-14 h-16 bg-slate-100 dark:bg-slate-950 rounded-xl overflow-hidden border border-black/10 dark:border-white/10 text-center flex flex-col shadow-2xs">
                               <div className="bg-sky-500 dark:bg-sky-600 text-white text-[9px] font-extrabold uppercase py-0.5 tracking-wider">
-                                {monthStr}
+                              {eventDate.month}
                               </div>
                               <div className="flex-1 flex flex-col justify-center bg-white dark:bg-slate-900 p-1">
                                 <span className="text-base font-extrabold text-slate-900 dark:text-white leading-none tracking-tighter">
-                                  {dayStr}
+                                  {eventDate.day}
                                 </span>
                                 <span className="text-[7px] font-mono font-bold text-slate-400 leading-none mt-0.5">
-                                  {yearStr}
+                                  {eventDate.year}
                                 </span>
                               </div>
                             </div>
