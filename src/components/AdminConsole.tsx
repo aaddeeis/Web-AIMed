@@ -35,8 +35,8 @@ import { Language } from '../types';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-// Helper to read an uploaded Image file into high-definition base64
-const compressImage = (file: File, maxDimension = 2048, quality = 0.95): Promise<string> => {
+// Helper to process uploaded image files into high-definition (HD 2048px, quality 0.90) base64
+const compressImage = (file: File, maxDimension = 2048, quality = 0.90): Promise<string> => {
   return new Promise((resolve) => {
     if (!file || !file.type.startsWith('image/')) {
       resolve('');
@@ -45,7 +45,50 @@ const compressImage = (file: File, maxDimension = 2048, quality = 0.95): Promise
     const reader = new FileReader();
     reader.onload = (e) => {
       const raw = e.target?.result as string || '';
-      resolve(raw);
+      // If small file (< 300KB), return raw base64 as is
+      if (file.size < 300 * 1024) {
+        resolve(raw);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(raw);
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const hdBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(hdBase64);
+      };
+
+      img.onerror = () => {
+        resolve(raw);
+      };
+
+      img.src = raw;
     };
     reader.onerror = () => {
       resolve('');
@@ -54,9 +97,56 @@ const compressImage = (file: File, maxDimension = 2048, quality = 0.95): Promise
   });
 };
 
-// Helper to preserve HD base64 image strings without lossy re-compression
-const compressBase64Image = (base64Str: string, _maxDimension = 2048, _quality = 0.95): Promise<string> => {
-  return Promise.resolve(base64Str);
+// Helper to optimize existing base64 image strings if they exceed safe size limits (>1MB base64)
+const compressBase64Image = (base64Str: string, maxDimension = 2048, quality = 0.90): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!base64Str || !base64Str.startsWith('data:image/')) {
+      resolve(base64Str);
+      return;
+    }
+    if (base64Str.length < 1000000) {
+      resolve(base64Str);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64Str);
+        return;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+
+    img.onerror = () => {
+      resolve(base64Str);
+    };
+
+    img.src = base64Str;
+  });
 };
 
 interface AdminConsoleProps {
@@ -108,40 +198,32 @@ const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   onChange, 
   placeholder,
   maxDimension = 2048,
-  quality = 0.95,
-  skipCompression = true
+  quality = 0.90,
+  skipCompression = false
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
   const handleFile = async (file: File) => {
     if (file && file.type.startsWith('image/')) {
-      if (skipCompression) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result && typeof e.target.result === 'string') {
-            onChange(e.target.result);
-          }
-        };
-        reader.readAsDataURL(file);
-        return;
-      }
       try {
         const compressed = await compressImage(file, maxDimension, quality);
         if (compressed) {
           onChange(compressed);
+          return;
         }
       } catch (error) {
-        console.error('Error compressing image:', error);
-        // Fallback to reading file directly
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result && typeof e.target.result === 'string') {
-            onChange(e.target.result);
-          }
-        };
-        reader.readAsDataURL(file);
+        console.error('Error processing HD image:', error);
       }
+
+      // Fallback
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result && typeof e.target.result === 'string') {
+          onChange(e.target.result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
