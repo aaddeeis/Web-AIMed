@@ -162,44 +162,7 @@
     }
   ],
   "publicationsData": {
-    "journals": [
-      {
-        "id": "j-1",
-        "title": "Deep Multi-Attention U-Net for Chamber Segmentation in Fetal Echocardiography Ultrasound",
-        "authors": "Samsuryadi, S., Putra, P., Pratama, A. R., & Takahashi, M.",
-        "journal": "Biomedical Signal Processing and Control",
-        "details": "Elsevier, Vol. 94, Article 105432",
-        "year": 2025,
-        "doi": "10.1016/j.bspc.2025.105432"
-      },
-      {
-        "id": "j-2",
-        "title": "Cervical Cancer Lesion Detection on Visual Inspection Images with Acetic Acid using Edge-Cloud Collaborative Deep Models",
-        "authors": "Sukemi, S., Fachrurrozi, M., Yusliani, N., & O’Connor, J.",
-        "journal": "IEEE Access",
-        "details": "IEEE, Vol. 12, pp. 55410-55425",
-        "year": 2024,
-        "doi": "10.1109/ACCESS.2024.3392812"
-      },
-      {
-        "id": "j-3",
-        "title": "Dual-Discriminator Generative Adversarial Networks for Ultrasound Speckle Suppression and Edge Sharpening",
-        "authors": "Putra, P., Samsuryadi, S., & Rosana, L.",
-        "journal": "International Journal of Computer Assisted Radiology and Surgery",
-        "details": "Springer, pp. 1-14",
-        "year": 2025,
-        "doi": "10.1007/s11548-025-03102-1"
-      },
-      {
-        "id": "j-4",
-        "title": "Explainable AI Pathways in Tropical Disease Radiographs using Grad-CAM and Layer-wise Relevance Propagation",
-        "authors": "Fachrurrozi, M., Yusliani, N., & Widjaja, H.",
-        "journal": "Journal of Digital Imaging",
-        "details": "Springer, Vol. 36, No. 4, pp. 811-824",
-        "year": 2023,
-        "doi": "10.1007/s10278-023-00812-y"
-      }
-    ],
+    "journals": [],
     "conferences": [
       {
         "id": "c-1",
