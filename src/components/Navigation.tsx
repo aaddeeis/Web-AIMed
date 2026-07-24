@@ -15,6 +15,7 @@ import {
   FileText,
   MessageSquare,
   Trophy,
+  Settings,
   Server
 } from 'lucide-react';
 import { Language } from '../types';
@@ -29,6 +30,7 @@ interface NavigationProps {
   onOpenChat: () => void;
   globalSearchQuery: string;
   setGlobalSearchQuery: (q: string) => void;
+  onOpenAdmin: () => void;
 }
 
 export default function Navigation({
@@ -40,7 +42,8 @@ export default function Navigation({
   setActiveSection,
   onOpenChat,
   globalSearchQuery,
-  setGlobalSearchQuery
+  setGlobalSearchQuery,
+  onOpenAdmin
 }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -106,6 +109,16 @@ export default function Navigation({
             />
           </div>
 
+          {/* Admin CMS Toggle */}
+          <button
+            onClick={onOpenAdmin}
+            className="flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-teal-500/20 dark:border-teal-500/10 bg-teal-500/10 dark:bg-teal-500/5 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 transition-all font-bold text-xs cursor-pointer"
+            title={lang === 'en' ? 'Manage Content (CMS)' : 'Kelola Konten (CMS)'}
+          >
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">CMS</span>
+          </button>
+
           {/* Language Toggle */}
           <button
             onClick={() => setLang(lang === 'en' ? 'id' : 'en')}
@@ -169,6 +182,17 @@ export default function Navigation({
               );
             })}
           </div>
+
+          <button
+            onClick={() => {
+              onOpenAdmin();
+              setMobileMenuOpen(false);
+            }}
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 cursor-pointer"
+          >
+            <Settings className="w-5 h-5" />
+            <span>{lang === 'en' ? 'Manage Content (CMS)' : 'Kelola Konten (CMS)'}</span>
+          </button>
 
           {/* Removed AI Advisor button */}
         </div>

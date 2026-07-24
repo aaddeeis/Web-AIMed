@@ -10,6 +10,7 @@ import Communication from './components/Communication';
 import ContactSection from './components/ContactSection';
 import Researchers from './components/Researchers';
 import Partners from './components/Partners';
+import AdminConsole from './components/AdminConsole';
 import { Language } from './types';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState('hero');
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
 
   // Load and apply theme class configuration on document element
   useEffect(() => {
@@ -61,6 +63,7 @@ export default function App() {
         onOpenChat={() => {}}
         globalSearchQuery={searchQuery}
         setGlobalSearchQuery={handleGlobalSearch}
+        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       {/* Main Content Layout sections */}
@@ -154,6 +157,12 @@ export default function App() {
         )}
 
       </main>
+
+      <AdminConsole 
+        isOpen={isAdminOpen} 
+        onClose={() => setIsAdminOpen(false)} 
+        lang={lang} 
+      />
 
     </div>
   );

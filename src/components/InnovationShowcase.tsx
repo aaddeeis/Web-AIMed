@@ -22,11 +22,11 @@ interface InnovationShowcaseProps {
 }
 
 export default function InnovationShowcase({ lang, hideSdg = false, isVertical = false }: InnovationShowcaseProps) {
-  const { showcaseProjects } = useData();
+  const { showcaseProjects, sdgContent } = useData();
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const currentSdg = {
+  const currentSdg = sdgContent || {
     title: { en: 'Empowering Global Sustainable Development', id: 'Memberdayakan Pembangunan Berkelanjutan Global' },
     subtitle: { en: 'SDG ALIGNMENT', id: 'KESELARASAN SDG' },
     sdg3Title: { en: 'SDG 3: Good Health & Well-being', id: 'SDG 3: Kehidupan Sehat & Sejahtera' },
@@ -73,7 +73,15 @@ export default function InnovationShowcase({ lang, hideSdg = false, isVertical =
     return url;
   };
 
-  const extendedProjects = showcaseProjects;
+  // Filter and order showcase projects as requested: TeleOTIVA first, CHDxAI second, then any newly added ones
+  const teleotiva = showcaseProjects.find(p => p.id === 'teleotiva');
+  const chdxai = showcaseProjects.find(p => p.id === 'chdxai');
+  const others = showcaseProjects.filter(p => p.id !== 'teleotiva' && p.id !== 'chdxai');
+  const extendedProjects = [
+    ...(teleotiva ? [teleotiva] : []),
+    ...(chdxai ? [chdxai] : []),
+    ...others
+  ];
 
   // Auto-advance slideshow continuously every 2 seconds without pause (only in home slideshow mode)
   useEffect(() => {
@@ -529,3 +537,4 @@ export default function InnovationShowcase({ lang, hideSdg = false, isVertical =
     </section>
   );
 }
+

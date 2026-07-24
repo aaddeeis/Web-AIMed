@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "laboratory_content": {
+      "title": "Laboratory General Content and PCs List",
+      "description": "Unified database to manage Enterprise GPU Computing Lab general settings, room pictures, descriptions, and the list of PCs",
+      "type": "object",
+      "properties": {
+        "general": {
+          "type": "object",
+          "description": "General text content, subtitles, and individual room descriptors"
+        },
+        "pcs": {
+          "type": "array",
+          "description": "Array of computer nodes inside the laboratory room"
+        }
+      },
+      "required": ["general", "pcs"]
+    },
+    "laboratory_pcs": {
+      "title": "Laboratory Computer Specifications List",
+      "description": "List of computer nodes in Lab Room 1 and Lab Room 2 with custom specs and image data",
+      "type": "object",
+      "properties": {
+        "pcs": {
+          "type": "array",
+          "description": "Array of computer nodes inside the laboratory room"
+        }
+      },
+      "required": ["pcs"]
+    }
+  },
+  "firestore": {
+    "/cms_data/laboratory_content": {
+      "schema": "laboratory_content",
+      "description": "Stores current list of all PC nodes, specifications, roles, room photos, and lab metadata"
+    }
+  }
+}
