@@ -33,7 +33,7 @@ export const StatusSyncDashboard: React.FC<StatusSyncDashboardProps> = ({ lang }
     repoStatus: "Local Only", // Synced, Out of Sync, Conflict, Local Only
     lastSyncTime: "",
     loadedSha: "",
-    productionUrl: "https://aimed-coe.vercel.app/"
+    productionUrl: "https://aimedcoe.vercel.app/"
   });
 
   const [loading, setLoading] = useState(true);
