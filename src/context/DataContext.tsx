@@ -1108,6 +1108,84 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+const optimizeBase64Image = (base64Str: string, maxDimension = 800, quality = 0.72): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!base64Str || typeof base64Str !== 'string' || !base64Str.startsWith('data:image/')) {
+      resolve(base64Str);
+      return;
+    }
+    if (base64Str.length < 60000) {
+      resolve(base64Str);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64Str);
+        return;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+
+    img.onerror = () => {
+      resolve(base64Str);
+    };
+
+    img.src = base64Str;
+  });
+};
+
+const sanitizeAndCompressCmsImages = async (data: any): Promise<any> => {
+  if (!data || typeof data !== 'object') return data;
+
+  const processNode = async (node: any): Promise<any> => {
+    if (!node) return node;
+    if (typeof node === 'string') {
+      if (node.startsWith('data:image/')) {
+        return await optimizeBase64Image(node, 800, 0.72);
+      }
+      return node;
+    }
+    if (Array.isArray(node)) {
+      return Promise.all(node.map(item => processNode(item)));
+    }
+    if (typeof node === 'object') {
+      const result: any = {};
+      for (const key of Object.keys(node)) {
+        result[key] = await processNode(node[key]);
+      }
+      return result;
+    }
+    return node;
+  };
+
+  return await processNode(data);
+};
+
   const saveToServer = async (force: boolean = false): Promise<{ 
     success: boolean; 
     conflict?: boolean;
@@ -1116,7 +1194,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }> => {
     try {
       const dataStr = exportData();
-      const parsedData = JSON.parse(dataStr);
+      const rawParsedData = JSON.parse(dataStr);
+      const parsedData = await sanitizeAndCompressCmsImages(rawParsedData);
       
       console.log('Saving CMS data to server (cms_data.json)...');
       let response: Response | null = null;

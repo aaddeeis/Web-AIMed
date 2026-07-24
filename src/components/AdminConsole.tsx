@@ -35,8 +35,8 @@ import { Language } from '../types';
 import { db } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-// Helper to process uploaded image files into high-definition (HD 2048px, quality 0.90) base64
-const compressImage = (file: File, maxDimension = 2048, quality = 0.90): Promise<string> => {
+// Helper to process uploaded image files into web-optimized lightweight base64 JPEG (~30KB-80KB)
+const compressImage = (file: File, maxDimension = 800, quality = 0.75): Promise<string> => {
   return new Promise((resolve) => {
     if (!file || !file.type.startsWith('image/')) {
       resolve('');
@@ -45,11 +45,6 @@ const compressImage = (file: File, maxDimension = 2048, quality = 0.90): Promise
     const reader = new FileReader();
     reader.onload = (e) => {
       const raw = e.target?.result as string || '';
-      // If small file (< 300KB), return raw base64 as is
-      if (file.size < 300 * 1024) {
-        resolve(raw);
-        return;
-      }
 
       const img = new Image();
       img.onload = () => {
@@ -80,12 +75,12 @@ const compressImage = (file: File, maxDimension = 2048, quality = 0.90): Promise
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
 
-        const hdBase64 = canvas.toDataURL('image/jpeg', quality);
-        resolve(hdBase64);
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
       };
 
       img.onerror = () => {
-        resolve(raw);
+        resolve(raw.length > 200000 ? '' : raw);
       };
 
       img.src = raw;
@@ -97,14 +92,14 @@ const compressImage = (file: File, maxDimension = 2048, quality = 0.90): Promise
   });
 };
 
-// Helper to optimize existing base64 image strings if they exceed safe size limits (>1MB base64)
-const compressBase64Image = (base64Str: string, maxDimension = 2048, quality = 0.90): Promise<string> => {
+// Helper to optimize existing base64 image strings if they exceed safe size limits (>70KB base64)
+const compressBase64Image = (base64Str: string, maxDimension = 800, quality = 0.75): Promise<string> => {
   return new Promise((resolve) => {
     if (!base64Str || !base64Str.startsWith('data:image/')) {
       resolve(base64Str);
       return;
     }
-    if (base64Str.length < 1000000) {
+    if (base64Str.length < 70000) {
       resolve(base64Str);
       return;
     }
