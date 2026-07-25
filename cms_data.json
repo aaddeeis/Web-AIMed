@@ -866,6 +866,33 @@
         "date": "24 Februari 2026",
         "holder": "-",
         "link": "https://drive.google.com/file/d/1u6QDhTr-4Y-M1yKRosYWh-MDelKl7aty/view"
+      },
+      {
+        "id": "id-1784969063497",
+        "title": "Dataset Citra Inspeksi Visual Dengan Asam Asetat (IVA) Untuk Diagnosis Pra-Kanker Serviks",
+        "type": "Hak Cipta (Basis Data)",
+        "regNo": "EC00202254810",
+        "date": "18 Agustus 2022",
+        "holder": "Siti Nurmaini, dr. Patiyus Agustiansyah dkk",
+        "link": "https://drive.google.com/file/d/1jHtxgnzvxDVKiKN1IHKY-GIyF0nh20zH/view"
+      },
+      {
+        "id": "id-1784969133625",
+        "title": "Algoritma Pendeteksian Otomatis Columnar Area (CA) dan Lesi Acetowhite (AW) Berdasarkan Patogenesis Kanker Serviks oleh Human Papilloma Virus (HPV)",
+        "type": "Hak Cipta (Computer Program)",
+        "regNo": "EC00202252635",
+        "date": "11 Agustus 2022",
+        "holder": "Siti Nurmaini, Patiyus Agustiansyah dkk",
+        "link": "https://drive.google.com/file/d/1EBWbick8u5vg6HCoVhP99GwoXDdZKz7u/view"
+      },
+      {
+        "id": "id-1784969185290",
+        "title": "Algoritma Deteksi Penyakit Jantung Melalui Sinyal Short-term Elektrokardiogram Berbasis Convolutional Neural Networks (CNNs) 1 Dimensi",
+        "type": "Hak Cipta (Computer Program)",
+        "regNo": "EC00202051841",
+        "date": "21 November 2020",
+        "holder": "Siti Nurmaini, Annisa Darmawahyuni dkk",
+        "link": "https://drive.google.com/file/d/1GhNZwFAeI2BGaAAHuD0gP0MbXDDW97pQ/view"
       }
     ],
     "books": [
