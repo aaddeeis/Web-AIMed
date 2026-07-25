@@ -582,6 +582,36 @@
         "year": 2020,
         "doi": "10.1109/ACCESS.2020.3034367",
         "link": "https://ieeexplore.ieee.org/document/9241786"
+      },
+      {
+        "id": "id-1784967526773",
+        "title": "Congestive heart failure waveform classification based on short time-step analysis with recurrent network",
+        "authors": "",
+        "journal": "Informatics in Medicine Unlocked, Elsevier",
+        "details": "Vol. 21, Article 100441",
+        "year": 2020,
+        "doi": "10.1016/j.imu.2020.100441",
+        "link": "https://www.sciencedirect.com/science/article/pii/S2352914820305918"
+      },
+      {
+        "id": "id-1784967575362",
+        "title": "Robust detection of atrial fibrillation from short-term electrocardiogram using convolutional neural networks",
+        "authors": "",
+        "journal": "Future Generation Computer Systems, Elsevier",
+        "details": "Vol. 113, Pages 304–317",
+        "year": 2020,
+        "doi": "10.1016/j.future.2020.07.021",
+        "link": "https://www.sciencedirect.com/science/article/pii/S2352914820305918"
+      },
+      {
+        "id": "id-1784967656065",
+        "title": "Automated ECG Waveform Annotation Based on Stacked Long Short-Term Memory",
+        "authors": "",
+        "journal": "Computer Engineering and Applications Journal, Indonesia",
+        "details": "Vol. 9, No. 2",
+        "year": 2020,
+        "doi": "10.18495/comengapp.v9i2.341",
+        "link": "https://comengapp.unsri.ac.id/index.php/comengapp/article/view/341"
       }
     ],
     "conferences": [
