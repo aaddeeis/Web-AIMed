@@ -612,6 +612,46 @@
         "year": 2020,
         "doi": "10.18495/comengapp.v9i2.341",
         "link": "https://comengapp.unsri.ac.id/index.php/comengapp/article/view/341"
+      },
+      {
+        "id": "id-1784967745198",
+        "title": "Deep Learning-Based Stacked Denoising and Autoencoder for ECG Heartbeat Classification",
+        "authors": "",
+        "journal": "Electronics, MDPI, Switzerland",
+        "details": "Vol. 9, Article 135",
+        "year": 2020,
+        "doi": "10.3390/electronics9010135",
+        "link": "https://www.mdpi.com/2079-9292/9/1/135"
+      },
+      {
+        "id": "id-1784967786830",
+        "title": "An Automated ECG Beat Classification System Using Deep Neural Networks with an Unsupervised Feature Extraction Technique",
+        "authors": "",
+        "journal": "Applied Sciences, MDPI, Switzerland",
+        "details": "Vol. 9, Issue 14, Article 2921",
+        "year": 2019,
+        "doi": "10.3390/app9142921",
+        "link": "https://www.mdpi.com/2076-3417/9/14/2921"
+      },
+      {
+        "id": "id-1784967820961",
+        "title": "Deep Learning with a Recurrent Network Structure in the Sequence Modeling of Imbalanced Data for ECG-Rhythm Classifier",
+        "authors": "",
+        "journal": "Algorithms, MDPI, Switzerland",
+        "details": "Vol. 12, Issue 6, Article 118",
+        "year": 2019,
+        "doi": "10.3390/a12060118",
+        "link": "https://www.mdpi.com/1999-4893/12/6/118"
+      },
+      {
+        "id": "id-1784967864090",
+        "title": "Coronary Heart Disease Interpretation Based on Deep Neural Network",
+        "authors": "",
+        "journal": "Computer Engineering and Applications Journal, Indonesia",
+        "details": "Vol. 8, No. 1",
+        "year": 2019,
+        "doi": "10.18495/comengapp.v8i1.288",
+        "link": "https://comengapp.unsri.ac.id/index.php/comengapp/article/view/288"
       }
     ],
     "conferences": [
