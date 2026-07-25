@@ -492,6 +492,36 @@
         "year": 2021,
         "doi": "10.12928/telkomnika.v19i4.18878",
         "link": "https://telkomnika.uad.ac.id/index.php/TELKOMNIKA/article/view/18878/0"
+      },
+      {
+        "id": "id-1784966891814",
+        "title": "Unidirectional-bidirectional recurrent networks for cardiac disorders classification",
+        "authors": "",
+        "journal": "Telkomnika",
+        "details": "Vol. 19, No. 3, pp. 902–910",
+        "year": 2021,
+        "doi": "10.12928/telkomnika.v19i3.18876",
+        "link": "https://telkomnika.uad.ac.id/index.php/TELKOMNIKA/article/view/18876/0"
+      },
+      {
+        "id": "id-1784966926888",
+        "title": "AFibNet: an implementation of atrial fibrillation detection with convolutional neural network",
+        "authors": "",
+        "journal": "BMC Medical Informatics and Decision Making",
+        "details": "Volume 21, article number 216",
+        "year": 2021,
+        "doi": "10.1186/s12911-021-01571-1",
+        "link": "https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-021-01571-1"
+      },
+      {
+        "id": "id-1784966962821",
+        "title": "Beat-to-Beat Electrocardiogram Waveform Classification Based on a Stacked Convolutional and Bidirectional Long Short-Term Memory",
+        "authors": "",
+        "journal": "IEEE Access",
+        "details": "Vol. 9, pp. 92600–92613",
+        "year": 2021,
+        "doi": "10.1109/ACCESS.2021.3092631",
+        "link": "https://ieeexplore.ieee.org/document/9466128?source=authoralert"
       }
     ],
     "conferences": [
