@@ -522,6 +522,36 @@
         "year": 2021,
         "doi": "10.1109/ACCESS.2021.3092631",
         "link": "https://ieeexplore.ieee.org/document/9466128?source=authoralert"
+      },
+      {
+        "id": "id-1784967073204",
+        "title": "Segmentation atrioventricular septal defect by using convolutional neural networks based on U-NET architecture",
+        "authors": "",
+        "journal": "IAES International Journal of Artificial Intelligence (IJ-AI)",
+        "details": "Vol. 10, No. 3, pp. 553–562",
+        "year": 2021,
+        "doi": "10.11591/ijai.v10.i3.pp553-562",
+        "link": "https://ijai.iaescore.com/index.php/IJAI/article/view/20870"
+      },
+      {
+        "id": "id-1784967147975",
+        "title": "Machine Learning Techniques with Low-Dimensional Feature Extraction for Improving the Generalizability of Cardiac Arrhythmia",
+        "authors": "",
+        "journal": "IAENG International Journal of Computer Science",
+        "details": "Vol. 48, Issue 2, June 2021",
+        "year": 2021,
+        "doi": "-",
+        "link": "http://www.iaeng.org/IJCS/issues_v48/issue_2/IJCS_48_2_17.pdf"
+      },
+      {
+        "id": "id-1784967197729",
+        "title": "Convolutional neural network for semantic segmentation of fetal echocardiography based on four chamber view",
+        "authors": "",
+        "journal": "Bulletin of Electrical Engineering and Informatics",
+        "details": "Vol. 10, No. 4, pp. 1987–1996",
+        "year": 2021,
+        "doi": "10.11591/eei.v10i4.3060",
+        "link": "https://beei.org/index.php/EEI/article/view/3060"
       }
     ],
     "conferences": [
