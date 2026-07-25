@@ -772,6 +772,26 @@
         "year": 2019,
         "doi": "10.1088/1742-6596/1500/1/012134",
         "link": "https://iopscience.iop.org/article/10.1088/1742-6596/1500/1/012134"
+      },
+      {
+        "id": "id-1784968690632",
+        "title": "Instance Segmentation Approach for Detecting NonHypertrophic Synovium Knee Osteoarthritis",
+        "authors": "",
+        "conference": "2025 International Conference on Artificial Intelligence and Technological Solutions (ICAITech)",
+        "details": "Palembang, Indonesia, 2025, pp. 1-6",
+        "year": 2025,
+        "doi": "10.1109/ICAITech66481.2025.11387692",
+        "link": "https://ieeexplore.ieee.org/document/11387692"
+      },
+      {
+        "id": "id-1784968732353",
+        "title": "Detection and Segmentation of Cardiac Septal Defect in Pediatric Echocardiography Using YOLOv11-Based Instance Segmentation ",
+        "authors": "",
+        "conference": "2025 International Conference on Artificial Intelligence and Technological Solutions (ICAITech)",
+        "details": "Palembang, Indonesia, 2025, pp 155-160",
+        "year": 2025,
+        "doi": "10.1109/ICAITech66481.2025.11387681",
+        "link": "https://ieeexplore.ieee.org/document/11387681"
       }
     ],
     "ipr": [
