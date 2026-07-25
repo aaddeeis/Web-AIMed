@@ -282,6 +282,36 @@
         "year": 2024,
         "doi": "10.11591/ijai.v13.i3.pp3404-3413",
         "link": "https://ijai.iaescore.com/index.php/IJAI/article/view/24261/14150"
+      },
+      {
+        "id": "id-1784963622149",
+        "title": "XU-NetI: Simple U-shaped encoder-decoder network for accurate imputation of multivariate missing data",
+        "authors": "",
+        "journal": "Franklin Open",
+        "details": "Vol. 8, Article 100151",
+        "year": 2024,
+        "doi": "10.1016/j.fraope.2024.100151",
+        "link": "https://www.sciencedirect.com/science/article/pii/S2773186324000811"
+      },
+      {
+        "id": "id-1784963692430",
+        "title": "Health-related Data Analysis using Metaheuristic Optimization and Machine Learning",
+        "authors": "",
+        "journal": "IEEE Access",
+        "details": "Vol. 12, pp. 55342–55356",
+        "year": 2024,
+        "doi": "10.1109/ACCESS.2024.3390008",
+        "link": "https://ieeexplore.ieee.org/abstract/document/10500837/"
+      },
+      {
+        "id": "id-1784963739076",
+        "title": "Empowering AI-Diagnosis: Deep Learning Abilities for Accurate Atrial Fibrillation Classification.",
+        "authors": "",
+        "journal": "Empowering AI-Diagnosis: Deep Learning Abilities for Accurate Atrial Fibrillation Classification.",
+        "details": "Vol. 19, No. 17, pp. 134–151",
+        "year": 2023,
+        "doi": "10.3991/ijoe.v19i17.42499",
+        "link": "https://online-journals.org/index.php/i-joe/article/view/42499"
       }
     ],
     "conferences": [
