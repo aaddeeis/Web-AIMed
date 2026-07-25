@@ -702,6 +702,36 @@
         "year": 2023,
         "doi": "10.1109/ICoDSA58501.2023.10277564",
         "link": "https://ieeexplore.ieee.org/abstract/document/10277564"
+      },
+      {
+        "id": "id-1784968220107",
+        "title": "A Deep Learning Approach for Automated Prediction of Cardiac Arrest from Vital Sign Data of Intensive Care Unit Patients",
+        "authors": "",
+        "conference": "International Conference on Data Science and Its Applications (ICoDSA)",
+        "details": "Bandung, Indonesia, 2023, pp. 277-281",
+        "year": 2023,
+        "doi": "10.1109/ICoDSA58501.2023.10277367",
+        "link": "https://ieeexplore.ieee.org/abstract/document/10277367"
+      },
+      {
+        "id": "id-1784968269247",
+        "title": "Author Classification on Bibliographic Data Using Capsule Networks Architecture",
+        "authors": "",
+        "conference": "9th International Conference on Electrical Engineering, Computer Science and Informatics (EECSI)",
+        "details": "Jakarta, Indonesia, 2022, pp. 101-105",
+        "year": 2022,
+        "doi": "10.23919/EECSI56542.2022.9946586",
+        "link": "https://ieeexplore.ieee.org/abstract/document/9946586"
+      },
+      {
+        "id": "id-1784968300745",
+        "title": "Detection of Fetal Cardiac Chamber Three Vessel Trachea View using Deep Learning",
+        "authors": "",
+        "conference": "9th International Conference on Electrical Engineering, Computer Science and Informatics (EECSI)",
+        "details": "Jakarta, Indonesia, 2022, pp. 43-48",
+        "year": 2022,
+        "doi": "10.23919/EECSI56542.2022.9946528",
+        "link": "https://ieeexplore.ieee.org/abstract/document/9946528"
       }
     ],
     "ipr": [
