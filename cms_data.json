@@ -672,6 +672,36 @@
         "details": "Milan, Italy, LNCS Vol. 14892, pp. 45-54",
         "year": 2025,
         "doi": "10.1007/978-3-031-7230-2"
+      },
+      {
+        "id": "id-1784968053453",
+        "title": "Experimented Multi-Objective Teaching-Learning-Based Optimization for Medical Data Analysis",
+        "authors": "",
+        "conference": "International Conference on Data Science and Its Applications (ICoDSA)",
+        "details": "Kuta, Bali, Indonesia, 2024, pp. 174-177",
+        "year": 2024,
+        "doi": "10.1109/ICoDSA62899.2024.10652159",
+        "link": "https://ieeexplore.ieee.org/abstract/document/10652159"
+      },
+      {
+        "id": "id-1784968106945",
+        "title": "Deep Learning for Fetal QRS-complex Classification in Noninvasive Fetal Electrocardiogram",
+        "authors": "",
+        "conference": "International Conference on Data Science and Its Applications (ICoDSA)",
+        "details": "Bandung, Indonesia, 2023, pp. 215-218",
+        "year": 2023,
+        "doi": "10.1109/ICoDSA58501.2023.10277016",
+        "link": "https://ieeexplore.ieee.org/abstract/document/10277016"
+      },
+      {
+        "id": "id-1784968149615",
+        "title": "Yolact-based Approach for Real-Time Fetal Heart Segmentation",
+        "authors": "",
+        "conference": "International Conference on Data Science and Its Applications (ICoDSA)",
+        "details": "Bandung, Indonesia, 2023, pp. 282-286",
+        "year": 2023,
+        "doi": "10.1109/ICoDSA58501.2023.10277564",
+        "link": "https://ieeexplore.ieee.org/abstract/document/10277564"
       }
     ],
     "ipr": [
