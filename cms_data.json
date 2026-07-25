@@ -312,6 +312,36 @@
         "year": 2023,
         "doi": "10.3991/ijoe.v19i17.42499",
         "link": "https://online-journals.org/index.php/i-joe/article/view/42499"
+      },
+      {
+        "id": "id-1784963833437",
+        "title": "Automatic echocardiographic anomalies interpretation using a stacked residual-dense network model",
+        "authors": "",
+        "journal": "BMC bioinformatics",
+        "details": "Volume 24, article number 365",
+        "year": 2023,
+        "doi": "10.1186/s12859-023-05493-9",
+        "link": "https://link.springer.com/article/10.1186/s12859-023-05493-9"
+      },
+      {
+        "id": "id-1784963883824",
+        "title": "Accurate Fetal QRS-Complex Classification from Abdominal Electrocardiogram Using Deep Learning",
+        "authors": "",
+        "journal": "International Journal of Computational Intelligence Systems",
+        "details": "Volume 16, article number 158",
+        "year": 2023,
+        "doi": "10.1007/s44196-023-00339-x",
+        "link": "https://link.springer.com/article/10.1007/s44196-023-00339-x"
+      },
+      {
+        "id": "id-1784963918848",
+        "title": "Real time mobile AI-assisted cervicography interpretation system",
+        "authors": "",
+        "journal": "Informatics in Medicine Unlocked",
+        "details": "Vol. 42, Article 101360",
+        "year": 2023,
+        "doi": "10.1016/j.imu.2023.101360",
+        "link": "https://www.sciencedirect.com/science/article/pii/S235291482300206X"
       }
     ],
     "conferences": [
