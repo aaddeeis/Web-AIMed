@@ -552,6 +552,36 @@
         "year": 2021,
         "doi": "10.11591/eei.v10i4.3060",
         "link": "https://beei.org/index.php/EEI/article/view/3060"
+      },
+      {
+        "id": "id-1784967319981",
+        "title": "Delineation of electrocardiogram morphologies by using discrete wavelet transforms",
+        "authors": "",
+        "journal": "Indonesian Journal of Electrical Engineering and Computer Science",
+        "details": "Vol. 22, No. 1, pp. 159–167",
+        "year": 2020,
+        "doi": "10.11591/ijeecs.v22.i1.pp159-167",
+        "link": "https://ijeecs.iaescore.com/index.php/IJEECS/art%20icle/view/23897"
+      },
+      {
+        "id": "id-1784967384867",
+        "title": "Automated Detection of COVID-19 Infected Lesion on Computed Tomography Images Using FasterRCNNs",
+        "authors": "",
+        "journal": "Engineering Letters",
+        "details": "Vol. 28, Issue 4, Desember 2020",
+        "year": 2020,
+        "doi": "-",
+        "link": "http://www.engineeringletters.com/issues_v28/issue_4/EL_28_4_38.pdf"
+      },
+      {
+        "id": "id-1784967433766",
+        "title": "Accurate detection of septal defects with fetal ultrasonography images using deep learning-based multiclass instance segmentation",
+        "authors": "",
+        "journal": "IEEE Access",
+        "details": "Vol. 8, pp. 196160–196174",
+        "year": 2020,
+        "doi": "10.1109/ACCESS.2020.3034367",
+        "link": "https://ieeexplore.ieee.org/document/9241786"
       }
     ],
     "conferences": [
