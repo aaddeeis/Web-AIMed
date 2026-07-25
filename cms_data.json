@@ -372,6 +372,36 @@
         "year": 2023,
         "doi": "10.1007/s11517-023-02835-w",
         "link": "https://www.springerprofessional.de/en/cervicoxnet-an-automated-cervicogram-interpretation-network/25288690"
+      },
+      {
+        "id": "id-1784964397733",
+        "title": "DAE-ConvBiLSTM: End-to-end learning single-lead electrocardiogram signal for heart abnormalities detection",
+        "authors": "",
+        "journal": "Plos One",
+        "details": "Vol. 17(12), Article e0277932",
+        "year": 2022,
+        "doi": "10.1371/journal.pone.0277932",
+        "link": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0277932"
+      },
+      {
+        "id": "id-1784964593438",
+        "title": "Deep learning-based real time detection for cardiac objects with fetal ultrasound video",
+        "authors": "",
+        "journal": "Informatics in Medicine Unlocked",
+        "details": "Vol. 36 Article 101150",
+        "year": 2022,
+        "doi": "10.1016/j.imu.2022.101150",
+        "link": "https://www.sciencedirect.com/science/article/pii/S2352914822002878"
+      },
+      {
+        "id": "id-1784964645846",
+        "title": "FetalNet: Low-light fetal echocardiography enhancement and dense convolutional network classifier for improving heart defect prediction",
+        "authors": "",
+        "journal": "Informatics in Medicine Unlocked",
+        "details": "Vol. 35 Article 101136",
+        "year": 2022,
+        "doi": "10.1016/j.imu.2022.101136",
+        "link": "https://www.sciencedirect.com/science/article/pii/S2352914822002738"
       }
     ],
     "conferences": [
