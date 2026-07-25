@@ -462,6 +462,36 @@
         "year": 2021,
         "doi": "-",
         "link": "https://www.sciencedirect.com/science/article/pi%20i/S2352914820306584"
+      },
+      {
+        "id": "id-1784966583736",
+        "title": "Deep Learning-Based Computer-Aided Fetal Echocardiography: Application to Heart Standard View Segmentation for Congenital Heart Defects Detection",
+        "authors": "",
+        "journal": "Sensors, MDPI",
+        "details": "Vol. 21, Issue 23, Article 8007",
+        "year": 2021,
+        "doi": "10.3390/s21238007",
+        "link": "https://www.mdpi.com/1424-8220/21/23/8007"
+      },
+      {
+        "id": "id-1784966633327",
+        "title": "Deep ensemble learning for skin lesions classification with convolutional neural network",
+        "authors": "",
+        "journal": "IAES International Journal of Artificial Intelligence (IJ-AI)",
+        "details": "-",
+        "year": 2021,
+        "doi": "-",
+        "link": "https://www.proquest.com/openview/7adaaf72da202e30caf42f9d025ca%20d18/1?pq%02origsite=gscholar&cbl=1686339"
+      },
+      {
+        "id": "id-1784966673413",
+        "title": "Neural network technique with deep structure for improving author homonym and synonym classification in digital libraries",
+        "authors": "",
+        "journal": "Telkomnika",
+        "details": "Vol. 19, No. 4, pp. 1208–1217",
+        "year": 2021,
+        "doi": "10.12928/telkomnika.v19i4.18878",
+        "link": "https://telkomnika.uad.ac.id/index.php/TELKOMNIKA/article/view/18878/0"
       }
     ],
     "conferences": [
