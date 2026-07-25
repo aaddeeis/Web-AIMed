@@ -732,6 +732,46 @@
         "year": 2022,
         "doi": "10.23919/EECSI56542.2022.9946528",
         "link": "https://ieeexplore.ieee.org/abstract/document/9946528"
+      },
+      {
+        "id": "id-1784968375182",
+        "title": "Experimental Convolutional-Recurrent Network in ECG Rhythm for Atrial Fibrillation Classification",
+        "authors": "",
+        "conference": "9th International Conference on Electrical Engineering, Computer Science and Informatics (EECSI)",
+        "details": "Jakarta, Indonesia, 2022, pp. 1-6",
+        "year": 2022,
+        "doi": "10.23919/EECSI56542.2022.9946544",
+        "link": "https://ieeexplore.ieee.org/abstract/document/9946544"
+      },
+      {
+        "id": "id-1784968417995",
+        "title": "Author Matching Classification on a Highly Imbalanced Bibliographic Data using Cost-Sensitive Deep Neural Network",
+        "authors": "",
+        "conference": "International Conference on Informatics, Multimedia, Cyber and Information System (ICIMCIS)",
+        "details": "Jakarta, Indonesia, 2021, pp. 86-89",
+        "year": 2021,
+        "doi": "10.1109/ICIMCIS53775.2021.9699331",
+        "link": "https://ieeexplore.ieee.org/abstract/document/9699331"
+      },
+      {
+        "id": "id-1784968455114",
+        "title": "Deep Learning with Long Short-Term Memory for Enhancement Myocardial Infarction Classification",
+        "authors": "",
+        "conference": "6th International Conference on Instrumentation, Control, and Automation (ICA)",
+        "details": "Bandung, Indonesia, 2019, pp. 19-23",
+        "year": 2019,
+        "doi": "10.1109/ICA.2019.8916683",
+        "link": "https://ieeexplore.ieee.org/document/8916683"
+      },
+      {
+        "id": "id-1784968564528",
+        "title": "Analysis of Classifier Performance on ECG Interpretation for Precision Medicine: Which performance metrics should we use?",
+        "authors": "",
+        "conference": "3rd FIRST International Conference",
+        "details": "Vol 1500, Article 012134",
+        "year": 2019,
+        "doi": "10.1088/1742-6596/1500/1/012134",
+        "link": "https://iopscience.iop.org/article/10.1088/1742-6596/1500/1/012134"
       }
     ],
     "ipr": [
