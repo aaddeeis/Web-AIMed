@@ -252,6 +252,36 @@
         "year": 2024,
         "doi": "10.1186/s12911-024-02822-7",
         "link": "https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/s12911-024-02822-7"
+      },
+      {
+        "id": "id-1784963124479",
+        "title": "Robust assessment of cervical precancerous lesions from pre- and post-acetic acid cervicography by combining deep learning and medical guidelines",
+        "authors": "",
+        "journal": "Informatics in Medicine Unlocked",
+        "details": "Volume 52, Article 101609",
+        "year": 2024,
+        "doi": "10.1016/j.imu.2024.101609",
+        "link": "https://www.sciencedirect.com/science/article/pii/S2352914824001667"
+      },
+      {
+        "id": "id-1784963176015",
+        "title": "A Real-Time End-to-End Framework with a Stacked Model Using Ultrasound Video for Cardiac Septal Defect Decision-Making",
+        "authors": "",
+        "journal": "Journal of Imaging",
+        "details": "Vol. 10, Issue 11 / Article 280 / MDPI, Basel, Switzerland",
+        "year": 2024,
+        "doi": "10.3390/jimaging10110280",
+        "link": "https://www.mdpi.com/2313-433X/10/11/280"
+      },
+      {
+        "id": "id-1784963294538",
+        "title": "Multi-scale input reconstruction network and one-stage instance segmentation for enhancing heart defect prediction rate",
+        "authors": "",
+        "journal": "IAES International Journal of Artificial Intelligence (IJ-AI)",
+        "details": "Vol. 13, No. 3 / pp. 3404–3413 / Institute of Advanced Engineering and Science (IAES)",
+        "year": 2024,
+        "doi": "10.11591/ijai.v13.i3.pp3404-3413",
+        "link": "https://ijai.iaescore.com/index.php/IJAI/article/view/24261/14150"
       }
     ],
     "conferences": [
