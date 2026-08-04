@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
+import multer from "multer";
 import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
 
@@ -10,7 +11,17 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-// Increase payload limit for base64 medical image uploads and large CMS data structures
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), "public", "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve uploaded files statically
+app.use("/uploads", express.static(uploadsDir));
+app.use(express.static(path.join(process.cwd(), "public")));
+
+// Increase payload limit for large CMS data structures
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
@@ -19,10 +30,57 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   if (err && (err.type === 'entity.too.large' || err.status === 413)) {
     console.error('[Server Body Parser Error] Payload too large:', err.message);
     return res.status(413).json({
-      error: 'Ukuran data atau gambar yang diunggah terlalu besar. Sistem telah mengoptimalkan gambar secara otomatis, silakan coba simpan/publikasikan ulang.'
+      error: 'Ukuran data yang diunggah terlalu besar. Silakan periksa kembali data Anda.'
     });
   }
   next(err);
+});
+
+// Configure Multer for physical file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(process.cwd(), "public", "uploads");
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname) || ".jpg";
+    const uniqueName = `img_${Date.now()}_${Math.round(Math.random() * 1e9)}${ext}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 } // 20MB max per upload file
+});
+
+const uploadMiddleware = upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "file", maxCount: 1 }
+]);
+
+// POST /api/upload - Upload image file and return relative URL
+app.post("/api/upload", (req, res) => {
+  uploadMiddleware(req, res, (err) => {
+    if (err) {
+      console.error("[Upload API Error]", err);
+      return res.status(400).json({ success: false, error: err.message });
+    }
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const file = files?.image?.[0] || files?.file?.[0] || (req as any).file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: "No file uploaded." });
+    }
+    const fileUrl = `/uploads/${file.filename}`;
+    console.log(`[Upload API] File uploaded successfully: ${fileUrl}`);
+    return res.json({
+      success: true,
+      url: fileUrl
+    });
+  });
 });
 
 // Lazy initialize Gemini AI Client
